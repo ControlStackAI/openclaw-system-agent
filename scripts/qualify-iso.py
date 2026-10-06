@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import shutil
+import shlex
 import socket
 import subprocess
 import time
@@ -260,7 +261,9 @@ def main():
             if args.desktop == "none":
                 guest.command("cat /dev/vcs1 | grep 'OpenClaw is installed on this computer'")
             else:
-                guest.command("pgrep -u owner -x " + ("gnome-shell" if args.desktop == "gnome" else "plasmashell"))
+                shell_name = "gnome-shell" if args.desktop == "gnome" else "plasmashell"
+                guest.command("timeout 120 bash -c " + shlex.quote(
+                    "until pgrep -u owner -f '/bin/[^ ]*" + shell_name + "'; do sleep 2; done"))
 
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
             guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
@@ -292,7 +295,7 @@ p.write_text(json.dumps(c))
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
         except Exception:
             guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
-            print(guest.command("journalctl -b -u display-manager --no-pager -n 120; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|xterm|system_agent.setup' || true")[-16000:], flush=True)
+            print(guest.command("journalctl -b -u display-manager --no-pager -n 120; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|xterm|system_agent.setup' || true")[-16000:], flush=True)
             raise
         finally:
             guest.close()
