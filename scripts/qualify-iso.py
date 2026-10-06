@@ -252,7 +252,7 @@ def main():
                 guest.wait_screen_text("owner")
                 if args.desktop == "gnome":
                     guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
-                    guest.command("timeout 60 bash -c 'until pgrep -f "[p]am/gdm-password"; do sleep 1; done'")
+                    guest.command("timeout 60 bash -c 'until pgrep -f \"[p]am/gdm-password\"; do sleep 1; done'")
                     time.sleep(2)
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-a"})
             guest.type_console("vmonlytestpassword")

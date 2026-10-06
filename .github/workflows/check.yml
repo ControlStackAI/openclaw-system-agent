@@ -11,5 +11,6 @@ jobs:
         with:
           python-version: '3.12'
       - run: python3 -m unittest discover -s tests -v
+      - run: python3 -m compileall -q system_agent runtimes adapters scripts tests
       - run: bash -n adapters/arch/PKGBUILD
       - run: git diff --check
