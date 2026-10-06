@@ -50,10 +50,7 @@ class Guest:
                 # Only the disposable test disk uses this public fixture passphrase.
                 time.sleep(30)
                 self.qmp("screendump", {"filename": str(area / "unlock.png"), "format": "png"})
-                for key in "vm-encryption-test":
-                    self.qmp("human-monitor-command", {"command-line": "sendkey " + ("minus" if key == "-" else key), "hold-time": 50})
-                    time.sleep(0.08)
-                self.qmp("human-monitor-command", {"command-line": "sendkey ret"})
+                self.type_console("vm-encryption-test")
             if installed:
                 self.process.expect("login:")
                 self.process.sendline("owner")
@@ -100,6 +97,12 @@ class Guest:
                         raise RuntimeError(response)
                     if "return" in response:
                         break
+
+    def type_console(self, text):
+        for key in text:
+            self.qmp("human-monitor-command", {"command-line": "sendkey " + ("minus" if key == "-" else key), "hold-time": 50})
+            time.sleep(0.08)
+        self.qmp("human-monitor-command", {"command-line": "sendkey ret"})
 
     def close(self):
         if self.process.isalive():
@@ -153,21 +156,33 @@ def main():
             guest.command(live_env + "system-agent local-policy")
             guest.command("systemctl restart controlstack-agent; sleep 10")
             guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
-            guest.put("/tmp/install-test.py", '''import json, sys
-from pathlib import Path
-inputs = json.loads(Path('/etc/controlstack-agent/install-inputs.json').read_text())
-sys.path.insert(0, inputs['core'] + '/lib/system-agent')
-from adapters.nixos.install import disks, prepare, install
-nodes = [n for n in disks() if n['serial'] == 'CONTROLSTACK-VM-ONLY']
-assert len(nodes) == 1
-choices = dict(hostname='vmresident', username='owner', desktop=DESKTOP_CHOICE, timezone='UTC', keyboard='us', locale='en_US.UTF-8', encrypt=ENCRYPT_CHOICE)
-Path('/run/controlstack-agent/live-only-credential-fixture').write_text('must-not-transfer')
-Path('/run/controlstack-agent/live-only-credential-fixture').chmod(0o600)
-plan = prepare(nodes[0], choices)
-install(plan, 'ERASE CONTROLSTACK-VM-ONLY', 'vm-only-test-password', 'vm-encryption-test' if choices['encrypt'] else None)
-print('INSTALL_COMPLETED')
-'''.replace('DESKTOP_CHOICE', repr(args.desktop)).replace('ENCRYPT_CHOICE', repr(args.encrypted)))
-            guest.command("python3 /tmp/install-test.py", timeout=3600)
+            guest.command(live_env + "system-agent setup-choice hostname vmresident")
+            guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
+            # Drive the shipped local review screen, including separate disk approval.
+            guest.process.sendline("system-agent-setup")
+            def answer(prompt, value, timeout=300):
+                guest.process.expect_exact(prompt, timeout=timeout)
+                guest.process.sendline(value)
+            answer("Choose a number:", "4")
+            answer("Choose a number:", "2")
+            answer("Choose a number:", "1")
+            answer("Choose a number:", "1")
+            answer("Name for your local account [owner]:", "owner")
+            answer("Choose a number:", str(["none", "plasma", "gnome"].index(args.desktop) + 1))
+            answer("Choose a number:", "1")
+            answer("Choose a number:", "1")
+            answer("[UTC]:", "UTC")
+            answer("Choose a number:", "1" if args.encrypted else "2")
+            answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=3600)
+            answer("Password for your local account (hidden):", "vm-only-test-password")
+            answer("Enter it again:", "vm-only-test-password")
+            if args.encrypted:
+                answer("Disk unlock passphrase (hidden; keep a safe copy elsewhere):", "vm-encryption-test")
+                answer("Enter it again:", "vm-encryption-test")
+            guest.process.expect_exact("Installation files are ready.", timeout=3600)
+            answer("Choose a number:", "7")
+            guest.process.expect_exact("CS_READY> ")
+
     finally:
         guest.close()
     if installing:
@@ -180,10 +195,23 @@ print('INSTALL_COMPLETED')
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
             guest.command(f"grep 'desktop: {args.desktop}' /var/lib/controlstack-agent/workspace/USER.md")
             if args.desktop != "none":
-                guest.command("systemctl is-active display-manager")
+                guest.command("timeout 180 bash -c 'until systemctl is-active --quiet display-manager; do sleep 2; done'")
             if args.encrypted:
                 guest.command("zfs get -H -o value encryption $(findmnt -n -o SOURCE /) | grep -x aes-256-gcm")
             guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
+            guest.qmp("screendump", {"filename": str(area / "login.png"), "format": "png"})
+            if args.desktop == "none":
+                guest.type_console("owner")
+            elif args.desktop == "gnome":
+                guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
+            time.sleep(3)
+            guest.type_console("vm-only-test-password")
+            guest.command("timeout 120 bash -c 'until pgrep -u root -f \"[p]ython3.*system_agent.setup\"; do sleep 2; done'")
+            if args.desktop == "none":
+                guest.command("cat /dev/vcs1 | grep 'OpenClaw is installed on this computer'")
+            else:
+                guest.command("pgrep -u owner -x " + ("gnome-shell" if args.desktop == "gnome" else "plasmashell"))
+
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
             guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
             guest.put("/tmp/provider-config.py", '''import json
@@ -198,13 +226,18 @@ p.write_text(json.dumps(c))
             guest.command("sleep 10; runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
             guest.command("grep -q 'Owner.s chosen system' /tmp/fixture-request.json")
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
+        except Exception:
+            guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
+            raise
         finally:
             guest.close()
     with iso.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
                "installation": installing, "disk_boot_without_iso": installing,
-               "desktop": args.desktop, "encryption": args.encrypted, "graphical_owner_login": False,
+               "desktop": args.desktop, "encryption": args.encrypted, "graphical_owner_login": installing and args.desktop != "none",
+               "installed_setup_autostart": installing,
+               "interactive_install_review": installing,
                "provider": "local deterministic fixture" if installing else "none",
                "real_account_login": False, "physical_disks_attached": False}
     (area / "result.json").write_text(json.dumps(receipt, indent=2) + "\n")
