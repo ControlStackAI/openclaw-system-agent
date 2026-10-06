@@ -42,7 +42,7 @@
       "private credential permissions",
       "resident identity included in provider request",
       "conversation history retained after guest reboot",
-      "workspace and token state retained across reboot",
+      "workspace state retained across reboot",
       "fresh boot facts",
       "rejection of missing installed-boot handoff",
       "approved snapshot and replay rejection",
