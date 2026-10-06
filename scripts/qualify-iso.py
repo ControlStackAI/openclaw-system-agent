@@ -45,18 +45,24 @@ class Guest:
         self.process = pexpect.spawn("qemu-system-x86_64", args, encoding="utf-8", codec_errors="replace", timeout=300)
         self.process.logfile = self.log
         self.count = 0
-        if installed:
-            self.process.expect("login:")
-            self.process.sendline("owner")
-            self.process.expect("Password:")
-            self.process.sendline("vm-only-test-password")
-            self.process.expect(r"owner@[^\r\n]*\$")
-            self.process.sendline("sudo -i")
-            self.process.expect("password for owner:")
-            self.process.sendline("vm-only-test-password")
-        self.process.expect(r"root@[^\r\n]*#")
-        self.process.sendline("stty -echo; export PS1='CS_READY> '")
-        self.process.expect("CS_READY> ")
+        try:
+            if installed:
+                self.process.expect("login:")
+                self.process.sendline("owner")
+                self.process.expect("Password:")
+                self.process.sendline("vm-only-test-password")
+                self.process.expect(r"owner@[^\r\n]*\$")
+                self.process.sendline("sudo -i")
+                self.process.expect("password for owner:")
+                self.process.sendline("vm-only-test-password")
+            self.process.expect(r"root@[^\r\n]*#")
+            self.process.sendline("stty -echo; export PS1='CS_READY> '")
+            self.process.expect("CS_READY> ")
+        except Exception:
+            self.qmp("screendump", {"filename": str(area / "boot-failure.png"), "format": "png"})
+            self.process.terminate(force=True)
+            self.log.close()
+            raise
 
     def command(self, command, timeout=300):
         self.count += 1
@@ -159,7 +165,7 @@ print('INSTALL_COMPLETED')
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("test ! -e /etc/agent-installer/live-image")
-            guest.command("systemctl is-active controlstack-agent controlstack-agent-boot-check")
+            guest.command("timeout 180 bash -c 'until systemctl is-active --quiet controlstack-agent; do sleep 2; done'; systemctl is-active controlstack-agent controlstack-agent-boot-check || { journalctl -b -u controlstack-agent -u controlstack-agent-boot-check --no-pager; exit 1; }")
             guest.command("test ! -e /var/lib/controlstack-agent/live-only-credential-fixture")
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
             guest.command("grep 'desktop: none' /var/lib/controlstack-agent/workspace/USER.md")

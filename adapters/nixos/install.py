@@ -263,6 +263,8 @@ def install(plan, confirmation, password, encryption_key=None):
     run(["mount", "-o", "umask=0077", efi, str(TARGET / "boot")])
     (TARGET / "etc/nixos").mkdir(parents=True)
     create_private(TARGET / "etc/machine-id", plan["machine_id"] + "\n")
+    # Machine identity is public system metadata, read by unprivileged services.
+    (TARGET / "etc/machine-id").chmod(0o644)
     create_private(TARGET / "var/lib/controlstack-owner.password", password_hash + "\n")
     # Keep the exact reproducible expression and its source references on target.
     create_private(TARGET / "etc/nixos/target.nix", Path(plan["expression"]).read_text())
