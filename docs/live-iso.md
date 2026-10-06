@@ -1,7 +1,7 @@
 # Should OpenClaw have its own live ISO?
 
-Recommendation: use one installer image architecture and an optional OpenClaw
-runtime profile, rather than maintain a second remastering pipeline. OpenClaw is
+Accepted direction: use one installer image architecture and an optional OpenClaw
+runtime profile. OpenClaw is
 useful in recovery when its durable runtime and tool ecosystem are needed, but
 its Node runtime, gateway, database, provider plugins and credential setup add
 more moving parts than a single console client.
@@ -26,6 +26,16 @@ and revision identifiers; arbitrary Markdown, transcripts and credential paths d
 not cross this boundary. The narrow contract is proposed here; the installer does
 not yet emit it. Existing-instance adoption is a different, explicitly approved
 full-state migration operation.
+
+The profile must establish the current purpose as well as its environment:
+installation, maintenance or recovery. Booting live media alone never selects
+installation. The resident identity includes the guided OS-choice behavior in
+[onboarding](onboarding.md), including desktop or no desktop. Durable owner
+preferences use the private workspace USER.md on the installed system. Live
+preferences remain in RAM; transferring them will require a separately reviewed,
+typed non-secret preferences contract. Do not copy the live workspace or expand
+the current facts-only handoff to arbitrary Markdown. That transfer is not wired
+into the installer today.
 
 A future ISO needs direct BIOS and UEFI console tests, automatic first-console
 startup, separate troubleshooting consoles, reconnect after login selection,

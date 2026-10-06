@@ -35,6 +35,9 @@ pkgs.testers.runNixOSTest {
     machine.succeed("test $(stat -c %a /var/lib/controlstack-agent) = 700")
     machine.succeed("test $(stat -c %a /var/lib/controlstack-agent/gateway-token) = 600")
     machine.succeed("test -s /var/lib/controlstack-agent/workspace/AGENTS.md")
+    machine.succeed("test $(stat -c %a /var/lib/controlstack-agent/workspace/USER.md) = 600")
+    # Model fixture cannot choose preferences; simulate an authorized profile edit.
+    machine.succeed("su -s /bin/sh controlstack-agent -c 'echo owner-intent-sentinel-no-desktop >> /var/lib/controlstack-agent/workspace/USER.md'")
     machine.succeed("test -s /var/lib/controlstack-agent/lifecycle/facts.json")
     # Authenticated CLI health must succeed independently of anonymous HTTP liveness.
     command = "su -s /bin/sh controlstack-agent -c 'OPENCLAW_NIX_MODE=1 OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json system-agent health'"
@@ -42,6 +45,7 @@ pkgs.testers.runNixOSTest {
     agent_command = "su -s /bin/sh controlstack-agent -c 'OPENCLAW_NIX_MODE=1 OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json openclaw agent --agent main --session-key agent:main:resident-vm --message persistence-sentinel --json'"
     machine.succeed(agent_command, timeout=120)
     machine.succeed("grep -q 'ControlStackAI resident system agent' /tmp/fixture-request.json")
+    machine.succeed("grep -q owner-intent-sentinel-no-desktop /tmp/fixture-request.json")
     machine.fail("su -s /bin/sh nobody -c 'cat /var/lib/controlstack-agent/gateway-token'")
     machine.succeed("echo preserved > /var/lib/controlstack-agent/workspace/sentinel")
     first_boot = machine.succeed("cat /proc/sys/kernel/random/boot_id").strip()
@@ -52,6 +56,10 @@ pkgs.testers.runNixOSTest {
     machine.succeed(agent_command.replace("persistence-sentinel", "second-turn"), timeout=120)
     machine.succeed("grep -q persistence-sentinel /tmp/fixture-request.json")
     machine.succeed("grep -x preserved /var/lib/controlstack-agent/workspace/sentinel")
+    machine.succeed("grep -q owner-intent-sentinel-no-desktop /var/lib/controlstack-agent/workspace/USER.md")
+    # A fresh session proves profile injection independently of the old conversation.
+    machine.succeed(agent_command.replace("resident-vm", "profile-fresh").replace("persistence-sentinel", "profile-check"), timeout=120)
+    machine.succeed("grep -q owner-intent-sentinel-no-desktop /tmp/fixture-request.json")
     facts = json.loads(machine.succeed("cat /var/lib/controlstack-agent/lifecycle/facts.json"))
     assert facts['boot_id'] != first_boot
     assert facts['boot_id'] == machine.succeed("cat /proc/sys/kernel/random/boot_id").strip()
@@ -80,5 +88,6 @@ pkgs.testers.runNixOSTest {
     archive = machine.succeed("find /var/lib/agent-backups -name '*.tar.gz' | head -1").strip()
     machine.succeed("su -s /bin/sh controlstack-agent -c 'OPENCLAW_NIX_MODE=1 OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json openclaw backup restore " + archive + " --target /var/lib/agent-backups/restored --json'", timeout=120)
     machine.succeed("find /var/lib/agent-backups/restored -name sentinel -exec grep -x preserved {} \\; | grep preserved")
+    machine.succeed("find /var/lib/agent-backups/restored -name USER.md -exec grep -q owner-intent-sentinel-no-desktop {} \\; -print | grep USER.md")
   '';
 }

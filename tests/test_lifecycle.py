@@ -49,6 +49,7 @@ class Lifecycle(unittest.TestCase):
         initialize(state, ROOT / 'identity')
         token = (state / 'gateway-token').read_bytes()
         (state / 'workspace/IDENTITY.md').write_text('Existing owner identity')
+        (state / 'workspace/USER.md').write_text('Owner chose no desktop; preserve my data')
         (state / 'session.sqlite').write_bytes(b'existing conversation bytes')
         config = (state / 'openclaw.json').read_bytes()
         initialize(state, ROOT / 'identity')
@@ -56,6 +57,8 @@ class Lifecycle(unittest.TestCase):
         self.assertEqual((state / 'openclaw.json').read_bytes(), config)
         self.assertEqual((state / 'session.sqlite').read_bytes(), b'existing conversation bytes')
         self.assertEqual((state / 'workspace/IDENTITY.md').read_text(), 'Existing owner identity')
+        self.assertEqual((state / 'workspace/USER.md').read_text(), 'Owner chose no desktop; preserve my data')
+        self.assertEqual((state / 'workspace/USER.md').stat().st_mode & 0o777, 0o600)
         self.assertEqual(state.stat().st_mode & 0o777, 0o700)
         self.assertEqual((state / 'gateway-token').stat().st_mode & 0o777, 0o600)
 

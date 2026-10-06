@@ -3,6 +3,7 @@
 | State | Location / ownership | Recovery rule |
 | --- | --- | --- |
 | Workspace and identity | `state/workspace`, service account | Preserve owner edits; initialization never replaces files |
+| Owner intentions | `state/workspace/USER.md`, service account, private | Non-secret choices separate from observed facts and approvals; preserve with workspace backups |
 | Shared runtime database | OpenClaw-managed state subtree | Native consistent backup, not a raw live SQLite copy |
 | Agent databases, sessions, transcripts, auth | OpenClaw-managed `agents/` and any registered external roots | Enumerate canonical roots; native verified archive; preserve database plus companion state |
 | Provider/channel credentials | Runtime auth database or private SecretRef targets | Fresh installed setup; protected backup policy; never public diagnostics |

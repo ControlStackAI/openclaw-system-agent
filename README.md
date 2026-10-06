@@ -20,7 +20,7 @@ agent state is included. All project history begins with generic source.
 
 - `system_agent/`: environment facts, state initialization, handoff, reboot checks,
   readiness gates and capability planning.
-- `identity/`: OpenClaw AGENTS, SOUL, IDENTITY and startup guidance.
+- `identity/`: OpenClaw AGENTS, SOUL, IDENTITY, owner preferences and startup guidance.
 - `runtimes/openclaw/`: official CLI/provider integration and reviewed input metadata.
 - `adapters/nixos/`: declarative package/service and guarded kernel/ZFS selection.
 - `adapters/arch/`: native lifecycle PKGBUILD and restricted systemd service.
@@ -54,6 +54,12 @@ facts in private state. `verify-boot` requires a handoff and an independent rebo
 These commands are intended to run with the service account's state/config context.
 The eventual friendly first-run flow is specified in [onboarding](docs/onboarding.md);
 provider setup on NixOS is not yet a novice-ready UI.
+
+The conversation profile distinguishes setup, maintenance and recovery. During
+setup it asks about a desktop or no desktop, then other relevant OS decisions
+one at a time. A private USER.md template separates owner intentions from system
+facts and approvals. Profile writing needs an authorized workspace tool; desktop
+installation and a deterministic setup questionnaire are not implemented.
 
 Read the [state/recovery model](docs/state-and-recovery.md),
 [live ISO decision](docs/live-iso.md), and [upstream evidence](docs/upstream.md).
