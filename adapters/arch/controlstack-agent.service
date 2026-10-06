@@ -29,7 +29,8 @@ PrivateDevices=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
-RestrictSUIDSGID=true
+# OpenClaw requires openat2, which RestrictSUIDSGID blocks.
+RestrictSUIDSGID=false
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 ReadWritePaths=/var/lib/controlstack-agent
 

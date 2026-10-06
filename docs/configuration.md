@@ -43,3 +43,10 @@ account cannot access root-private plans or grant itself administrator authority
 Arch administrators must provision the same root-owned policy at
 `/etc/controlstack-agent/capabilities.json`; absent policy denies all actions.
 This CLI is currently an administrator workflow, not the finished novice UI.
+
+`RestrictSUIDSGID` is explicitly disabled because systemd's filter returns ENOSYS
+for `openat2`, which OpenClaw requires for safe gateway-lock path resolution.
+The first hosted gateway VM found this conflict before the health endpoint could
+start. NoNewPrivileges, the empty capability set and filesystem protections remain.
+See [systemd's seccomp implementation](https://github.com/systemd/systemd/blob/main/src/shared/seccomp-util.c)
+and [upstream issue 43314](https://github.com/systemd/systemd/issues/43314).

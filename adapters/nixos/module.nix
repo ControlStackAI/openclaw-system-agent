@@ -86,7 +86,9 @@ in {
         ProtectKernelTunables = true;
         ProtectKernelModules = true;
         ProtectControlGroups = true;
-        RestrictSUIDSGID = true;
+        # This filter returns ENOSYS for openat2, required by OpenClaw's secure lock.
+        # NoNewPrivileges and the empty capability set still prevent privilege gains.
+        RestrictSUIDSGID = false;
         RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
         LockPersonality = true;
         ReadWritePaths = [ state ];

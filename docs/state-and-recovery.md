@@ -16,6 +16,8 @@
 It includes workspace by default. A backup archive may contain credentials and
 must be encrypted for off-device storage by the operator's chosen backup system.
 The wrapper uses a private destination and does not claim encryption.
+Inventory external SecretRef files and secret-manager recovery separately; do not
+assume the native archive captures every external credential source.
 Verification success is required; a running copy job is not a completed backup.
 
 Adoption is **not an automatic migration feature**. First enumerate all active,
