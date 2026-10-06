@@ -59,8 +59,8 @@
   "live_iso": true,
   "source_ci": {
     "status": "passed",
-    "source_commit": "4b9bdd97fc6fd9dc0692e157fb5d21cfc1f85f7e",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37522513877"
+    "source_commit": "da2b34ad316d444191f63ae7316a4cf876f44aae",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37542939514"
   },
   "production_ready": false,
   "not_qualified": [

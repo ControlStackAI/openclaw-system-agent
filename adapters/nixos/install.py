@@ -90,7 +90,7 @@ def render_target(plan, inputs):
     q = nix_string
     return f'''import {q(inputs["nixpkgs"] + "/nixos")} {{
   system = "x86_64-linux";
-  configuration = {{ pkgs, lib, ... }}: {{
+  configuration = {{ config, pkgs, lib, ... }}: {{
     imports = [ {q(inputs["source"] + "/adapters/nixos/module.nix")}
       (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; }}) ];
     services.controlstackAgent = {{
@@ -135,7 +135,9 @@ def render_target(plan, inputs):
     fileSystems."/home" = {{ device = {q(plan["pool"] + "/home")}; fsType = "zfs"; }};
     fileSystems."/var/lib/controlstack-agent" = {{ device = {q(plan["pool"] + "/agent")}; fsType = "zfs"; }};
     fileSystems."/boot" = {{ device = {q("/dev/disk/by-partuuid/" + plan["efi_uuid"])}; fsType = "vfat"; options = [ "umask=0077" ]; }};
-    environment.systemPackages = [ pkgs.xterm pkgs.curl pkgs.whois pkgs.python3 ];
+    environment.systemPackages = [ pkgs.xterm pkgs.curl pkgs.whois pkgs.python3
+      (pkgs.writeTextDir "share/applications/controlstack-agent.desktop"
+        config.environment.etc."xdg/autostart/controlstack-agent.desktop".text) ];
     environment.interactiveShellInit = \'\'
       if [ "$(id -un)" = {c["username"]} ] && [ -t 0 ] && [ "$(tty)" = /dev/tty1 ] &&
          [ "\'\'${{CONTROLSTACK_SETUP_OPENED:-}}" != 1 ]; then
@@ -147,6 +149,9 @@ def render_target(plan, inputs):
       [Desktop Entry]
       Type=Application
       Name=System Assistant
+      Comment=Talk to your resident computer assistant
+      Icon=computer
+      Categories=System;
       Exec=${{pkgs.xterm}}/bin/xterm -T "System Assistant" -e sudo {inputs["core"]}/bin/system-agent-setup
       Terminal=false
     \'\';

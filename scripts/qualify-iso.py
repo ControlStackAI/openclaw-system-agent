@@ -222,6 +222,7 @@ def main():
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("test ! -e /etc/agent-installer/live-image")
+            guest.command("test -r /run/current-system/sw/share/applications/controlstack-agent.desktop")
             guest.command("timeout 180 bash -c 'until systemctl is-active --quiet controlstack-agent; do sleep 2; done'; systemctl is-active controlstack-agent controlstack-agent-boot-check || { journalctl -b -u controlstack-agent -u controlstack-agent-boot-check --no-pager; exit 1; }")
             guest.command("test ! -e /var/lib/controlstack-agent/live-only-credential-fixture")
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")

@@ -9,8 +9,9 @@ as an OpenClaw implementation.
 The live image uses the complete official `openclaw-gateway` Nix package, including
 its runtime dependencies. It disables messaging channels and network discovery.
 “Minimal” refers to this local purpose, not extracting a single runtime executable.
-The build pins remain in flake.lock. Installed desktops are fetched during target
-preparation rather than all bundled into the live image.
+The build pins remain in flake.lock. Optional Plasma and GNOME closures are bundled on read-only media. This makes
+the image larger but avoids exhausting the live RAM store during preparation.
+The live session remains a console; desktop selection affects the installed system.
 
 Live config, identity, sessions and credentials reside under the private tmpfs
 `/run/controlstack-agent`. Reboot or the explicit forget action removes the session.

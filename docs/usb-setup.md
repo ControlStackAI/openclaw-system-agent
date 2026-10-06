@@ -28,7 +28,8 @@ remain locked to the project's reviewed inputs and compatibility guard.
 
 The resident OpenClaw service starts on the installed system. The owner signs in
 to the local account and System Assistant opens on the first console or graphical
-login. A fresh OpenClaw sign-in is required: live credentials, configuration,
+login. On a desktop, reopen it from the System Assistant application-menu entry.
+A fresh OpenClaw sign-in is required: live credentials, configuration,
 workspace and conversations are not transferred. Only validated OS choices and
 a narrow installed-boot record cross the boundary. The service checks the actual
 root dataset, machine identity and new boot ID independently of model health.
