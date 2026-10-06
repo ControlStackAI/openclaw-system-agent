@@ -32,7 +32,7 @@
       system-agent-setup
     fi
   '';
-  image.fileName = lib.mkForce "controlstack-openclaw-nixos-x86_64.iso";
+  image.baseName = lib.mkForce "controlstack-openclaw-nixos-x86_64";
   isoImage.volumeID = "OPENCLAW_NIXOS";
   isoImage.squashfsCompression = "zstd -Xcompression-level 6";
   nix.settings.experimental-features = [ "nix-command" "flakes" ];

@@ -120,6 +120,11 @@ def render_target(plan, inputs):
       package = builtins.storePath {q(inputs["runtime"])};
       corePackage = builtins.storePath {q(inputs["core"])};
     }};
+    hardware.enableRedistributableFirmware = true;
+    environment.etc."controlstack-agent/build-inputs.json".text = builtins.toJSON {{
+      nixpkgs = builtins.storePath {q(inputs["nixpkgs"])};
+      source = builtins.storePath {q(inputs["source"])};
+    }};
     boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "sd_mod" "virtio_pci" "virtio_blk" "virtio_scsi" ];
     boot.kernelParams = [ "console=ttyS0,115200" "console=tty0" ];
     boot.loader.systemd-boot.enable = true;
@@ -247,7 +252,7 @@ def install(plan, confirmation, password, encryption_key=None):
     run(["zfs", "create", "-o", "mountpoint=/var/lib/controlstack-agent", pool + "/agent"])
     run(["zpool", "set", "bootfs=" + pool + "/ROOT/system", pool])
     (TARGET / "boot").mkdir()
-    run(["mount", efi, str(TARGET / "boot")])
+    run(["mount", "-o", "umask=0077", efi, str(TARGET / "boot")])
     (TARGET / "etc/nixos").mkdir(parents=True)
     create_private(TARGET / "etc/machine-id", plan["machine_id"] + "\n")
     create_private(TARGET / "var/lib/controlstack-owner.password", password_hash + "\n")
@@ -256,7 +261,6 @@ def install(plan, confirmation, password, encryption_key=None):
     create_private(TARGET / "etc/nixos/README", "Build with nix-build target.nix -A config.system.build.toplevel.\nThis records the original pinned system; review changes before rebuilding.\n")
     run(["nixos-install", "--root", str(TARGET), "--system", plan["system"], "--no-root-passwd", "--no-channel-copy"])
     # Create fresh resident state. No live workspace, transcript, config or token is copied.
-    inputs = json.loads(INPUTS.read_text())
     account_line = next(line for line in (TARGET / "etc/passwd").read_text().splitlines() if line.startswith("controlstack-agent:"))
     _, _, uid, gid, *_ = account_line.split(":")
     state = private_dir(TARGET / "var/lib/controlstack-agent")
@@ -272,11 +276,7 @@ def install(plan, confirmation, password, encryption_key=None):
                    "\n- Purpose: maintain this installed system; do not repeat installation.\n- Filesystem: ZFS with portable snapshots and independent backups to arrange.\n")
     for path in [state, *state.rglob("*")]:
         os.chown(path, int(uid), int(gid))
-    # Root each referenced source/runtime in the installed store for future rebuilds.
-    for name in ("nixpkgs", "source", "core", "runtime"):
-        run(["nix", "copy", "--to", "local?root=" + str(TARGET), inputs[name]])
-        root = TARGET / "nix/var/nix/gcroots" / ("controlstack-" + name)
-        root.symlink_to(inputs[name])
+    # Rebuild sources are references of the installed system closure, copied by nixos-install.
     run(["sync"])
     run(["umount", str(TARGET / "boot")])
     run(["zpool", "export", pool])

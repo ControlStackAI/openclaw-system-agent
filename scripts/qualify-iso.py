@@ -119,7 +119,7 @@ def main():
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
         guest.command("openclaw --version")
-        guest.command("openclaw onboard --help | grep -- --skip-daemon")
+        guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
         guest.command("cat /dev/vcs1 | grep 'Welcome to your OpenClaw'")
         guest.qmp("screendump", {"filename": str(area / "welcome.png"), "format": "png"})
         if not installing:
@@ -137,6 +137,7 @@ nodes = [n for n in disks() if n['serial'] == 'CONTROLSTACK-VM-ONLY']
 assert len(nodes) == 1
 choices = dict(hostname='vmresident', username='owner', desktop='none', timezone='UTC', keyboard='us', locale='en_US.UTF-8', encrypt=False)
 Path('/run/controlstack-agent/live-only-credential-fixture').write_text('must-not-transfer')
+Path('/run/controlstack-agent/live-only-credential-fixture').chmod(0o600)
 plan = prepare(nodes[0], choices)
 install(plan, 'ERASE CONTROLSTACK-VM-ONLY', 'vm-only-test-password')
 print('INSTALL_COMPLETED')
