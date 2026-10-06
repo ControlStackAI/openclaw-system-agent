@@ -252,7 +252,8 @@ def main():
                 guest.wait_screen_text("owner")
                 if args.desktop == "gnome":
                     guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
-                    guest.wait_screen_text("Password")
+                    guest.command("timeout 60 bash -c 'until pgrep -f "[p]am/gdm-password"; do sleep 1; done'")
+                    time.sleep(2)
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-a"})
             guest.type_console("vmonlytestpassword")
             guest.command("timeout 120 bash -c 'until pgrep -u root -f \"[p]ython3.*system_agent.setup\"; do sleep 2; done'")
@@ -281,6 +282,13 @@ p.write_text(json.dumps(c))
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-d"})
                 guest.command("sleep 3; grep -q \"What would you like to do?\" /dev/vcs1")
 
+            if args.desktop != "none":
+                guest.type_console("2")
+                guest.wait_screen_text("resident conversation works")
+                guest.qmp("screendump", {"filename": str(area / "conversation.png"), "format": "png"})
+                guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-d"})
+                guest.wait_screen_text("What would you like to do?")
+
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
         except Exception:
             guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
@@ -295,6 +303,7 @@ p.write_text(json.dumps(c))
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
                "primary_console_tui_reply": installing and args.desktop == "none",
+               "graphical_tui_reply": installing and args.desktop != "none",
                "interactive_install_review": installing,
                "provider": "local deterministic fixture" if installing else "none",
                "real_account_login": False, "physical_disks_attached": False}
