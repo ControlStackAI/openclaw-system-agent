@@ -179,6 +179,7 @@ def main():
             answer("Choose a number:", "1")
             answer("Choose a number:", "1")
             answer("[UTC]:", "UTC")
+            guest.process.expect_exact("Encrypt your files?")
             answer("Choose a number:", "1" if args.encrypted else "2")
             answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=3600)
             answer("Password for your local account (hidden):", "vm-only-test-password")

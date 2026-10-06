@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from adapters.nixos.install import validate_choices, eligible, render_target, install
+from adapters.nixos.install import validate_choices, eligible, render_target, install, timezone_choice
 from system_agent.state import initialize
 from system_agent import choices
 
@@ -12,6 +12,11 @@ CHOICES = dict(hostname="my-computer", username="owner", desktop="none", timezon
 
 
 class Installation(unittest.TestCase):
+    def test_exact_timezone_does_not_ask_about_aliases(self):
+        with patch("builtins.input", side_effect=[""]), patch("system_agent.setup.choose") as choose:
+            self.assertEqual(timezone_choice(), "UTC")
+            choose.assert_not_called()
+
     def test_conversation_choices_remain_partial_and_never_approve_erasure(self):
         with tempfile.TemporaryDirectory() as directory:
             self.assertEqual(choices.read(directory), {})

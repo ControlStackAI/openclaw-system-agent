@@ -313,8 +313,10 @@ def timezone_choice():
     while True:
         city = input("Which city should we use for your time zone? For example London or Los Angeles [UTC]: ").strip() or "UTC"
         normalized = city.casefold().replace(" ", "_")
-        matches = sorted(zone for zone in available_timezones()
-                         if zone.casefold() == normalized or zone.rsplit("/", 1)[-1].casefold() == normalized)
+        zones = available_timezones()
+        exact = next((zone for zone in zones if zone.casefold() == normalized), None)
+        matches = [exact] if exact else sorted(zone for zone in zones
+                         if zone.rsplit("/", 1)[-1].casefold() == normalized)
         if len(matches) == 1:
             print("Using " + matches[0].replace("_", " ") + ".")
             return matches[0]
