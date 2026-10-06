@@ -24,7 +24,7 @@ class Guest:
         self.socket_path = Path(self.control.name) / "qmp.sock"
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
         args = ["-machine", "q35", "-m", str(memory), "-smp", "2", "-display", "none", "-monitor", "none",
-                "-serial", "stdio", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
+                "-chardev", "stdio,id=serial0,signal=off", "-serial", "chardev:serial0", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
                 "-nic", "none" if offline else "user,model=virtio-net-pci", "-no-reboot"]
         if os.access("/dev/kvm", os.R_OK | os.W_OK):
             args += ["-enable-kvm", "-cpu", "host"]

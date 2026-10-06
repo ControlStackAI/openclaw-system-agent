@@ -1,5 +1,12 @@
 name: USB image and installed-system qualification
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: Qualification case
+        type: choice
+        default: all
+        options: [all, plasma, gnome]
 permissions:
   contents: read
 jobs:
@@ -24,12 +31,16 @@ jobs:
       - name: Build pinned USB image
         run: nix build .#live-iso --out-link result-iso -L
       - name: Direct BIOS USB boot and offline gating
+        if: inputs.case == 'all'
         run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode bios-offline
       - name: UEFI USB installation and disk boot without USB
+        if: inputs.case == 'all'
         run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install
       - name: Encrypted Plasma installation and disk boot
+        if: inputs.case == 'all' || inputs.case == 'plasma'
         run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop plasma --encrypted --keyboard de
       - name: GNOME installation and disk boot
+        if: inputs.case == 'all' || inputs.case == 'gnome'
         run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop gnome
       - name: Preserve qualification evidence
         if: always()
@@ -41,6 +52,7 @@ jobs:
             .build/iso-test/**/*.png
             .build/iso-test/**/result.json
       - name: Preserve qualified development ISO
+        if: success() && inputs.case == 'all'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: openclaw-nixos-development-iso
