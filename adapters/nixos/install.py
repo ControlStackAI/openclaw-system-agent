@@ -13,7 +13,7 @@ import stat
 import subprocess
 import uuid
 from pathlib import Path
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
 from system_agent.facts import discover
 from system_agent.handoff import validate as validate_handoff
 from system_agent.state import create_private, private_dir
@@ -175,6 +175,8 @@ def render_target(plan, inputs):
 def prepare(node, choices):
     facts = check_context()
     inputs = json.loads(INPUTS.read_text())
+    if not Path(inputs["zfs_compatibility"]).is_file():
+        raise ValueError("The pinned portable ZFS feature profile is missing from this image.")
     area = private_dir(AREA)
     plan = {"schema": 1, "id": secrets.token_hex(8), "boot_id": facts["boot_id"],
             "disk": disk_identity(node), "choices": validate_choices(choices),
@@ -232,7 +234,7 @@ def install(plan, confirmation, password, encryption_key=None):
     zfs = "/dev/disk/by-partuuid/" + plan["zfs_uuid"]
     run(["mkfs.fat", "-F", "32", efi])
     pool = plan["pool"]
-    command = ["zpool", "create", "-f", "-o", "ashift=12", "-o", "compatibility=openzfs-2.2-linux",
+    command = ["zpool", "create", "-f", "-o", "ashift=12", "-o", "compatibility=openzfs-2.2",
                "-O", "compression=lz4", "-O", "atime=off", "-O", "mountpoint=none", "-R", str(TARGET)]
     if plan["choices"]["encrypt"]:
         command += ["-O", "encryption=aes-256-gcm", "-O", "keyformat=passphrase", "-O", "keylocation=prompt"]
@@ -292,6 +294,21 @@ def secret_twice(prompt):
             return value
 
 
+def timezone_choice():
+    from system_agent.setup import choose
+    while True:
+        city = input("Which city should we use for your time zone? For example London or Los Angeles [UTC]: ").strip() or "UTC"
+        normalized = city.casefold().replace(" ", "_")
+        matches = sorted(zone for zone in available_timezones()
+                         if zone.casefold() == normalized or zone.rsplit("/", 1)[-1].casefold() == normalized)
+        if len(matches) == 1:
+            print("Using " + matches[0].replace("_", " ") + ".")
+            return matches[0]
+        if matches:
+            return matches[choose("Which location do you mean?", [m.replace("_", " ") for m in matches]) - 1]
+        print("I could not find that city. Try a nearby major city, or enter a time zone such as Europe/London.")
+
+
 def interactive(state):
     from system_agent.setup import choose
     check_context()
@@ -309,9 +326,9 @@ def interactive(state):
     choices = {"hostname": input("Name for this computer [my-computer]: ").strip() or "my-computer",
                "username": input("Name for your local account [owner]: ").strip() or "owner"}
     choices["desktop"] = DESKTOPS[choose("Which desktop would you like?", ["No desktop — use the local text console", "KDE Plasma — a desktop with panels and application menus", "GNOME — an activities-based desktop"]) - 1]
-    choices["locale"] = LOCALES[choose("Which system language and regional format?", list(LOCALES)) - 1]
+    choices["locale"] = LOCALES[choose("Which system language and regional format?", ["English (United States)", "English (United Kingdom)", "German (Germany)", "French (France)", "Spanish (Spain)"]) - 1]
     choices["keyboard"] = LAYOUTS[choose("Which keyboard layout?", ["US", "UK", "German", "French", "Spanish"]) - 1]
-    choices["timezone"] = input("Your time zone, for example Europe/London [UTC]: ").strip() or "UTC"
+    choices["timezone"] = timezone_choice()
     choices["encrypt"] = choose("Encrypt your files? You will need the unlock passphrase after each restart.", ["Yes", "No"]) == 1
     validate_choices(choices)
     plan = prepare(node, choices)
@@ -319,7 +336,7 @@ def interactive(state):
     print("All contents of that disk will be lost. Other disks are excluded.\n"
           "Layout: 1 GiB startup partition, remaining space ZFS; separate system, home and agent-state datasets.\n"
           "OpenClaw runs as its own account with no administrator access. Your account can approve administration.\n"
-          "No remote login or automatic updates. ZFS compatibility is limited to the OpenZFS 2.2 Linux feature set.\n"
+          "No remote login or automatic updates. ZFS compatibility is limited to the OpenZFS 2.2 feature set.\n"
           "Snapshots are not independent backups. Keep the USB for recovery and arrange an external backup.\n"
           "Before proceeding, separately back up anything on the selected disk that you need to keep.")
     expected = "ERASE " + str(node["serial"] or node["wwn"])

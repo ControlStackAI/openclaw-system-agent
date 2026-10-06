@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class Guest:
     def __init__(self, iso, area, uefi=False, installed=False, offline=False):
         self.area = area
+        (area / "qmp.sock").unlink(missing_ok=True)
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
         args = ["-machine", "q35", "-m", "4096", "-smp", "2", "-display", "none", "-monitor", "none",
                 "-serial", "stdio", "-qmp", f"unix:{area}/qmp.sock,server=on,wait=off",
@@ -114,7 +115,7 @@ def main():
     guest = Guest(iso, area, uefi=installing, offline=not installing)
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
-        guest.command("systemctl is-active NetworkManager controlstack-agent")
+        guest.command("timeout 180 bash -c 'until systemctl is-active --quiet NetworkManager && systemctl is-active --quiet controlstack-agent; do sleep 2; done'")
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
         guest.command("openclaw --version")

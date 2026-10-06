@@ -24,7 +24,8 @@ def main():
     sub.add_parser("verify-boot")
     sub.add_parser("local-policy")
     sub.add_parser("onboard")
-    sub.add_parser("chat")
+    chat = sub.add_parser("chat")
+    chat.add_argument("--welcome", action="store_true")
     sub.add_parser("health")
     backup = sub.add_parser("backup")
     backup.add_argument("--destination", required=True, type=Path)
@@ -52,7 +53,10 @@ def main():
         elif args.command == "onboard":
             return runtime.onboard(args.state, args.config)
         elif args.command == "chat":
-            return runtime.invoke(args.state, ["tui"], args.config)
+            command = ["tui"]
+            if args.welcome:
+                command += ["--message", "Help me with this computer. Check where you are running and my saved intentions, then ask just the next useful question. Do not assume that live media means I want to erase or install."]
+            return runtime.invoke(args.state, command, args.config)
         elif args.command == "health":
             return runtime.invoke(args.state, ["health", "--json"], args.config)
         elif args.command == "backup":

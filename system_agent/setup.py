@@ -74,7 +74,7 @@ class Setup:
             return
         print("\nOpening your system assistant. Press Ctrl+C to return to this menu.\n"
               "A successful assistant reply confirms model access; a running service alone does not.")
-        self.agent("chat")
+        self.agent("chat", "--welcome")
 
     def forget(self):
         if not self.live:

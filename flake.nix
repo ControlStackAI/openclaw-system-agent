@@ -39,6 +39,7 @@
         source = "${self}";
         core = "${core}";
         runtime = "${upstream.openclaw-gateway}";
+        zfs_compatibility = "${pkgs.zfs_2_4}/share/zfs/compatibility.d/openzfs-2.2";
         installer_revision = "6d02675cd8ce3323589ec9d7f44e99fcf50487a2";
       };
     };

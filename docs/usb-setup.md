@@ -13,7 +13,7 @@ on that disk, resize partitions, configure dual boot or install in legacy BIOS
 mode. Do not use it on valuable hardware before qualification is complete.
 
 Installation creates separate system, home and agent-state datasets. It uses the
-OpenZFS 2.2 Linux compatibility feature set and never upgrades pool features.
+OpenZFS 2.2 compatibility feature set and never upgrades pool features.
 Encryption is an explicit setup choice with hidden passphrase input. The initial
 bootloader is systemd-boot on a 1 GiB FAT EFI partition. Kernel and released ZFS
 remain locked to the project's reviewed inputs and compatibility guard.
