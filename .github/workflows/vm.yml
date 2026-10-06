@@ -1,6 +1,12 @@
 name: Isolated VM qualification
 on:
   workflow_dispatch:
+    inputs:
+      check:
+        description: Test to run
+        type: choice
+        default: all
+        options: [all, core-vm, lifecycle-vm]
 permissions:
   contents: read
 jobs:
@@ -11,7 +17,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        check: [core-vm, lifecycle-vm]
+        check: ${{ fromJSON(inputs.check == 'all' && '["core-vm","lifecycle-vm"]' || format('["{0}"]', inputs.check)) }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
@@ -25,4 +31,8 @@ jobs:
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - name: Build and run guest-only checks
-        run: nix build .#checks.x86_64-linux.${{ matrix.check }} --no-link --print-out-paths -L
+        env:
+          CHECK_NAME: ${{ matrix.check }}
+        run: |
+          case "$CHECK_NAME" in core-vm|lifecycle-vm) ;; *) exit 2 ;; esac
+          nix build ".#checks.x86_64-linux.$CHECK_NAME" --no-link --print-out-paths -L
