@@ -3,7 +3,7 @@
   "date": "2026-10-06",
   "status": "vm-validated-development-prototype",
   "unit_tests": {
-    "passed": 22
+    "passed": 28
   },
   "installer_contract": "passed",
   "nix_core_package": "built",
@@ -56,7 +56,7 @@
   },
   "real_model_response": false,
   "physical_installation": false,
-  "live_iso": false,
+  "live_iso": true,
   "source_ci": {
     "status": "passed",
     "source_commit": "4b9bdd97fc6fd9dc0692e157fb5d21cfc1f85f7e",
@@ -67,19 +67,42 @@
     "real provider login or model response",
     "native Arch runtime/service",
     "existing-instance migration and resumed old conversations",
-    "complete novice setup UI",
-    "bootable OpenClaw ISO or BIOS/UEFI qualification",
+    "real-model interview quality",
     "physical installation or ZFS-root recovery",
     "boot-critical updates",
     "pool feature upgrades",
-    "live-installer handoff producer integration",
-    "real-model guided OS-choice behavior and live preference handoff"
+    "desktop and encrypted disk boot (checks in progress)",
+    "interactive local installation review (check in progress)",
+    "Secure Boot"
   ],
   "owner_profile": {
-    "status": "instructions-and-template-shipped",
+    "status": "typed-choices-and-installed-profile",
     "installed_package_initialization": "passed; private USER.md and new guidance present",
-    "model_profile_writing": "requires separately authorized workspace writing tool",
+    "model_profile_writing": "enabled for USB and installed target as service account",
     "real_model_question_flow": "not tested",
-    "desktop_executor": false
+    "desktop_executor": true
+  },
+  "usb_vm": {
+    "status": "passed-no-desktop",
+    "source_commit": "b2e3491d4ef25b67476774d84ee779b3fdc174e8",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37533152301",
+    "iso_sha256": "6cc9b23c5c1272d1fb6c4f902b530d279eac30028518c1e777afeb63c6a5d93a",
+    "checks": [
+      "BIOS USB boot and automatic tty1 welcome",
+      "offline sign-in gating",
+      "UEFI USB boot",
+      "private RAM state",
+      "native OpenClaw custom-provider onboarding with synthetic fixture key",
+      "local fixture response on live system",
+      "whole disposable disk installation",
+      "ZFS-root boot without ISO",
+      "independent machine/dataset/boot handoff verification",
+      "no transfer of live credential fixture or provider config",
+      "installed OpenClaw reply with owner choices in request"
+    ],
+    "provider": "local deterministic fixture; no real account",
+    "desktop": "none",
+    "encryption": false,
+    "interactive_install_review": false
   }
 }

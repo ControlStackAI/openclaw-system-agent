@@ -9,6 +9,7 @@ import shutil
 import socket
 import subprocess
 import time
+import tempfile
 from pathlib import Path
 import pexpect
 
@@ -18,10 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 class Guest:
     def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False):
         self.area = area
-        (area / "qmp.sock").unlink(missing_ok=True)
+        self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
+        self.socket_path = Path(self.control.name) / "qmp.sock"
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
         args = ["-machine", "q35", "-m", "4096", "-smp", "2", "-display", "none", "-monitor", "none",
-                "-serial", "stdio", "-qmp", f"unix:{area}/qmp.sock,server=on,wait=off",
+                "-serial", "stdio", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
                 "-nic", "none" if offline else "user,model=virtio-net-pci", "-no-reboot"]
         if os.access("/dev/kvm", os.R_OK | os.W_OK):
             args += ["-enable-kvm", "-cpu", "host"]
@@ -64,9 +66,13 @@ class Guest:
             self.process.sendline("stty -echo; export PS1='CS_READY> '")
             self.process.expect("CS_READY> ")
         except Exception:
-            self.qmp("screendump", {"filename": str(area / "boot-failure.png"), "format": "png"})
-            self.process.terminate(force=True)
-            self.log.close()
+            try:
+                if self.process.isalive():
+                    self.qmp("screendump", {"filename": str(area / "boot-failure.png"), "format": "png"})
+            finally:
+                self.process.terminate(force=True)
+                self.log.close()
+                self.control.cleanup()
             raise
 
     def command(self, command, timeout=300):
@@ -86,7 +92,7 @@ class Guest:
 
     def qmp(self, execute, arguments):
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
-            sock.connect(str(self.area / "qmp.sock"))
+            sock.connect(str(self.socket_path))
             stream = sock.makefile("rwb", buffering=0)
             stream.readline()
             for command in ({"execute": "qmp_capabilities"}, {"execute": execute, "arguments": arguments}):
@@ -113,6 +119,7 @@ class Guest:
                 self.process.terminate(force=True)
         self.process.close()
         self.log.close()
+        self.control.cleanup()
 
 
 def main():
