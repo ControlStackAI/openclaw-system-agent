@@ -10,8 +10,9 @@ verification against a local clone at the pinned revision.
 The installer owns `/etc/agent-installer/image.json` and its separate live-image
 marker. Static metadata is not proof that the target root has booted.
 
-`handoff-v1.example.json` is a PROPOSED resident handoff. The installer does not yet
-emit it. The receiving validator accepts exactly these bounded fields and rejects
+`handoff-v1.example.json` describes the resident handoff now emitted by this
+repository's NixOS USB adapter. The separate agent-installer repository does not
+yet emit it. The receiving validator accepts exactly these bounded fields and rejects
 extra keys, free text, paths, secrets and unexpected distributions/filesystems.
 No imported string is executed or treated as agent instructions. This strict
 schema reduces accidental disclosure but is not a secret-detection oracle; the

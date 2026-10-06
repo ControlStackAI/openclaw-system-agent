@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from adapters.nixos.install import validate_choices, eligible, render_target, install, timezone_choice
+from adapters.nixos.install import validate_choices, eligible, render_target, install, timezone_choice, prepare
 from system_agent.state import initialize
 from system_agent import choices
 
@@ -12,6 +12,12 @@ CHOICES = dict(hostname="my-computer", username="owner", desktop="none", timezon
 
 
 class Installation(unittest.TestCase):
+    def test_insufficient_desktop_memory_stops_before_build_or_disk_commands(self):
+        with patch("adapters.nixos.install.check_context", return_value={}), patch("pathlib.Path.read_text", return_value="MemTotal: 4096000 kB\n"), patch("adapters.nixos.install.run") as run:
+            with self.assertRaisesRegex(ValueError, "8 GB"):
+                prepare({}, {**CHOICES, "desktop": "plasma"})
+            run.assert_not_called()
+
     def test_exact_timezone_does_not_ask_about_aliases(self):
         with patch("builtins.input", side_effect=[""]), patch("system_agent.setup.choose") as choose:
             self.assertEqual(timezone_choice(), "UTC")

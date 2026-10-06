@@ -13,7 +13,8 @@ import stat
 import subprocess
 import uuid
 from pathlib import Path
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
+from zoneinfo import available_timezones
+from system_agent.profile import DESKTOPS, LAYOUTS, LOCALES, validate_choices
 from system_agent.facts import discover
 from system_agent.handoff import validate as validate_handoff
 from system_agent.state import create_private, private_dir
@@ -21,9 +22,6 @@ from system_agent.state import create_private, private_dir
 AREA = Path("/run/controlstack-install")
 TARGET = Path("/mnt/controlstack-target")
 INPUTS = Path("/etc/controlstack-agent/install-inputs.json")
-DESKTOPS = ("none", "plasma", "gnome")
-LAYOUTS = ("us", "gb", "de", "fr", "es")
-LOCALES = ("en_US.UTF-8", "en_GB.UTF-8", "de_DE.UTF-8", "fr_FR.UTF-8", "es_ES.UTF-8")
 
 
 def run(args, **kwargs):
@@ -32,28 +30,6 @@ def run(args, **kwargs):
 
 def output(args):
     return run(args, capture_output=True).stdout.strip()
-
-
-def validate_choices(choices):
-    keys = {"hostname", "username", "desktop", "timezone", "keyboard", "locale", "encrypt"}
-    if not isinstance(choices, dict) or set(choices) != keys:
-        raise ValueError("Incomplete or unexpected system choices")
-    for field in ("hostname", "username"):
-        if not isinstance(choices[field], str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,30}", choices[field]):
-            raise ValueError(f"Use a short name with lowercase letters, numbers and hyphens for {field}.")
-    if choices["username"] in {"root", "nobody", "controlstack-agent", "nixbld"}:
-        raise ValueError("Choose a personal account name.")
-    if choices["desktop"] not in DESKTOPS or choices["keyboard"] not in LAYOUTS or choices["locale"] not in LOCALES:
-        raise ValueError("That desktop, keyboard or language is not yet supported by this setup screen.")
-    if type(choices["encrypt"]) is not bool:
-        raise ValueError("Encryption must be an explicit choice.")
-    if not isinstance(choices["timezone"], str) or not re.fullmatch(r"[A-Za-z_+-]+(?:/[A-Za-z0-9_+-]+)*", choices["timezone"]):
-        raise ValueError("Use a time zone such as Europe/London or America/Los_Angeles.")
-    try:
-        ZoneInfo(choices["timezone"])
-    except ZoneInfoNotFoundError as error:
-        raise ValueError("That time zone is not available.") from error
-    return choices
 
 
 def descendants(node):
@@ -184,6 +160,10 @@ def render_target(plan, inputs):
 
 def prepare(node, choices):
     facts = check_context()
+    choices = validate_choices(choices)
+    memory_kib = int(next(line.split()[1] for line in Path("/proc/meminfo").read_text().splitlines() if line.startswith("MemTotal:")))
+    if choices["desktop"] != "none" and memory_kib < 7 * 1024 * 1024:
+        raise ValueError("Desktop preparation needs at least 8 GB of usable RAM in this development image. Choose no desktop or use a computer with more memory. No disk was changed.")
     inputs = json.loads(INPUTS.read_text())
     if not Path(inputs["zfs_compatibility"]).is_file():
         raise ValueError("The pinned portable ZFS feature profile is missing from this image.")

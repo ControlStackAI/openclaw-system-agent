@@ -17,12 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Guest:
-    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False):
+    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096):
         self.area = area
         self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
         self.socket_path = Path(self.control.name) / "qmp.sock"
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
-        args = ["-machine", "q35", "-m", "4096", "-smp", "2", "-display", "none", "-monitor", "none",
+        args = ["-machine", "q35", "-m", str(memory), "-smp", "2", "-display", "none", "-monitor", "none",
                 "-serial", "stdio", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
                 "-nic", "none" if offline else "user,model=virtio-net-pci", "-no-reboot"]
         if os.access("/dev/kvm", os.R_OK | os.W_OK):
@@ -141,7 +141,8 @@ def main():
     for name in ("target.qcow2", "OVMF_VARS.fd", "result.json", "qmp.sock"):
         (area / name).unlink(missing_ok=True)
     installing = args.mode == "uefi-install"
-    guest = Guest(iso, area, uefi=installing, offline=not installing)
+    memory = 4096 if args.desktop == "none" else 8192
+    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory)
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
         guest.command("timeout 180 bash -c 'until systemctl is-active --quiet NetworkManager && systemctl is-active --quiet controlstack-agent; do sleep 2; done'")
@@ -202,7 +203,7 @@ def main():
     finally:
         guest.close()
     if installing:
-        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted)
+        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory)
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("test ! -e /etc/agent-installer/live-image")
@@ -257,7 +258,7 @@ p.write_text(json.dumps(c))
     with iso.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
-               "installation": installing, "disk_boot_without_iso": installing,
+               "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
                "desktop": args.desktop, "encryption": args.encrypted, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
                "primary_console_tui_reply": installing and args.desktop == "none",

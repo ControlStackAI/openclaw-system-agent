@@ -11,7 +11,8 @@ setup -> gateway health -> actual model response -> operation-ready capabilities
 Installed-boot verification is an independent gate requiring a prior installation
 record, a different boot ID, the target machine ID, target distro, actual root
 dataset and writable mount. Without that evidence, state stays unconfirmed.
-A VM reboot demonstrates service persistence, not ZFS-root installer qualification.
+The lifecycle VM demonstrates service persistence. The separate USB test installs
+a real ZFS root onto a blank virtual disk and boots it with the ISO detached.
 
 OpenClaw reads AGENTS.md, SOUL.md and IDENTITY.md under its configured workspace.
 ExecStartPre refreshes runtime facts independently of model availability. BOOT.md
@@ -39,7 +40,13 @@ The broker verifies snapshot existence and restarted service activity. Scrub sta
 is reported as a request, never as successful completion. A failure after approval
 consumption requires a new inspection/plan, preventing crash-triggered replay.
 Other root processes can still change a resource concurrently; this prototype is
-not a transactional storage manager and does not perform destructive operations.
+not a transactional storage manager. The maintenance broker cannot erase disks.
+
+The separate NixOS USB adapter owns whole-disk installation. It accepts only
+typed non-secret choices, prepares the target first, and requires a local disk
+review and exact confirmation. It creates fresh resident state, emits the boot
+handoff and offers shutdown before USB removal. No daemon/root privilege bridge
+is created. The local administrator can reopen the setup screen after login.
 
 A privileged recovery tool cannot depend on the resident daemon remaining alive.
 Offline recovery will run from qualified installer media using read-only import

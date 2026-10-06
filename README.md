@@ -24,7 +24,7 @@ agent state is included. All project history begins with generic source.
 - `runtimes/openclaw/`: official CLI/provider integration and reviewed input metadata.
 - `adapters/nixos/`: declarative package/service and guarded kernel/ZFS selection.
 - `adapters/arch/`: native lifecycle PKGBUILD and restricted systemd service.
-- `contracts/`: pinned installer compatibility and a proposed narrow handoff.
+- `contracts/`: pinned installer compatibility and the narrow installed-boot handoff.
 - `tests/`: unit tests and an isolated NixOS gateway/ZFS VM test.
 
 ## Developer check

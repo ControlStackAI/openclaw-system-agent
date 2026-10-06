@@ -1,7 +1,7 @@
 """Typed, non-secret installation suggestions; never approvals or observed facts."""
 import json
 from pathlib import Path
-from adapters.nixos.install import validate_choices
+from .profile import validate_choices
 from .state import write_observation
 
 DEFAULTS = dict(hostname="my-computer", username="owner", desktop="none", timezone="UTC",
