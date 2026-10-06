@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-10-06",
-  "status": "development-unqualified",
+  "status": "vm-validated-development-prototype",
   "unit_tests": {
     "passed": 22
   },
@@ -9,9 +9,65 @@
   "nix_core_package": "built",
   "nixos_vm_evaluation": "passed",
   "arch_package": "syntax-and-staging-only",
-  "core_vm": "pending",
-  "openclaw_vm": "dependency-network-blocked-locally",
+  "core_vm": {
+    "status": "passed",
+    "source_commit": "5f7cbb61b652c42d98d29e61dcafc5c4f1d67d80",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37503462931",
+    "checks": [
+      "private state initialization",
+      "credential permission denial",
+      "guest reboot and persistent workspace",
+      "fresh boot facts",
+      "refusal without installation handoff",
+      "owner-approved ZFS snapshot",
+      "wrong approval and replay rejection",
+      "ZFS rollback",
+      "full and incremental ZFS send/receive",
+      "pool export/import"
+    ],
+    "openclaw_started": false
+  },
+  "openclaw_vm": {
+    "status": "passed",
+    "source_commit": "af78fee8a31b576e633ad1b3d54a602363b06f31",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37503813603",
+    "runtime_version": "2026.9.5",
+    "kernel_version": "7.2.9",
+    "openzfs_version": "2.4.4",
+    "provider": "local deterministic fixture; no real model",
+    "checks": [
+      "real OpenClaw service as dedicated account",
+      "loopback HTTP health",
+      "authenticated CLI health",
+      "private credential permissions",
+      "resident identity included in provider request",
+      "conversation history retained after guest reboot",
+      "workspace and token state retained across reboot",
+      "fresh boot facts",
+      "rejection of missing installed-boot handoff",
+      "approved snapshot and replay rejection",
+      "ZFS snapshot/rollback/full and incremental send-receive/export-import",
+      "native backup create with verification",
+      "native restore into fresh directory with preserved workspace sentinel"
+    ]
+  },
   "real_model_response": false,
   "physical_installation": false,
-  "live_iso": false
+  "live_iso": false,
+  "source_ci": {
+    "status": "passed",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37501960881"
+  },
+  "production_ready": false,
+  "not_qualified": [
+    "real provider login or model response",
+    "native Arch runtime/service",
+    "existing-instance migration and resumed old conversations",
+    "complete novice setup UI",
+    "bootable OpenClaw ISO or BIOS/UEFI qualification",
+    "physical installation or ZFS-root recovery",
+    "boot-critical updates",
+    "pool feature upgrades",
+    "live-installer handoff producer integration"
+  ]
 }

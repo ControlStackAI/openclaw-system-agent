@@ -5,8 +5,9 @@ The aim is to help people inspect, configure, maintain and recover their systems
 using plain language and explicit owner authorization.
 
 **Development prototype, not a qualified OS installer or unattended administrator.**
-The resident lifecycle, identity, isolated state and NixOS service are implemented.
-Arch packaging is an adapter under qualification. An owner-run broker implements narrowly scoped ZFS snapshots, pool scrub requests
+The resident lifecycle and NixOS service have passed isolated VM tests, including
+gateway health, fixture conversations across reboot, private state and native
+backup/restore. Arch packaging is an adapter under qualification. An owner-run broker implements narrowly scoped ZFS snapshots, pool scrub requests
 and service restarts. The daemon gets no sudo permission. Disk erasure and
 boot-critical updates have no executor.
 See the exact [validation status](docs/qualification.md) before trying it.
