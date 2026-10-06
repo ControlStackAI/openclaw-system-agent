@@ -16,6 +16,23 @@
     pkgs = import nixpkgs { inherit system; };
     upstream = import "${openclaw-source}/nix/packages" { inherit pkgs; };
     core = pkgs.callPackage ./adapters/nixos/package.nix { inherit installer-source; };
+    # Keep optional desktop closures on read-only media. Unpacking them into the
+    # live tmpfs exhausted its space before the owner could approve installation.
+    desktopClosures = map (desktop: (nixpkgs.lib.nixosSystem {
+      inherit system;
+      modules = [
+        (import ./adapters/nixos/desktop.nix { inherit desktop; })
+        ({ pkgs, ... }: {
+          boot.loader.grub.enable = false;
+          boot.kernelPackages = pkgs.linuxPackages_latest;
+          fileSystems."/" = { device = "/dev/disk/by-label/preload-only"; fsType = "ext4"; };
+          networking.networkmanager.enable = true;
+          hardware.enableRedistributableFirmware = true;
+          environment.systemPackages = [ pkgs.xterm ];
+          system.stateVersion = "26.05";
+        })
+      ];
+    }).config.system.build.toplevel) [ "plasma" "gnome" ];
     live = nixpkgs.lib.nixosSystem {
       inherit system;
       modules = [ self.nixosModules.liveImage ];
@@ -34,6 +51,7 @@
     nixosConfigurations.live = live;
     nixosModules.liveImage = { ... }: {
       imports = [ self.nixosModules.default ./adapters/nixos/live-image.nix ];
+      isoImage.storeContents = desktopClosures;
       services.controlstackAgent.installInputs = {
         nixpkgs = "${nixpkgs}";
         source = "${self}";

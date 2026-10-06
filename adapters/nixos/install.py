@@ -88,12 +88,11 @@ def nix_string(value):
 def render_target(plan, inputs):
     c = validate_choices(plan["choices"])
     q = nix_string
-    desktop = {"none": "", "plasma": "services.desktopManager.plasma6.enable = true; services.displayManager.sddm.enable = true;",
-               "gnome": "services.desktopManager.gnome.enable = true; services.displayManager.gdm.enable = true;"}[c["desktop"]]
     return f'''import {q(inputs["nixpkgs"] + "/nixos")} {{
   system = "x86_64-linux";
   configuration = {{ pkgs, lib, ... }}: {{
-    imports = [ {q(inputs["source"] + "/adapters/nixos/module.nix")} ];
+    imports = [ {q(inputs["source"] + "/adapters/nixos/module.nix")}
+      (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; }}) ];
     services.controlstackAgent = {{
       enable = true; mutableProviderSetup = true; workspaceExecution = true; zfs.enable = true;
       package = builtins.storePath {q(inputs["runtime"])};
@@ -136,7 +135,6 @@ def render_target(plan, inputs):
     fileSystems."/home" = {{ device = {q(plan["pool"] + "/home")}; fsType = "zfs"; }};
     fileSystems."/var/lib/controlstack-agent" = {{ device = {q(plan["pool"] + "/agent")}; fsType = "zfs"; }};
     fileSystems."/boot" = {{ device = {q("/dev/disk/by-partuuid/" + plan["efi_uuid"])}; fsType = "vfat"; options = [ "umask=0077" ]; }};
-    {desktop}
     environment.systemPackages = [ pkgs.xterm pkgs.curl pkgs.whois pkgs.python3 ];
     environment.interactiveShellInit = \'\'
       if [ "$(id -un)" = {c["username"]} ] && [ -t 0 ] && [ "$(tty)" = /dev/tty1 ] &&
@@ -328,6 +326,21 @@ def timezone_choice():
         print("I could not find that city. Try a nearby major city, or enter a time zone such as Europe/London.")
 
 
+def describe_choices(choices):
+    labels = {"hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
+              "locale": "Language and region", "keyboard": "Keyboard", "timezone": "Time zone",
+              "encrypt": "Disk encryption"}
+    names = {"none": "No desktop", "plasma": "KDE Plasma", "gnome": "GNOME",
+             "us": "US", "gb": "UK", "de": "German", "fr": "French", "es": "Spanish",
+             "en_US.UTF-8": "English (United States)", "en_GB.UTF-8": "English (United Kingdom)",
+             "de_DE.UTF-8": "German (Germany)", "fr_FR.UTF-8": "French (France)", "es_ES.UTF-8": "Spanish (Spain)"}
+    for key, label in labels.items():
+        if key in choices:
+            value = choices[key]
+            display = ("On" if value else "Off") if key == "encrypt" else names.get(value, value)
+            print(f"  {label}: {display}")
+
+
 def interactive(state, suggestions=None):
     from system_agent.setup import choose
     check_context()
@@ -346,7 +359,7 @@ def interactive(state, suggestions=None):
     choices = dict(validate_partial(suggestions or {}))
     if choices:
         print("\nSaved setup choices (still subject to your review):")
-        print(json.dumps(choices, indent=2))
+        describe_choices(choices)
         if choose("Use these choices and ask about anything missing?", ["Use these choices", "Choose again"]) == 2:
             choices = {}
     if "hostname" not in choices:
@@ -365,7 +378,9 @@ def interactive(state, suggestions=None):
         choices["encrypt"] = choose("Encrypt your files? You will need the unlock passphrase after each restart.", ["Yes", "No"]) == 1
     validate_choices(choices)
     plan = prepare(node, choices)
-    print("\nPlease review your installation:\n" + json.dumps({"disk": plan["disk"], "choices": choices}, indent=2))
+    print("\nPlease review your installation:")
+    print("  Disk: " + labels[index - 1])
+    describe_choices(choices)
     print("All contents of that disk will be lost. Other disks are excluded.\n"
           "Layout: 1 GiB startup partition, remaining space ZFS; separate system, home and agent-state datasets.\n"
           "OpenClaw runs as its own account with no administrator access. Your account can approve administration.\n"

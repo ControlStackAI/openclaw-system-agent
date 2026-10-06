@@ -11,7 +11,10 @@ are consumed from the pinned agent-installer source; that repository is unchange
 The experimental installer supports UEFI, a whole disk of at least 32 GiB, ZFS,
 and no desktop, KDE Plasma or GNOME. The console path was tested with 4 GiB
 of RAM. Desktop preparation requires 8 GB of usable RAM in this development
-image; a smaller machine is stopped before building or changing its disk. It builds the target before erasure, rejects
+image; a smaller machine is stopped before building or changing its disk. Optional
+desktop packages are carried on the read-only USB image to avoid filling RAM
+with their unpacked downloads. They do not start a desktop in the live session.
+It builds the target before erasure, rejects
 mounted/in-use disks, binds approval to the observed disk and boot, and requires
 the owner to type the disk serial at the local screen. It does not preserve data
 on that disk, resize partitions, configure dual boot or install in legacy BIOS
