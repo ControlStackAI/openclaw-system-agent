@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Guest:
-    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096):
+    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us"):
+        self.keyboard = keyboard
         self.area = area
         self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
         self.socket_path = Path(self.control.name) / "qmp.sock"
@@ -52,16 +53,16 @@ class Guest:
                 # Only the disposable test disk uses this public fixture passphrase.
                 time.sleep(30)
                 self.qmp("screendump", {"filename": str(area / "unlock.png"), "format": "png"})
-                self.type_console("vm-encryption-test")
+                self.type_console("vmencryptiontest")
             if installed:
                 self.process.expect("login:")
                 self.process.sendline("owner")
                 self.process.expect("Password:")
-                self.process.sendline("vm-only-test-password")
+                self.process.sendline("vmonlytestpassword")
                 self.process.expect(r"owner@[^\r\n]*\$")
                 self.process.sendline("sudo -i")
                 self.process.expect("password for owner:")
-                self.process.sendline("vm-only-test-password")
+                self.process.sendline("vmonlytestpassword")
             self.process.expect(r"root@[^\r\n]*#")
             self.process.sendline("stty -echo; export PS1='CS_READY> '")
             self.process.expect("CS_READY> ")
@@ -107,6 +108,8 @@ class Guest:
 
     def type_console(self, text):
         for key in text:
+            if self.keyboard == "de" and key in "yz":
+                key = "z" if key == "y" else "y"
             self.qmp("send-key", {"keys": [{"type": "qcode", "data": "minus" if key == "-" else key}], "hold-time": 50})
             time.sleep(0.08)
         self.qmp("human-monitor-command", {"command-line": "sendkey ret"})
@@ -131,18 +134,19 @@ def main():
     parser.add_argument("--mode", choices=["bios-offline", "uefi-install"], required=True)
     parser.add_argument("--desktop", choices=["none", "plasma", "gnome"], default="none")
     parser.add_argument("--encrypted", action="store_true")
+    parser.add_argument("--keyboard", choices=["us", "de"], default="us")
     args = parser.parse_args()
     iso = args.iso.resolve()
     if not iso.is_file():
         parser.error("ISO must be a regular file")
-    area = ROOT / ".build/iso-test" / (args.mode + "-" + args.desktop + ("-encrypted" if args.encrypted else ""))
+    area = ROOT / ".build/iso-test" / (args.mode + "-" + args.desktop + ("-encrypted" if args.encrypted else "") + "-" + args.keyboard)
     area.mkdir(parents=True, exist_ok=True)
     # Each invocation needs a genuinely blank target and firmware, never a resumed result.
     for name in ("target.qcow2", "OVMF_VARS.fd", "result.json", "qmp.sock"):
         (area / name).unlink(missing_ok=True)
     installing = args.mode == "uefi-install"
     memory = 4096 if args.desktop == "none" else 8192
-    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory)
+    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard)
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
         guest.command("timeout 180 bash -c 'until systemctl is-active --quiet NetworkManager && systemctl is-active --quiet controlstack-agent; do sleep 2; done'")
@@ -152,6 +156,11 @@ def main():
         guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
         guest.command("cat /dev/vcs1 | grep 'Welcome to your OpenClaw'")
         guest.qmp("screendump", {"filename": str(area / "welcome.png"), "format": "png"})
+        if args.keyboard == "de":
+            guest.type_console("6")
+            time.sleep(1)
+            guest.type_console("3")
+            guest.command("sleep 2; runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/run/controlstack-agent system-agent setup-choice | grep '\"keyboard\": \"de\"'")
         if not installing:
             guest.qmp("human-monitor-command", {"command-line": "sendkey 1"})
             guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
@@ -186,16 +195,17 @@ def main():
             answer("Name for your local account [owner]:", "owner")
             answer("Choose a number:", str(["none", "plasma", "gnome"].index(args.desktop) + 1))
             answer("Choose a number:", "1")
-            answer("Choose a number:", "1")
+            if args.keyboard != "de":
+                answer("Choose a number:", "1")
             answer("[UTC]:", "UTC")
             guest.process.expect_exact("Encrypt your files?")
             answer("Choose a number:", "1" if args.encrypted else "2")
             answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=900)
-            answer("Password for your local account (hidden):", "vm-only-test-password")
-            answer("Enter it again:", "vm-only-test-password")
+            answer("Password for your local account (hidden):", "vmonlytestpassword")
+            answer("Enter it again:", "vmonlytestpassword")
             if args.encrypted:
-                answer("Disk unlock passphrase (hidden; keep a safe copy elsewhere):", "vm-encryption-test")
-                answer("Enter it again:", "vm-encryption-test")
+                answer("Disk unlock passphrase (hidden; keep a safe copy elsewhere):", "vmencryptiontest")
+                answer("Enter it again:", "vmencryptiontest")
             guest.process.expect_exact("Installation files are ready.", timeout=900)
             answer("Choose a number:", "1")
             guest.process.expect(pexpect.EOF, timeout=60)
@@ -203,7 +213,7 @@ def main():
     finally:
         guest.close()
     if installing:
-        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory)
+        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory, keyboard=args.keyboard)
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("test ! -e /etc/agent-installer/live-image")
@@ -222,7 +232,7 @@ def main():
             elif args.desktop == "gnome":
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
             time.sleep(3)
-            guest.type_console("vm-only-test-password")
+            guest.type_console("vmonlytestpassword")
             guest.command("timeout 120 bash -c 'until pgrep -u root -f \"[p]ython3.*system_agent.setup\"; do sleep 2; done'")
             if args.desktop == "none":
                 guest.command("cat /dev/vcs1 | grep 'OpenClaw is installed on this computer'")
@@ -259,7 +269,7 @@ p.write_text(json.dumps(c))
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
                "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
-               "desktop": args.desktop, "encryption": args.encrypted, "graphical_owner_login": installing and args.desktop != "none",
+               "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
                "primary_console_tui_reply": installing and args.desktop == "none",
                "interactive_install_review": installing,

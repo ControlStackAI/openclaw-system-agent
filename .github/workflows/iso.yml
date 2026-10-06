@@ -28,7 +28,7 @@ jobs:
       - name: UEFI USB installation and disk boot without USB
         run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install
       - name: Encrypted Plasma installation and disk boot
-        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop plasma --encrypted
+        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop plasma --encrypted --keyboard de
       - name: GNOME installation and disk boot
         run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop gnome
       - name: Preserve qualification evidence

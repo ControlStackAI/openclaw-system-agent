@@ -21,7 +21,15 @@
   services.getty.autologinUser = lib.mkForce "root";
   services.getty.helpLine = lib.mkForce "OpenClaw setup opens on the primary console. Remote login is off.";
   boot.kernelParams = [ "console=ttyS0,115200" "console=tty0" ];
-  environment.systemPackages = with pkgs; [ curl git parted gptfdisk dosfstools whois python3 ];
+  environment.systemPackages = with pkgs; [ curl git parted gptfdisk dosfstools whois python3 kbd ];
+  environment.etc."controlstack-agent/keymaps".source = pkgs.runCommand "controlstack-live-keymaps" {
+    nativeBuildInputs = [ pkgs.ckbcomp ];
+  } ''
+    mkdir -p "$out"
+    for layout in us gb de fr es; do
+      ckbcomp -model pc105 -layout "$layout" > "$out/$layout"
+    done
+  '';
   environment.etc."agent-installer/live-image".text = "nixos\n";
   environment.etc."agent-installer/image.json".text = builtins.toJSON {
     schema = 1; distro = "nixos"; runtime = "openclaw";

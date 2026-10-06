@@ -123,6 +123,7 @@ def render_target(plan, inputs):
     i18n.defaultLocale = {q(c["locale"])};
     services.xserver.xkb.layout = {q(c["keyboard"])};
     console.useXkbConfig = true;
+    console.earlySetup = true;
     users.mutableUsers = true;
     users.users.{c["username"]} = {{
       isNormalUser = true; extraGroups = [ "wheel" "networkmanager" ];
@@ -210,6 +211,8 @@ def install(plan, confirmation, password, encryption_key=None):
         raise ValueError("Disk erasure was not confirmed.")
     if not password or (plan["choices"]["encrypt"] and not encryption_key):
         raise ValueError("Account password and requested encryption key must be supplied through protected input.")
+    if plan["choices"]["encrypt"] and (not 8 <= len(encryption_key.encode("utf-8")) <= 512 or any(c in encryption_key for c in "\n\r\x00")):
+        raise ValueError("Use an unlock passphrase of 8 to 512 UTF-8 bytes on one line.")
     stored = json.loads((AREA / (plan["id"] + ".json")).read_text())
     if stored != plan:
         raise ValueError("The prepared plan changed.")
@@ -328,7 +331,7 @@ def interactive(state, suggestions=None):
     from system_agent.choices import validate_partial
     choices = dict(validate_partial(suggestions or {}))
     if choices:
-        print("\nChoices recorded in your conversation (still subject to your review):")
+        print("\nSaved setup choices (still subject to your review):")
         print(json.dumps(choices, indent=2))
         if choose("Use these choices and ask about anything missing?", ["Use these choices", "Choose again"]) == 2:
             choices = {}
@@ -360,6 +363,14 @@ def interactive(state, suggestions=None):
     if confirmation != expected:
         print("Cancelled. No disk changes were made.")
         return
+    # Use exactly the target console map before secrets are typed. Otherwise a
+    # non-US keyboard can produce a different password after reboot.
+    console_config = (Path(plan["system"]) / "etc/vconsole.conf").read_text()
+    keymap = next(line.removeprefix("KEYMAP=") for line in console_config.splitlines() if line.startswith("KEYMAP="))
+    if not keymap.startswith("/nix/store/") or not Path(keymap).is_file():
+        raise ValueError("The prepared keyboard map is unavailable. No disk was changed.")
+    run(["loadkeys", "-C", "/dev/tty0", "--quiet", keymap])
+    print("Your selected keyboard layout is now active for password entry and for the installed system.")
     password = secret_twice("Password for your local account (hidden): ")
     encryption_key = secret_twice("Disk unlock passphrase (hidden; keep a safe copy elsewhere): ") if choices["encrypt"] else None
     try:

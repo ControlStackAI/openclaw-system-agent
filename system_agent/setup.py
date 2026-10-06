@@ -80,6 +80,16 @@ class Setup:
         except KeyboardInterrupt:
             print("\nBack at the setup menu.")
 
+    def keyboard(self):
+        from .profile import LAYOUTS
+        layout = LAYOUTS[choose("Which keyboard layout should this USB session use?", ["US", "UK", "German", "French", "Spanish"]) - 1]
+        subprocess.run(["loadkeys", "-C", "/dev/tty0", "--quiet", "/etc/controlstack-agent/keymaps/" + layout], check=True)
+        subprocess.run(["systemctl", "start", "controlstack-agent.service"], check=True)
+        saved = self.agent("setup-choice", "keyboard", layout, capture=True)
+        if saved.returncode:
+            print("The keyboard changed, but please choose it again during installation review.")
+        print("Keyboard layout changed. The installation review will let you keep or change it.")
+
     def forget(self):
         if not self.live:
             print("Installed history is preserved. Use sign-in setup to change providers.")
@@ -97,13 +107,13 @@ class Setup:
             print("\033[2J\033[H", end="", flush=True)
         print("\nWelcome to your OpenClaw System Assistant.\n"
               + ("You are running from the USB. Sign-in stays in memory and disappears after reboot.\n"
-                 "OpenClaw will also be installed as your computer's resident assistant."
+                 "OpenClaw will also be installed as your computer's resident assistant.\nThe USB starts with a US keyboard. Choose Change keyboard layout below if needed."
                  if self.live else "OpenClaw is installed on this computer. Your conversations stay here.\n"
                  "Please sign in again if this is your first installed boot; USB credentials were not copied."), flush=True)
         while True:
             labels = ["Sign in or change AI provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
             if self.live:
-                labels += ["Review choices and install NixOS", "Forget this USB session"]
+                labels += ["Review choices and install NixOS", "Forget this USB session", "Change keyboard layout"]
             labels += ["Troubleshooting shell", "Leave setup"]
             answer = choose("What would you like to do?", labels)
             try:
@@ -120,6 +130,8 @@ class Setup:
                     interactive(self.state, suggestions)
                 elif self.live and answer == 5:
                     self.forget()
+                elif self.live and answer == 6:
+                    self.keyboard()
                 elif answer == len(labels) - 1:
                     subprocess.run(["bash", "-l"])
                 else:

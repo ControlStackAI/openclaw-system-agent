@@ -2,7 +2,10 @@
 
 The live image opens the local setup screen on tty1. Other consoles remain
 available. It offers network setup, official OpenClaw sign-in and conversation,
-then a separate local installation review. The shared network/clock/ZFS checks
+then a separate local installation review. The USB starts with a US keyboard;
+choose Change keyboard layout before entering passwords if you use another
+layout. The target console map is applied before account/encryption password
+entry and included in early boot. The shared network/clock/ZFS checks
 are consumed from the pinned agent-installer source; that repository is unchanged.
 
 The experimental installer supports UEFI, a whole disk of at least 32 GiB, ZFS,
