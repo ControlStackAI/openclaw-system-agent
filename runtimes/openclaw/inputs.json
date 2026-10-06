@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "official_nix_revision": "f62d33f760bcbdbc6a52ac589eae22bf99201f90",
+  "packaged_openclaw_version": "2026.9.5",
+  "latest_observed_release": "2026.9.8",
+  "checked_at": "2026-10-06",
+  "mode": "complete official gateway runtime; no batteries bundle"
+}

@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "target_distro": "nixos",
+  "installation_boot_id": "00000000-0000-4000-8000-000000000001",
+  "target_machine_id": "00000000000000000000000000000001",
+  "root_fstype": "zfs",
+  "root_identity": "rpool/ROOT/system",
+  "installer_revision": "0000000000000000000000000000000000000001"
+}

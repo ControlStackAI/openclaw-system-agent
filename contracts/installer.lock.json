@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/ControlStackAI/agent-installer",
+  "revision": "6d02675cd8ce3323589ec9d7f44e99fcf50487a2",
+  "files": {
+    "core/runtime.py": "f342a2d01b922aa47140cde1e8b51fb182b4e2ce224164ce6345f272de18f0b4",
+    "profiles/arch.json": "42421ed3f65da9a0aa429a974c27d72c159a11f4bbecc45ad2fb809749c1e701",
+    "profiles/nixos.json": "7df941959b0ea27f2868f01c06073f10b937f267f5ec04f265f878a119060e6e",
+    "docs/architecture.md": "850b10243e1d19734be3166bbe115d4356e3189610660c55aff08289b658f4cc"
+  }
+}

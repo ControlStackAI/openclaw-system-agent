@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "status": "development-unqualified",
+  "unit_tests": {
+    "passed": 22
+  },
+  "installer_contract": "passed",
+  "nix_core_package": "built",
+  "nixos_vm_evaluation": "passed",
+  "arch_package": "syntax-and-staging-only",
+  "core_vm": "pending",
+  "openclaw_vm": "dependency-network-blocked-locally",
+  "real_model_response": false,
+  "physical_installation": false,
+  "live_iso": false
+}

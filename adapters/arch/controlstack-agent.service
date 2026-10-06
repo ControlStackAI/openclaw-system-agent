@@ -1,0 +1,37 @@
+[Unit]
+Description=ControlStackAI resident system agent
+After=network.target
+
+[Service]
+User=controlstack-agent
+Group=controlstack-agent
+StateDirectory=controlstack-agent
+StateDirectoryMode=0700
+Environment=HOME=/var/lib/controlstack-agent
+Environment=OPENCLAW_HOME=/var/lib/controlstack-agent
+Environment=OPENCLAW_STATE_DIR=/var/lib/controlstack-agent
+Environment=OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json
+Environment=OPENCLAW_DISABLE_BONJOUR=1
+Environment=XDG_CACHE_HOME=/var/lib/controlstack-agent/cache
+UMask=0077
+ExecStartPre=/usr/bin/system-agent initialize
+ExecStartPre=/usr/bin/system-agent refresh
+ExecStart=/usr/bin/openclaw gateway run
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=120
+NoNewPrivileges=true
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/controlstack-agent
+
+[Install]
+WantedBy=multi-user.target

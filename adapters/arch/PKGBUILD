@@ -1,0 +1,23 @@
+# Build from a reviewed source archive placed next to this file.
+pkgname=controlstack-system-agent
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Resident OpenClaw lifecycle and identity'
+arch=('any')
+url='https://github.com/ControlStackAI/openclaw-system-agent'
+license=('MIT')
+depends=('python' 'systemd' 'util-linux' 'curl')
+optdepends=('openclaw: pinned runtime must be provisioned separately')
+source=()
+package() {
+  local project="${startdir}/../.."
+  install -dm755 "$pkgdir/usr/lib/controlstack-system-agent" "$pkgdir/usr/bin"
+  cp -r "$project/system_agent" "$project/runtimes" "$project/identity" "$pkgdir/usr/lib/controlstack-system-agent/"
+  printf '%s\n' '#!/bin/sh' 'PYTHONPATH=/usr/lib/controlstack-system-agent exec /usr/bin/python3 -m system_agent "$@"' > "$pkgdir/usr/bin/system-agent"
+  printf '%s\n' '#!/bin/sh' 'PYTHONPATH=/usr/lib/controlstack-system-agent exec /usr/bin/python3 -m system_agent.admin "$@"' > "$pkgdir/usr/bin/system-agent-admin"
+  chmod 755 "$pkgdir/usr/bin/system-agent-admin"
+  chmod 755 "$pkgdir/usr/bin/system-agent"
+  install -Dm644 "$startdir/controlstack-agent.service" "$pkgdir/usr/lib/systemd/system/controlstack-agent.service"
+  install -Dm644 "$startdir/controlstack-agent.sysusers" "$pkgdir/usr/lib/sysusers.d/controlstack-agent.conf"
+  install -Dm644 "$project/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
