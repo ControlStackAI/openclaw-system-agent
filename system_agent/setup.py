@@ -73,7 +73,7 @@ class Setup:
     def chat(self):
         if not self.connect():
             return
-        print("\nOpening your system assistant. Press Ctrl+C to return to this menu.\n"
+        print("\nOpening your system assistant. Press Ctrl+D to return to this menu.\n"
               "A successful assistant reply confirms model access; a running service alone does not.")
         try:
             self.agent("chat", "--welcome")

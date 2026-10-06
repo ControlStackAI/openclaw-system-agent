@@ -173,6 +173,9 @@ def main():
             def answer(prompt, value, timeout=60):
                 found = guest.process.expect_exact([prompt, "That step did not finish:", "Those did not match.", "Please choose one of the numbers above."], timeout=timeout)
                 if found:
+                    guest.process.sendcontrol("c")
+                    guest.process.expect_exact("CS_READY> ")
+                    guest.command("cat /run/controlstack-install/*.build.log 2>/dev/null || true")
                     raise RuntimeError("The local setup screen rejected a test step: " + prompt)
                 guest.process.sendline(value)
             answer("Choose a number:", "4")
@@ -238,6 +241,13 @@ p.write_text(json.dumps(c))
             guest.command("python3 /tmp/provider-config.py; systemctl restart controlstack-agent")
             guest.command("sleep 10; runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
             guest.command("grep -q 'Owner.s chosen system' /tmp/fixture-request.json")
+            if args.desktop == "none":
+                guest.type_console("2")
+                guest.command("timeout 120 bash -c 'until grep -q \"resident conversation works\" /dev/vcs1; do sleep 2; done'")
+                guest.qmp("screendump", {"filename": str(area / "conversation.png"), "format": "png"})
+                guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-d"})
+                guest.command("sleep 3; grep -q \"What would you like to do?\" /dev/vcs1")
+
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
         except Exception:
             guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
@@ -250,6 +260,7 @@ p.write_text(json.dumps(c))
                "installation": installing, "disk_boot_without_iso": installing,
                "desktop": args.desktop, "encryption": args.encrypted, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
+               "primary_console_tui_reply": installing and args.desktop == "none",
                "interactive_install_review": installing,
                "provider": "local deterministic fixture" if installing else "none",
                "real_account_login": False, "physical_disks_attached": False}
