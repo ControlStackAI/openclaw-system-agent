@@ -29,8 +29,8 @@
   },
   "openclaw_vm": {
     "status": "passed",
-    "source_commit": "af78fee8a31b576e633ad1b3d54a602363b06f31",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37503813603",
+    "source_commit": "4b9bdd97fc6fd9dc0692e157fb5d21cfc1f85f7e",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37522513941",
     "runtime_version": "2026.9.5",
     "kernel_version": "7.2.9",
     "openzfs_version": "2.4.4",
@@ -48,7 +48,10 @@
       "approved snapshot and replay rejection",
       "ZFS snapshot/rollback/full and incremental send-receive/export-import",
       "native backup create with verification",
-      "native restore into fresh directory with preserved workspace sentinel"
+      "native restore into fresh directory with preserved workspace sentinel",
+      "private owner intent profile delivered in provider request",
+      "owner preference retained across reboot and injected into a fresh session",
+      "owner intent profile preserved by native backup and fresh restore"
     ]
   },
   "real_model_response": false,
@@ -56,7 +59,8 @@
   "live_iso": false,
   "source_ci": {
     "status": "passed",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37501960881"
+    "source_commit": "4b9bdd97fc6fd9dc0692e157fb5d21cfc1f85f7e",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37522513877"
   },
   "production_ready": false,
   "not_qualified": [
@@ -68,6 +72,14 @@
     "physical installation or ZFS-root recovery",
     "boot-critical updates",
     "pool feature upgrades",
-    "live-installer handoff producer integration"
-  ]
+    "live-installer handoff producer integration",
+    "real-model guided OS-choice behavior and live preference handoff"
+  ],
+  "owner_profile": {
+    "status": "instructions-and-template-shipped",
+    "installed_package_initialization": "passed; private USER.md and new guidance present",
+    "model_profile_writing": "requires separately authorized workspace writing tool",
+    "real_model_question_flow": "not tested",
+    "desktop_executor": false
+  }
 }
