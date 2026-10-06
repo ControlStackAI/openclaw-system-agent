@@ -65,10 +65,13 @@ def descendants(node):
 def eligible(node, active_devices=()):
     if node.get("type") != "disk" or node.get("ro") or int(node.get("size", 0)) < 32 * 1024**3:
         return False
-    if not (node.get("serial") or node.get("wwn")):
+    if node.get("tran") == "usb" or node.get("rm"):
+        return False
+    identity = node.get("serial") or node.get("wwn") or ""
+    if not re.fullmatch(r"[A-Za-z0-9_.: -]{1,128}", identity):
         return False
     for child in descendants(node):
-        if any(child.get("mountpoints") or []) or child.get("name") in active_devices:
+        if child.get("fstype") == "iso9660" or any(child.get("mountpoints") or []) or child.get("name") in active_devices:
             return False
         name = Path(child["name"]).name
         holders = Path("/sys/class/block") / name / "holders"
@@ -79,7 +82,7 @@ def eligible(node, active_devices=()):
 
 def disks():
     tree = json.loads(output(["lsblk", "--json", "--bytes", "--paths", "--output",
-                              "NAME,TYPE,SIZE,MODEL,SERIAL,WWN,RO,MOUNTPOINTS,FSTYPE"]))
+                              "NAME,TYPE,SIZE,MODEL,SERIAL,WWN,RO,RM,TRAN,MOUNTPOINTS,FSTYPE"]))
     active = set(output(["swapon", "--show=NAME", "--noheadings"]).splitlines())
     pools = run(["zpool", "status", "-P"], capture_output=True)
     # Imported pool members must not be reselected, even with no mounted datasets.
@@ -247,9 +250,14 @@ def install(plan, confirmation, password, encryption_key=None):
         command += ["-O", "encryption=aes-256-gcm", "-O", "keyformat=passphrase", "-O", "keylocation=prompt"]
     run(command + [pool, zfs], input=(encryption_key + "\n") if encryption_key else None)
     run(["zfs", "create", "-o", "mountpoint=none", pool + "/ROOT"])
-    run(["zfs", "create", "-o", "mountpoint=/", pool + "/ROOT/system"])
-    run(["zfs", "create", "-o", "mountpoint=/home", pool + "/home"])
-    run(["zfs", "create", "-o", "mountpoint=/var/lib/controlstack-agent", pool + "/agent"])
+    # NixOS fileSystems owns these mounts. Use legacy properties so mount(8),
+    # initrd and systemd all use the same explicit dataset/mountpoint contract.
+    run(["zfs", "create", "-o", "mountpoint=legacy", pool + "/ROOT/system"])
+    run(["mount", "-t", "zfs", pool + "/ROOT/system", str(TARGET)])
+    for dataset, directory in (("home", "home"), ("agent", "var/lib/controlstack-agent")):
+        run(["zfs", "create", "-o", "mountpoint=legacy", pool + "/" + dataset])
+        (TARGET / directory).mkdir(parents=True)
+        run(["mount", "-t", "zfs", pool + "/" + dataset, str(TARGET / directory)])
     run(["zpool", "set", "bootfs=" + pool + "/ROOT/system", pool])
     (TARGET / "boot").mkdir()
     run(["mount", "-o", "umask=0077", efi, str(TARGET / "boot")])
@@ -279,6 +287,8 @@ def install(plan, confirmation, password, encryption_key=None):
     # Rebuild sources are references of the installed system closure, copied by nixos-install.
     run(["sync"])
     run(["umount", str(TARGET / "boot")])
+    for directory in ("var/lib/controlstack-agent", "home", ""):
+        run(["umount", str(TARGET / directory)])
     run(["zpool", "export", pool])
     print("\nInstallation files are ready. Remove the USB, then restart.\n"
           "Sign in with your new local account. System Assistant will open and help you sign in to OpenClaw again.\n"
@@ -319,8 +329,8 @@ def interactive(state, suggestions=None):
         return
     available = disks()
     if not available:
-        raise ValueError("No unused disk with a stable identity and at least 32 GiB is available. Mounted disks and the USB are excluded.")
-    labels = [f"{n['model']} — {int(n['size']) // 1024**3} GiB — serial {n['serial'] or n['wwn']} ({n['name']})" for n in available]
+        raise ValueError("No unused internal disk with a stable identity and at least 32 GiB is available. Mounted, USB and removable disks are protected.")
+    labels = [f"{json.dumps(n['model'] or 'Disk')} — {int(n['size']) // 1024**3} GiB — serial {n['serial'] or n['wwn']} ({n['name']})" for n in available]
     index = choose("Which disk should hold the new system?", labels + ["Cancel"])
     if index > len(available):
         return

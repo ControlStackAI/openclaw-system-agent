@@ -5,6 +5,13 @@ from pathlib import Path
 
 
 class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'object': 'list', 'data': [
+            {'id': 'fixture-model', 'object': 'model', 'owned_by': 'local-test-fixture'}]}).encode())
+
     def do_POST(self):
         request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         # Capture only synthetic VM prompts for persistence/identity assertions.

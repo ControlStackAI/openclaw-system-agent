@@ -119,7 +119,7 @@ def main():
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
         guest.command("openclaw --version")
-        guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
+        guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
         guest.command("cat /dev/vcs1 | grep 'Welcome to your OpenClaw'")
         guest.qmp("screendump", {"filename": str(area / "welcome.png"), "format": "png"})
         if not installing:
@@ -128,6 +128,15 @@ def main():
             guest.command("sleep 20; cat /dev/vcs1 | grep 'Internet check failed'", timeout=90)
             guest.qmp("screendump", {"filename": str(area / "offline.png"), "format": "png"})
         else:
+            guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
+            guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
+            # Only this automated fixture uses an argv key; it is not an account credential.
+            # The shipped UI uses the official interactive protected input prompts.
+            live_env = "runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/run/controlstack-agent OPENCLAW_CONFIG_PATH=/run/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 "
+            guest.command(live_env + "openclaw onboard --non-interactive --accept-risk --mode local --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search --auth-choice custom-api-key --custom-base-url http://127.0.0.1:18080/v1 --custom-model-id fixture-model --custom-provider-id fixture --custom-compatibility openai --custom-api-key non-secret-vm-fixture", timeout=180)
+            guest.command(live_env + "system-agent local-policy")
+            guest.command("systemctl restart controlstack-agent; sleep 10")
+            guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
             guest.put("/tmp/install-test.py", '''import json, sys
 from pathlib import Path
 inputs = json.loads(Path('/etc/controlstack-agent/install-inputs.json').read_text())
@@ -152,6 +161,7 @@ print('INSTALL_COMPLETED')
             guest.command("test ! -e /etc/agent-installer/live-image")
             guest.command("systemctl is-active controlstack-agent controlstack-agent-boot-check")
             guest.command("test ! -e /var/lib/controlstack-agent/live-only-credential-fixture")
+            guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
             guest.command("grep 'desktop: none' /var/lib/controlstack-agent/workspace/USER.md")
             guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())

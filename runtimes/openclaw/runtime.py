@@ -32,7 +32,8 @@ def onboard(state, config=None):
     if not ready:
         raise ValueError(message)
     # The official interactive prompt owns masked input/device login. No key flags.
-    return invoke(state, ["onboard", "--skip-daemon", "--skip-health", "--skip-ui", "--skip-skills", "--skip-channels", "--workspace", str(Path(state).absolute() / "workspace")], config)
+    return invoke(state, ["onboard", "--skip-daemon", "--skip-health", "--skip-ui", "--skip-skills", "--skip-channels",
+                          "--skip-bootstrap", "--skip-hooks", "--skip-search", "--workspace", str(Path(state).absolute() / "workspace")], config)
 
 
 def local_policy(state, config_path=None):

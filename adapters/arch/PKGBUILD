@@ -12,7 +12,7 @@ source=()
 package() {
   local project="${startdir}/../.."
   install -dm755 "$pkgdir/usr/lib/controlstack-system-agent" "$pkgdir/usr/bin"
-  cp -r "$project/system_agent" "$project/runtimes" "$project/identity" "$pkgdir/usr/lib/controlstack-system-agent/"
+  cp -r "$project/system_agent" "$project/runtimes" "$project/identity" "$project/adapters" "$pkgdir/usr/lib/controlstack-system-agent/"
   printf '%s\n' '#!/bin/sh' 'PYTHONPATH=/usr/lib/controlstack-system-agent exec /usr/bin/python3 -m system_agent "$@"' > "$pkgdir/usr/bin/system-agent"
   printf '%s\n' '#!/bin/sh' 'PYTHONPATH=/usr/lib/controlstack-system-agent exec /usr/bin/python3 -m system_agent.admin "$@"' > "$pkgdir/usr/bin/system-agent-admin"
   chmod 755 "$pkgdir/usr/bin/system-agent-admin"

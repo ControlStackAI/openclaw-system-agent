@@ -41,7 +41,8 @@ class Installation(unittest.TestCase):
         node = dict(name="/dev/fixture-target", type="disk", size=64 * 1024**3, serial="fixture",
                     ro=False, mountpoints=[None])
         self.assertTrue(eligible(node))
-        for changes in ({"ro": True}, {"serial": None}, {"type": "part"}, {"size": 1024},
+        for changes in ({"ro": True}, {"serial": None}, {"serial": "bad\x1b[2J"}, {"tran": "usb"}, {"rm": True},
+                        {"fstype": "iso9660"}, {"type": "part"}, {"size": 1024},
                         {"mountpoints": ["/run/iso"]}, {"children": [{"name": "/dev/fixture-part", "mountpoints": ["/"]}]}):
             self.assertFalse(eligible({**node, **changes}))
         self.assertFalse(eligible(node, [node["name"]]))

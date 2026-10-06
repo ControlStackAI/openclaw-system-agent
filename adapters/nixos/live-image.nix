@@ -19,6 +19,7 @@
   services.timesyncd.enable = true;
   services.openssh.enable = lib.mkForce false;
   services.getty.autologinUser = lib.mkForce "root";
+  services.getty.helpLine = lib.mkForce "OpenClaw setup opens on the primary console. Remote login is off.";
   boot.kernelParams = [ "console=ttyS0,115200" "console=tty0" ];
   environment.systemPackages = with pkgs; [ curl git parted gptfdisk dosfstools whois python3 ];
   environment.etc."agent-installer/live-image".text = "nixos\n";

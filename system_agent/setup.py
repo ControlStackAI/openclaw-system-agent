@@ -67,7 +67,8 @@ class Setup:
         if result.returncode:
             print("Sign-in did not finish. You can retry from this menu.")
         else:
-            print("Sign-in setup finished. Open the conversation to check a real reply.")
+            print("Sign-in setup finished. Opening the conversation to check a real reply.")
+            self.chat()
 
     def chat(self):
         if not self.connect():
@@ -89,6 +90,8 @@ class Setup:
         subprocess.run(["systemctl", "start", "controlstack-agent.service"], check=True)
 
     def run(self):
+        if sys.stdout.isatty():
+            print("\033[2J\033[H", end="", flush=True)
         print("\nWelcome to your OpenClaw System Assistant.\n"
               + ("You are running from the USB. Sign-in stays in memory and disappears after reboot.\n"
                  "OpenClaw will also be installed as your computer's resident assistant."
