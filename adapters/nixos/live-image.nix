@@ -13,6 +13,8 @@
   networking.networkmanager.enable = true;
   networking.wireless.enable = lib.mkForce false;
   networking.useNetworkd = lib.mkForce false;
+  networking.dhcpcd.enable = lib.mkForce false;
+  networking.wireless.iwd.enable = lib.mkForce false;
   services.resolved.enable = lib.mkForce false;
   services.timesyncd.enable = true;
   services.openssh.enable = lib.mkForce false;

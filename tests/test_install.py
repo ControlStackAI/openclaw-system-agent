@@ -5,12 +5,30 @@ from pathlib import Path
 from unittest.mock import patch
 from adapters.nixos.install import validate_choices, eligible, render_target, install
 from system_agent.state import initialize
+from system_agent import choices
 
 CHOICES = dict(hostname="my-computer", username="owner", desktop="none", timezone="UTC",
                keyboard="us", locale="en_US.UTF-8", encrypt=False)
 
 
 class Installation(unittest.TestCase):
+    def test_conversation_choices_remain_partial_and_never_approve_erasure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertEqual(choices.read(directory), {})
+            result = choices.update(directory, "desktop", "none")
+            self.assertEqual(result["suggested_choices"], {"desktop": "none"})
+            self.assertFalse(result["disk_erasure_approved"])
+            choices.update(directory, "encrypt", "yes")
+            self.assertEqual(choices.read(directory), {"desktop": "none", "encrypt": True})
+            self.assertEqual((Path(directory) / "lifecycle/setup-choices.json").stat().st_mode & 0o777, 0o600)
+
+    def test_choice_channel_rejects_credentials_and_disk_commands(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for key, value in (("disk", "/dev/vda"), ("api_key", "fixture"), ("approve", "yes"), ("encrypt", "maybe")):
+                with self.assertRaises(ValueError):
+                    choices.update(directory, key, value)
+            self.assertEqual(choices.read(directory), {})
+
     def test_choices_reject_injection_unknown_fields_and_implicit_encryption(self):
         self.assertEqual(validate_choices(CHOICES), CHOICES)
         for values in ({"username": "root"}, {"hostname": '${builtins.readFile "/secret"}'},

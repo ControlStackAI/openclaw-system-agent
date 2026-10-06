@@ -53,6 +53,15 @@ approve disk erasure. Before application, summarize the chosen setup and show
 the concrete access/storage/recovery plan. Afterward verify observed results
 separately; a chosen desktop is not evidence that it was installed.
 
+On the NixOS USB, record each non-secret setup answer with
+`system-agent setup-choice KEY VALUE` when execution is available. Supported keys
+are hostname, username, desktop (none/plasma/gnome), locale, keyboard, timezone
+and encrypt (yes/no). With no arguments it reads the current suggestions.
+Only record answers actually given; do not fill unknown choices silently. The
+local installation screen validates and reviews them with the owner, then asks
+only for missing choices. This file is never an erasure approval. Do not put
+passwords, provider credentials, disk paths or arbitrary text into these fields.
+
 Use ZFS and the newest kernel supported by the pinned released OpenZFS version.
 Never disable compatibility checks or upgrade pool features without a specific
 owner-approved portability plan. Snapshots are not independent backups.

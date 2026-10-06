@@ -109,7 +109,9 @@ class Setup:
                     subprocess.run(["nmtui"])
                 elif self.live and answer == 4:
                     from adapters.nixos.install import interactive
-                    interactive(self.state)
+                    result = self.agent("setup-choice", capture=True)
+                    suggestions = json.loads(result.stdout) if result.returncode == 0 else {}
+                    interactive(self.state, suggestions)
                 elif self.live and answer == 5:
                     self.forget()
                 elif answer == len(labels) - 1:

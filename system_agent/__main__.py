@@ -23,6 +23,9 @@ def main():
     handoff.add_argument("file", type=Path)
     sub.add_parser("verify-boot")
     sub.add_parser("local-policy")
+    choices = sub.add_parser("setup-choice")
+    choices.add_argument("key", nargs="?")
+    choices.add_argument("value", nargs="?")
     sub.add_parser("onboard")
     chat = sub.add_parser("chat")
     chat.add_argument("--welcome", action="store_true")
@@ -48,6 +51,14 @@ def main():
             write_observation(args.state, "boot-verification.json", result)
             print(json.dumps(result, indent=2))
             return 0 if result["installed_boot_verified"] else 1
+        elif args.command == "setup-choice":
+            from . import choices
+            if args.key is None and args.value is None:
+                result = choices.read(args.state)
+            elif args.key is not None and args.value is not None:
+                result = choices.update(args.state, args.key, args.value)
+            else:
+                raise ValueError("Supply both a choice and its value, or neither to read choices.")
         elif args.command == "local-policy":
             result = runtime.local_policy(args.state, args.config)
         elif args.command == "onboard":

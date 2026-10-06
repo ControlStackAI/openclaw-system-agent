@@ -130,6 +130,8 @@ def render_target(plan, inputs):
     networking.networkmanager.enable = true;
     networking.wireless.enable = lib.mkForce false;
     networking.useNetworkd = lib.mkForce false;
+    networking.dhcpcd.enable = lib.mkForce false;
+    networking.wireless.iwd.enable = lib.mkForce false;
     services.resolved.enable = lib.mkForce false;
     services.timesyncd.enable = true;
     services.openssh.enable = false;
@@ -309,7 +311,7 @@ def timezone_choice():
         print("I could not find that city. Try a nearby major city, or enter a time zone such as Europe/London.")
 
 
-def interactive(state):
+def interactive(state, suggestions=None):
     from system_agent.setup import choose
     check_context()
     print("\nThis version installs NixOS onto one entire disk. It does not preserve files on that disk or set up dual boot.")
@@ -323,13 +325,27 @@ def interactive(state):
     if index > len(available):
         return
     node = available[index - 1]
-    choices = {"hostname": input("Name for this computer [my-computer]: ").strip() or "my-computer",
-               "username": input("Name for your local account [owner]: ").strip() or "owner"}
-    choices["desktop"] = DESKTOPS[choose("Which desktop would you like?", ["No desktop — use the local text console", "KDE Plasma — a desktop with panels and application menus", "GNOME — an activities-based desktop"]) - 1]
-    choices["locale"] = LOCALES[choose("Which system language and regional format?", ["English (United States)", "English (United Kingdom)", "German (Germany)", "French (France)", "Spanish (Spain)"]) - 1]
-    choices["keyboard"] = LAYOUTS[choose("Which keyboard layout?", ["US", "UK", "German", "French", "Spanish"]) - 1]
-    choices["timezone"] = timezone_choice()
-    choices["encrypt"] = choose("Encrypt your files? You will need the unlock passphrase after each restart.", ["Yes", "No"]) == 1
+    from system_agent.choices import validate_partial
+    choices = dict(validate_partial(suggestions or {}))
+    if choices:
+        print("\nChoices recorded in your conversation (still subject to your review):")
+        print(json.dumps(choices, indent=2))
+        if choose("Use these choices and ask about anything missing?", ["Use these choices", "Choose again"]) == 2:
+            choices = {}
+    if "hostname" not in choices:
+        choices["hostname"] = input("Name for this computer [my-computer]: ").strip() or "my-computer"
+    if "username" not in choices:
+        choices["username"] = input("Name for your local account [owner]: ").strip() or "owner"
+    if "desktop" not in choices:
+        choices["desktop"] = DESKTOPS[choose("Which desktop would you like?", ["No desktop — use the local text console", "KDE Plasma — a desktop with panels and application menus", "GNOME — an activities-based desktop"]) - 1]
+    if "locale" not in choices:
+        choices["locale"] = LOCALES[choose("Which system language and regional format?", ["English (United States)", "English (United Kingdom)", "German (Germany)", "French (France)", "Spanish (Spain)"]) - 1]
+    if "keyboard" not in choices:
+        choices["keyboard"] = LAYOUTS[choose("Which keyboard layout?", ["US", "UK", "German", "French", "Spanish"]) - 1]
+    if "timezone" not in choices:
+        choices["timezone"] = timezone_choice()
+    if "encrypt" not in choices:
+        choices["encrypt"] = choose("Encrypt your files? You will need the unlock passphrase after each restart.", ["Yes", "No"]) == 1
     validate_choices(choices)
     plan = prepare(node, choices)
     print("\nPlease review your installation:\n" + json.dumps({"disk": plan["disk"], "choices": choices}, indent=2))
