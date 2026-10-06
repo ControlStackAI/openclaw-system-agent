@@ -177,13 +177,27 @@ def prepare(node, choices):
     expression = area / (plan["id"] + ".nix")
     create_private(expression, render_target(plan, inputs))
     print("\nPreparing your chosen system before changing any disk. This may take a while.", flush=True)
-    try:
-        build = run(["nix-build", str(expression), "-A", "config.system.build.toplevel", "--no-out-link"], capture_output=True)
-    except subprocess.CalledProcessError as error:
-        create_private(area / (plan["id"] + ".build.log"), (error.stderr or "Preparation failed.")[-131072:])
-        raise ValueError("I could not prepare this system. No disk was changed. Technical details are saved in the private setup log.") from error
-    create_private(area / (plan["id"] + ".build.log"), build.stderr[-131072:])
-    plan["system"] = build.stdout.strip()
+    log_path = area / (plan["id"] + ".build.log")
+    create_private(log_path, "")
+    with log_path.open("a") as log:
+        with subprocess.Popen(["nix-build", str(expression), "-A", "config.system.build.toplevel", "--no-out-link"],
+                              stdout=subprocess.PIPE, stderr=log, text=True) as build:
+            while True:
+                try:
+                    stdout, _ = build.communicate(timeout=30)
+                    break
+                except subprocess.TimeoutExpired:
+                    print("Still preparing your system. Your disk has not been changed.", flush=True)
+                except BaseException:
+                    build.terminate()
+                    try:
+                        build.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        build.kill()
+                    raise
+            if build.returncode:
+                raise ValueError("I could not prepare this system. No disk was changed. Technical details are saved in the private setup log.")
+    plan["system"] = stdout.strip()
     if not re.fullmatch(r"/nix/store/[a-z0-9]{32}-nixos-system-[^/\s]+", plan["system"]):
         raise ValueError("The prepared system did not produce one expected Nix store path.")
     plan["expression"] = str(expression)

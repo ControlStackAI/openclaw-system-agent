@@ -183,9 +183,14 @@ def main():
             def answer(prompt, value, timeout=60):
                 found = guest.process.expect_exact([prompt, "That step did not finish:", "Those did not match.", "Please choose one of the numbers above."], timeout=timeout)
                 if found:
-                    guest.process.sendcontrol("c")
-                    guest.process.expect_exact("CS_READY> ")
-                    guest.command("cat /run/controlstack-install/*.build.log 2>/dev/null || true")
+                    if found == 1:
+                        guest.process.expect_exact("Choose a number:", timeout=30)
+                        guest.process.sendline("8")  # Leave the live setup menu cleanly.
+                    else:
+                        guest.process.sendcontrol("d")
+                    guest.process.expect_exact("CS_READY> ", timeout=30)
+                    details = guest.command("cat /run/controlstack-install/*.build.log 2>/dev/null || true")
+                    print(details[-12000:], flush=True)
                     raise RuntimeError("The local setup screen rejected a test step: " + prompt)
                 guest.process.sendline(value)
             answer("Choose a number:", "4")
