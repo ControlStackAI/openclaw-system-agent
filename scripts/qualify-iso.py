@@ -92,26 +92,29 @@ class Guest:
 
     def qmp(self, execute, arguments):
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.settimeout(30)
             sock.connect(str(self.socket_path))
-            stream = sock.makefile("rwb", buffering=0)
-            stream.readline()
-            for command in ({"execute": "qmp_capabilities"}, {"execute": execute, "arguments": arguments}):
-                stream.write(json.dumps(command).encode() + b"\n")
-                while True:
-                    response = json.loads(stream.readline())
-                    if "error" in response:
-                        raise RuntimeError(response)
-                    if "return" in response:
-                        break
+            with sock.makefile("rwb", buffering=0) as stream:
+                stream.readline()
+                for command in ({"execute": "qmp_capabilities"}, {"execute": execute, "arguments": arguments}):
+                    stream.write(json.dumps(command).encode() + b"\n")
+                    while True:
+                        response = json.loads(stream.readline())
+                        if "error" in response:
+                            raise RuntimeError(response)
+                        if "return" in response:
+                            break
 
     def type_console(self, text):
         for key in text:
-            self.qmp("human-monitor-command", {"command-line": "sendkey " + ("minus" if key == "-" else key), "hold-time": 50})
+            self.qmp("send-key", {"keys": [{"type": "qcode", "data": "minus" if key == "-" else key}], "hold-time": 50})
             time.sleep(0.08)
         self.qmp("human-monitor-command", {"command-line": "sendkey ret"})
 
     def close(self):
         if self.process.isalive():
+            self.process.sendcontrol("c")
+            time.sleep(0.2)
             self.process.sendline("poweroff")
             try:
                 self.process.expect(pexpect.EOF, timeout=60)
@@ -167,8 +170,10 @@ def main():
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
             # Drive the shipped local review screen, including separate disk approval.
             guest.process.sendline("system-agent-setup")
-            def answer(prompt, value, timeout=300):
-                guest.process.expect_exact(prompt, timeout=timeout)
+            def answer(prompt, value, timeout=60):
+                found = guest.process.expect_exact([prompt, "That step did not finish:", "Those did not match.", "Please choose one of the numbers above."], timeout=timeout)
+                if found:
+                    raise RuntimeError("The local setup screen rejected a test step: " + prompt)
                 guest.process.sendline(value)
             answer("Choose a number:", "4")
             answer("Choose a number:", "2")
@@ -181,13 +186,13 @@ def main():
             answer("[UTC]:", "UTC")
             guest.process.expect_exact("Encrypt your files?")
             answer("Choose a number:", "1" if args.encrypted else "2")
-            answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=3600)
+            answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=900)
             answer("Password for your local account (hidden):", "vm-only-test-password")
             answer("Enter it again:", "vm-only-test-password")
             if args.encrypted:
                 answer("Disk unlock passphrase (hidden; keep a safe copy elsewhere):", "vm-encryption-test")
                 answer("Enter it again:", "vm-encryption-test")
-            guest.process.expect_exact("Installation files are ready.", timeout=3600)
+            guest.process.expect_exact("Installation files are ready.", timeout=900)
             answer("Choose a number:", "7")
             guest.process.expect_exact("CS_READY> ")
 
