@@ -9,7 +9,7 @@ The resident lifecycle and NixOS service have passed isolated VM tests, includin
 gateway health, fixture conversations across reboot, private state and native
 backup/restore. Arch packaging is an adapter under qualification. An owner-run broker implements narrowly scoped ZFS snapshots, pool scrub requests
 and service restarts. The daemon gets no sudo permission. Disk erasure and
-boot-critical updates have no executor.
+boot-critical updates have no resident executor. An experimental USB installer is under qualification; see [USB setup](docs/usb-setup.md).
 See the exact [validation status](docs/qualification.md) before trying it.
 
 This repository is separate from [agent-installer](https://github.com/ControlStackAI/agent-installer),

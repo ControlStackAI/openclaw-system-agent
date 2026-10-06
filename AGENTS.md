@@ -6,5 +6,5 @@ Do not use host credentials, private state, operator home mounts, host block
 Run python3 -m unittest discover -s tests -v and the relevant VM checks.
 Keep input pins and kernel/ZFS guards. Do not equate fixtures with model access,
 or a gateway health check with an installed boot or recovery qualification.
-Only reviewed generic source belongs in public history. No physical disk executor
-is implemented. Development authorization never authorizes erasing host disks.
+Only reviewed generic source belongs in public history. The experimental NixOS disk executor must be tested only on disposable VM disks.
+Development authorization never authorizes erasing host disks.

@@ -26,7 +26,7 @@ def create_private(path, data):
         os.fsync(f.fileno())
 
 
-def initialize(path, identity, config_path=None):
+def initialize(path, identity, config_path=None, seed_config=None):
     state = private_dir(path)
     workspace = private_dir(state / "workspace")
     lifecycle = private_dir(state / "lifecycle")
@@ -41,7 +41,8 @@ def initialize(path, identity, config_path=None):
         raise ValueError("Gateway token must be a private regular file.")
     config = Path(config_path) if config_path else state / "openclaw.json"
     if not config.exists() and not config.is_symlink():
-        create_private(config, json.dumps(default_config(state), indent=2) + "\n")
+        settings = json.loads(Path(seed_config).read_text()) if seed_config else default_config(state)
+        create_private(config, json.dumps(settings, indent=2) + "\n")
     return {"state": str(state), "workspace": str(workspace), "lifecycle": str(lifecycle)}
 
 

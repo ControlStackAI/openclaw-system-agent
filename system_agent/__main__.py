@@ -18,9 +18,11 @@ def main():
     sub.add_parser("refresh")
     init = sub.add_parser("initialize")
     init.add_argument("--identity", default=str(Path(__file__).resolve().parent.parent / "identity"))
+    init.add_argument("--seed-config", type=Path)
     handoff = sub.add_parser("import-handoff")
     handoff.add_argument("file", type=Path)
     sub.add_parser("verify-boot")
+    sub.add_parser("local-policy")
     sub.add_parser("onboard")
     sub.add_parser("chat")
     sub.add_parser("health")
@@ -29,7 +31,7 @@ def main():
     args = parser.parse_args()
     try:
         if args.command == "initialize":
-            result = initialize(args.state, args.identity, args.config)
+            result = initialize(args.state, args.identity, args.config, args.seed_config)
         elif args.command in ("inspect", "refresh"):
             result = discover()
             if args.command == "refresh":
@@ -45,6 +47,8 @@ def main():
             write_observation(args.state, "boot-verification.json", result)
             print(json.dumps(result, indent=2))
             return 0 if result["installed_boot_verified"] else 1
+        elif args.command == "local-policy":
+            result = runtime.local_policy(args.state, args.config)
         elif args.command == "onboard":
             return runtime.onboard(args.state, args.config)
         elif args.command == "chat":

@@ -1,5 +1,7 @@
 """Official CLI adapter, always with an explicit private state location."""
 import os
+import json
+import secrets
 import subprocess
 from pathlib import Path
 
@@ -13,8 +15,8 @@ def environment(state, config=None):
                OPENCLAW_HOME=str(state), OPENCLAW_STATE_DIR=str(state),
                OPENCLAW_CONFIG_PATH=str(config or state / "openclaw.json"),
                OPENCLAW_DISABLE_BONJOUR="1")
-    if os.environ.get("OPENCLAW_NIX_MODE") == "1":
-        env["OPENCLAW_NIX_MODE"] = "1"
+    if os.environ.get("OPENCLAW_NIX_MODE") in ("0", "1"):
+        env["OPENCLAW_NIX_MODE"] = os.environ["OPENCLAW_NIX_MODE"]
     return env
 
 
@@ -30,4 +32,24 @@ def onboard(state, config=None):
     if not ready:
         raise ValueError(message)
     # The official interactive prompt owns masked input/device login. No key flags.
-    return invoke(state, ["onboard", "--skip-daemon", "--workspace", str(Path(state).absolute() / "workspace")], config)
+    return invoke(state, ["onboard", "--skip-daemon", "--skip-health", "--skip-ui", "--skip-skills", "--skip-channels", "--workspace", str(Path(state).absolute() / "workspace")], config)
+
+
+def local_policy(state, config_path=None):
+    """Reapply the installer access boundary as the unprivileged service account."""
+    from system_agent.state import private_dir, create_private, default_config
+    state = private_dir(state)
+    path = Path(config_path or state / "openclaw.json")
+    if path != state / "openclaw.json" or path.is_symlink():
+        raise ValueError("Only the private mutable runtime config can be updated.")
+    config = json.loads(path.read_text())
+    defaults = default_config(state)
+    config["gateway"] = defaults["gateway"]
+    config.setdefault("secrets", {}).setdefault("providers", {})["gateway"] = defaults["secrets"]["providers"]["gateway"]
+    config.setdefault("agents", {}).setdefault("defaults", {}).update(workspace=str(state / "workspace"), skipBootstrap=True)
+    config["tools"] = {"profile": "full", "allow": ["read", "session_status", "exec", "process", "write", "edit"], "elevated": {"enabled": False}}
+    config["channels"] = {}
+    temporary = state / ("config-" + secrets.token_hex(8))
+    create_private(temporary, json.dumps(config, indent=2) + "\n")
+    os.replace(temporary, path)
+    return {"local_policy": "applied", "elevated": False}

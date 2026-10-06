@@ -1,0 +1,44 @@
+name: USB image and installed-system qualification
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: |
+            max-jobs = 2
+            cores = 2
+      - name: Prepare disposable VM runner
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet
+          sudo apt-get update -qq
+          sudo apt-get install -y qemu-system-x86 qemu-utils ovmf python3-pexpect
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - name: Build pinned USB image
+        run: nix build .#live-iso --out-link result-iso -L
+      - name: Direct BIOS USB boot and offline gating
+        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode bios-offline
+      - name: UEFI USB installation and disk boot without USB
+        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install
+      - name: Preserve qualification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: usb-qualification-evidence
+          path: |
+            .build/iso-test/**/*.log
+            .build/iso-test/**/*.png
+            .build/iso-test/**/result.json
+      - name: Preserve qualified development ISO
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: openclaw-nixos-development-iso
+          path: result-iso/iso/*.iso
+          compression-level: 0

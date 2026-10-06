@@ -1,7 +1,8 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.services.controlstackAgent;
-  state = "/var/lib/controlstack-agent";
+  state = if cfg.ephemeral then "/run/controlstack-agent" else "/var/lib/controlstack-agent";
+  configPath = if cfg.mutableProviderSetup then "${state}/openclaw.json" else "/etc/controlstack-agent/openclaw.json";
   defaults = {
     gateway = {
       mode = "local";
@@ -40,6 +41,9 @@ in {
       description = "Exact targets for the owner-run maintenance broker. No resident sudo grant is created.";
     };
     zfs.enable = lib.mkEnableOption "released ZFS and the newest supported kernel available in the pinned package set";
+    ephemeral = lib.mkEnableOption "private RAM state on the live image";
+    mutableProviderSetup = lib.mkEnableOption "official interactive onboarding into private mutable runtime config";
+    installInputs = lib.mkOption { type = lib.types.attrsOf lib.types.str; default = {}; internal = true; };
   };
   config = lib.mkIf cfg.enable {
     users.groups.controlstack-agent = {};
@@ -50,6 +54,9 @@ in {
     environment.systemPackages = [ cfg.corePackage cfg.package ];
     environment.etc."controlstack-agent/openclaw.json".source = configFile;
     environment.etc."controlstack-agent/capabilities.json".text = builtins.toJSON cfg.capabilities;
+    environment.etc."controlstack-agent/install-inputs.json" = lib.mkIf (cfg.installInputs != {}) {
+      text = builtins.toJSON cfg.installInputs;
+    };
     systemd.services.controlstack-agent = {
       description = "ControlStackAI resident system agent";
       wantedBy = [ "multi-user.target" ];
@@ -59,8 +66,8 @@ in {
         HOME = state;
         OPENCLAW_HOME = state;
         OPENCLAW_STATE_DIR = state;
-        OPENCLAW_CONFIG_PATH = "/etc/controlstack-agent/openclaw.json";
-        OPENCLAW_NIX_MODE = "1";
+        OPENCLAW_CONFIG_PATH = configPath;
+        OPENCLAW_NIX_MODE = if cfg.mutableProviderSetup then "0" else "1";
         OPENCLAW_DISABLE_BONJOUR = "1";
         XDG_CACHE_HOME = "${state}/cache";
         XDG_CONFIG_HOME = "${state}/config";
@@ -69,10 +76,13 @@ in {
       serviceConfig = {
         User = "controlstack-agent";
         Group = "controlstack-agent";
-        StateDirectory = "controlstack-agent";
+        StateDirectory = lib.mkIf (!cfg.ephemeral) "controlstack-agent";
         StateDirectoryMode = "0700";
+        RuntimeDirectory = lib.mkIf cfg.ephemeral "controlstack-agent";
+        RuntimeDirectoryMode = "0700";
+        RuntimeDirectoryPreserve = lib.mkIf cfg.ephemeral "yes";
         UMask = "0077";
-        ExecStartPre = [ "${cfg.corePackage}/bin/system-agent initialize" "${cfg.corePackage}/bin/system-agent refresh" ];
+        ExecStartPre = [ "${cfg.corePackage}/bin/system-agent initialize --seed-config ${configFile}" "${cfg.corePackage}/bin/system-agent refresh" ];
         ExecStart = "${cfg.package}/bin/openclaw gateway run";
         Restart = "on-failure";
         RestartSec = 5;
@@ -92,6 +102,19 @@ in {
         RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
         LockPersonality = true;
         ReadWritePaths = [ state ];
+      };
+    };
+    systemd.services.controlstack-agent-boot-check = lib.mkIf (!cfg.ephemeral) {
+      description = "Verify the installed root independently of model access";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "controlstack-agent.service" ];
+      unitConfig.ConditionPathExists = "${state}/lifecycle/installation.json";
+      path = [ pkgs.util-linux pkgs.systemd ];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "controlstack-agent";
+        ExecStart = "${cfg.corePackage}/bin/system-agent verify-boot";
+        RemainAfterExit = true;
       };
     };
     # A build-time module alone cannot prove installed-root bootability.
