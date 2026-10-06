@@ -298,7 +298,7 @@ def install(plan, confirmation, password, encryption_key=None):
     for directory in ("var/lib/controlstack-agent", "home", ""):
         run(["umount", str(TARGET / directory)])
     run(["zpool", "export", pool])
-    print("\nInstallation files are ready. Remove the USB, then restart.\n"
+    print("\nInstallation files are ready. Shut down before removing the USB, then turn the computer on again.\n"
           "Sign in with your new local account. System Assistant will open and help you sign in to OpenClaw again.\n"
           "The installed boot still needs to be verified after that restart.", flush=True)
 
@@ -386,3 +386,5 @@ def interactive(state, suggestions=None):
         install(plan, confirmation, password, encryption_key)
     finally:
         password = encryption_key = None
+    if choose("Ready to shut down and start your installed system?", ["Shut down, then remove the USB", "Stay in this USB session"]) == 1:
+        run(["systemctl", "poweroff"])

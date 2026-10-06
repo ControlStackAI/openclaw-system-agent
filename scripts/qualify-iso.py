@@ -196,8 +196,8 @@ def main():
                 answer("Disk unlock passphrase (hidden; keep a safe copy elsewhere):", "vm-encryption-test")
                 answer("Enter it again:", "vm-encryption-test")
             guest.process.expect_exact("Installation files are ready.", timeout=900)
-            answer("Choose a number:", "7")
-            guest.process.expect_exact("CS_READY> ")
+            answer("Choose a number:", "1")
+            guest.process.expect(pexpect.EOF, timeout=60)
 
     finally:
         guest.close()
