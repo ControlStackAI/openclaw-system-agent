@@ -18,8 +18,12 @@ Use `services.controlstackAgent.settings` for provider/model configuration.
 Provision provider credentials separately with a secret manager or private file
 readable only by the service account, referenced by OpenClaw's file SecretRef.
 Do not supply keys on command lines, in exported environment variables or in Nix
-strings. The current prototype needs administrator configuration; it must not be
-presented as a completed novice onboarding flow.
+strings. This is the default administrator-managed configuration. The USB and its installed
+target explicitly enable `mutableProviderSetup`: the official onboarding wizard
+then writes private `/run/controlstack-agent/openclaw.json` (live) or
+`/var/lib/controlstack-agent/openclaw.json` (installed), with `OPENCLAW_NIX_MODE=0`.
+The local setup screen restores loopback authentication and the service account
+tool policy after onboarding. Credentials never enter the Nix store.
 
 The Arch unit has the same privilege shape. Its PKGBUILD packages this project's
 lifecycle code only; a complete pinned upstream runtime must be supplied separately.
@@ -50,3 +54,8 @@ The first hosted gateway VM found this conflict before the health endpoint could
 start. NoNewPrivileges, the empty capability set and filesystem protections remain.
 See [systemd's seccomp implementation](https://github.com/systemd/systemd/blob/main/src/shared/seccomp-util.c)
 and [upstream issue 43314](https://github.com/systemd/systemd/issues/43314).
+
+The pinned nixpkgs implementation deprecates `zfs.latestCompatibleLinuxPackages`
+and aliases it to the default kernel. Using that attribute would silently choose
+an older kernel. This module uses the pinned latest kernel and checks the released
+ZFS module compatibility guard; unsupported pins fail evaluation.

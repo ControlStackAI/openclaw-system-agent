@@ -29,8 +29,7 @@ For example, after learning the intended use:
 > Would you like a graphical desktop, no desktop, or help choosing?
 
 If a desktop is wanted, explain a small set of choices verified against the
-pinned target adapter, then ask for one choice. GNOME, KDE Plasma or Xfce are
-examples to investigate, not a claim that this prototype installs them. A
+pinned target adapter, then ask for one choice. The NixOS adapter offers GNOME and KDE Plasma. Xfce is not an implemented option. A
 headless choice skips the desktop questions. It preserves a local console and
 does not silently enable SSH or any other remote service.
 
@@ -75,23 +74,26 @@ the agent can update the durable profile. Until then it should keep answers in
 the conversation and say the profile has not been updated. No additional access
 is enabled by this change.
 
-These are shipped conversation instructions and a persistent profile template,
-not a deterministic questionnaire or desktop installation executor. The fixture
-VM can verify profile delivery and preservation; it cannot establish whether a
-real model reliably asks the right next question. A real-model acceptance check
-must cover setup, no-desktop, changed preferences, maintenance without a setup
-interview, and recovery from live media without implicit installation.
+The agent can record the supported non-secret choices with `system-agent
+setup-choice KEY VALUE`. The local installer reads and validates those suggestions
+as the service account, then asks the owner to review them. Disk selection, approval
+and credentials cannot be recorded through this command. The deterministic local
+screen asks for missing choices one at a time and builds the target before asking
+for irreversible disk approval. It is available without a model subscription.
 
-Implemented: readiness gates before mutable CLI onboarding; isolated runtime
-context; official interactive onboarding invocation; declarative Nix service;
-identity language and reopen via `system-agent chat`.
-Not implemented: a complete continuous novice UI, Wi-Fi menu integration, a
-NixOS secret/provider setup UI, and verified subscription login in this image.
-Readiness to the project/package endpoints does not prove a provider is reachable;
-the native onboarding live inference check must establish that separately.
+The live and installed NixOS profiles enable workspace execution as the dedicated
+service account, so these typed choices can be saved. The general-purpose service
+module still defaults to read-only tools. Neither profile grants the agent root.
+The owner-operated setup screen is privileged and is available only to the local
+administrator; its troubleshooting shell has administrator access.
 
-On Arch, the official interactive wizard owns masked input. No wrapper accepts
-API keys as argv. On NixOS, the wrapper refuses mutable onboarding and points to
-declarative provider configuration rather than pretending the wizard can rewrite
-a store-managed config. A future UI should stage non-secret declarative choices
-and write secrets directly to private runtime storage through an approved helper.
+The fixture tests establish real CLI integration, not the quality of a real
+model's interview. Real-model acceptance must cover setup, no desktop, changed
+preferences, maintenance without a setup interview and recovery without implicit
+installation. Real subscription/device authentication is not qualified by a
+fixture API key. The native interactive wizard owns protected credential input.
+
+After installation the owner signs in again. Only validated OS choices and the
+boot handoff transfer; live credentials and conversation state remain in RAM.
+Installed conversations then persist across reboots. The boot verifier runs
+independently from the model and checks the mounted root and fresh machine boot.

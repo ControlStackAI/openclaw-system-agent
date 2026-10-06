@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Guest:
-    def __init__(self, iso, area, uefi=False, installed=False, offline=False):
+    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False):
         self.area = area
         (area / "qmp.sock").unlink(missing_ok=True)
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
@@ -46,6 +46,14 @@ class Guest:
         self.process.logfile = self.log
         self.count = 0
         try:
+            if installed and encrypted:
+                # Only the disposable test disk uses this public fixture passphrase.
+                time.sleep(30)
+                self.qmp("screendump", {"filename": str(area / "unlock.png"), "format": "png"})
+                for key in "vm-encryption-test":
+                    self.qmp("human-monitor-command", {"command-line": "sendkey " + ("minus" if key == "-" else key), "hold-time": 50})
+                    time.sleep(0.08)
+                self.qmp("human-monitor-command", {"command-line": "sendkey ret"})
             if installed:
                 self.process.expect("login:")
                 self.process.sendline("owner")
@@ -108,11 +116,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("iso", type=Path)
     parser.add_argument("--mode", choices=["bios-offline", "uefi-install"], required=True)
+    parser.add_argument("--desktop", choices=["none", "plasma", "gnome"], default="none")
+    parser.add_argument("--encrypted", action="store_true")
     args = parser.parse_args()
     iso = args.iso.resolve()
     if not iso.is_file():
         parser.error("ISO must be a regular file")
-    area = ROOT / ".build/iso-test" / args.mode
+    area = ROOT / ".build/iso-test" / (args.mode + "-" + args.desktop + ("-encrypted" if args.encrypted else ""))
     area.mkdir(parents=True, exist_ok=True)
     # Each invocation needs a genuinely blank target and firmware, never a resumed result.
     for name in ("target.qcow2", "OVMF_VARS.fd", "result.json", "qmp.sock"):
@@ -150,25 +160,29 @@ sys.path.insert(0, inputs['core'] + '/lib/system-agent')
 from adapters.nixos.install import disks, prepare, install
 nodes = [n for n in disks() if n['serial'] == 'CONTROLSTACK-VM-ONLY']
 assert len(nodes) == 1
-choices = dict(hostname='vmresident', username='owner', desktop='none', timezone='UTC', keyboard='us', locale='en_US.UTF-8', encrypt=False)
+choices = dict(hostname='vmresident', username='owner', desktop=DESKTOP_CHOICE, timezone='UTC', keyboard='us', locale='en_US.UTF-8', encrypt=ENCRYPT_CHOICE)
 Path('/run/controlstack-agent/live-only-credential-fixture').write_text('must-not-transfer')
 Path('/run/controlstack-agent/live-only-credential-fixture').chmod(0o600)
 plan = prepare(nodes[0], choices)
-install(plan, 'ERASE CONTROLSTACK-VM-ONLY', 'vm-only-test-password')
+install(plan, 'ERASE CONTROLSTACK-VM-ONLY', 'vm-only-test-password', 'vm-encryption-test' if choices['encrypt'] else None)
 print('INSTALL_COMPLETED')
-''')
+'''.replace('DESKTOP_CHOICE', repr(args.desktop)).replace('ENCRYPT_CHOICE', repr(args.encrypted)))
             guest.command("python3 /tmp/install-test.py", timeout=3600)
     finally:
         guest.close()
     if installing:
-        guest = Guest(iso, area, uefi=True, installed=True)
+        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted)
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("test ! -e /etc/agent-installer/live-image")
             guest.command("timeout 180 bash -c 'until systemctl is-active --quiet controlstack-agent; do sleep 2; done'; systemctl is-active controlstack-agent controlstack-agent-boot-check || { journalctl -b -u controlstack-agent -u controlstack-agent-boot-check --no-pager; exit 1; }")
             guest.command("test ! -e /var/lib/controlstack-agent/live-only-credential-fixture")
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
-            guest.command("grep 'desktop: none' /var/lib/controlstack-agent/workspace/USER.md")
+            guest.command(f"grep 'desktop: {args.desktop}' /var/lib/controlstack-agent/workspace/USER.md")
+            if args.desktop != "none":
+                guest.command("systemctl is-active display-manager")
+            if args.encrypted:
+                guest.command("zfs get -H -o value encryption $(findmnt -n -o SOURCE /) | grep -x aes-256-gcm")
             guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
             guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
@@ -190,10 +204,13 @@ p.write_text(json.dumps(c))
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
                "installation": installing, "disk_boot_without_iso": installing,
+               "desktop": args.desktop, "encryption": args.encrypted, "graphical_owner_login": False,
                "provider": "local deterministic fixture" if installing else "none",
                "real_account_login": False, "physical_disks_attached": False}
     (area / "result.json").write_text(json.dumps(receipt, indent=2) + "\n")
     print(json.dumps(receipt))
+    # Retain receipts/screenshots/logs, not large disposable disks between cases.
+    (area / "target.qcow2").unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

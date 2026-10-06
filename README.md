@@ -13,7 +13,7 @@ boot-critical updates have no resident executor. An experimental USB installer i
 See the exact [validation status](docs/qualification.md) before trying it.
 
 This repository is separate from [agent-installer](https://github.com/ControlStackAI/agent-installer),
-which owns live installation environments. No private host configuration or prior
+whose pinned network/clock/ZFS readiness code is consumed by this image. No private host configuration or prior
 agent state is included. All project history begins with generic source.
 
 ## What lives here
@@ -52,14 +52,16 @@ See [configuration](docs/configuration.md) for the explicit service privilege pl
 facts in private state. `verify-boot` requires a handoff and an independent reboot.
 `health` checks authenticated gateway health. `chat` opens the official local TUI.
 These commands are intended to run with the service account's state/config context.
-The eventual friendly first-run flow is specified in [onboarding](docs/onboarding.md);
-provider setup on NixOS is not yet a novice-ready UI.
+The USB and installed-system setup screen wraps official OpenClaw onboarding,
+NetworkManager and the local conversation. See [USB setup](docs/usb-setup.md).
 
 The conversation profile distinguishes setup, maintenance and recovery. During
 setup it asks about a desktop or no desktop, then other relevant OS decisions
 one at a time. A private USER.md template separates owner intentions from system
-facts and approvals. Profile writing needs an authorized workspace tool; desktop
-installation and a deterministic setup questionnaire are not implemented.
+facts and approvals. The USB profile can record typed non-secret choices for the
+local review screen. The NixOS adapter implements no desktop, Plasma and GNOME,
+regional settings, a local account and optional native ZFS encryption. Check the
+qualification matrix before treating any offered path as validated.
 
 Read the [state/recovery model](docs/state-and-recovery.md),
 [live ISO decision](docs/live-iso.md), and [upstream evidence](docs/upstream.md).
