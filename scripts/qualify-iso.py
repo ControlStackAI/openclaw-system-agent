@@ -106,6 +106,18 @@ class Guest:
                         if "return" in response:
                             break
 
+    def wait_screen_text(self, expected, timeout=120):
+        deadline = time.monotonic() + timeout
+        screen = self.area / "login.png"
+        while time.monotonic() < deadline:
+            self.qmp("screendump", {"filename": str(screen), "format": "png"})
+            text = subprocess.run(["tesseract", str(screen), "stdout", "--psm", "11"],
+                                  capture_output=True, text=True, check=True).stdout
+            if expected.casefold() in text.casefold():
+                return
+            time.sleep(2)
+        raise RuntimeError("Graphical screen did not show: " + expected)
+
     def type_console(self, text):
         for key in text:
             if self.keyboard == "de" and key in "yz":
@@ -235,9 +247,13 @@ def main():
             guest.qmp("screendump", {"filename": str(area / "login.png"), "format": "png"})
             if args.desktop == "none":
                 guest.type_console("owner")
-            elif args.desktop == "gnome":
-                guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
-            time.sleep(3)
+                time.sleep(3)
+            else:
+                guest.wait_screen_text("owner")
+                if args.desktop == "gnome":
+                    guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
+                    guest.wait_screen_text("Password")
+                guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-a"})
             guest.type_console("vmonlytestpassword")
             guest.command("timeout 120 bash -c 'until pgrep -u root -f \"[p]ython3.*system_agent.setup\"; do sleep 2; done'")
             if args.desktop == "none":
@@ -268,6 +284,7 @@ p.write_text(json.dumps(c))
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
         except Exception:
             guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
+            print(guest.command("journalctl -b -u display-manager --no-pager -n 120; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|xterm|system_agent.setup' || true")[-16000:], flush=True)
             raise
         finally:
             guest.close()
