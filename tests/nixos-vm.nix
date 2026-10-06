@@ -28,7 +28,7 @@ pkgs.testers.runNixOSTest {
   };
   testScript = ''
     import json
-    machine.start()
+    machine.start(allow_reboot=True)
     machine.wait_for_unit("controlstack-agent.service", timeout=180)
     machine.wait_until_succeeds("curl -fsS http://127.0.0.1:18789/healthz", timeout=180)
     machine.succeed("systemctl show controlstack-agent -p User --value | grep -x controlstack-agent")

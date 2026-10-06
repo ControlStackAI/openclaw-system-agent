@@ -17,7 +17,7 @@ pkgs.testers.runNixOSTest {
   };
   testScript = ''
     import json
-    machine.start()
+    machine.start(allow_reboot=True)
     machine.wait_for_unit("multi-user.target")
     machine.succeed("install -d -o controlstack-agent -g controlstack-agent -m 700 /var/lib/controlstack-agent")
     machine.succeed("su -s /bin/sh controlstack-agent -c 'OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json system-agent initialize'")
