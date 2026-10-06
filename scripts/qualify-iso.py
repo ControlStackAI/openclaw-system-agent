@@ -107,14 +107,16 @@ class Guest:
                         if "return" in response:
                             break
 
+    def screen_text(self):
+        screen = self.area / "screen.png"
+        self.qmp("screendump", {"filename": str(screen), "format": "png"})
+        return subprocess.run(["tesseract", str(screen), "stdout", "--psm", "11"],
+                              capture_output=True, text=True, check=True).stdout
+
     def wait_screen_text(self, expected, timeout=120):
         deadline = time.monotonic() + timeout
-        screen = self.area / "login.png"
         while time.monotonic() < deadline:
-            self.qmp("screendump", {"filename": str(screen), "format": "png"})
-            text = subprocess.run(["tesseract", str(screen), "stdout", "--psm", "11"],
-                                  capture_output=True, text=True, check=True).stdout
-            if expected.casefold() in text.casefold():
+            if expected.casefold() in self.screen_text().casefold():
                 return
             time.sleep(2)
         raise RuntimeError("Graphical screen did not show: " + expected)
@@ -286,6 +288,9 @@ p.write_text(json.dumps(c))
                 guest.command("sleep 3; grep -q \"What would you like to do?\" /dev/vcs1")
 
             if args.desktop != "none":
+                if args.desktop == "gnome" and "type to search" in guest.screen_text().casefold():
+                    guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
+                guest.wait_screen_text("Choose a number")
                 guest.type_console("2")
                 guest.wait_screen_text("resident conversation works")
                 guest.qmp("screendump", {"filename": str(area / "conversation.png"), "format": "png"})
