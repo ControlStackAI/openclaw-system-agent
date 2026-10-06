@@ -21,7 +21,7 @@ def environment(state, config=None):
 
 
 def invoke(state, args, config=None):
-    return subprocess.run(["openclaw", *args], env=environment(state, config)).returncode
+    return subprocess.run(["openclaw", *args], env=environment(state, config), umask=0o077).returncode
 
 
 def onboard(state, config=None):

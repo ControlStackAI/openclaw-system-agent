@@ -64,7 +64,7 @@ class Guest:
                 self.process.expect("password for owner:")
                 self.process.sendline("vmonlytestpassword")
             self.process.expect(r"root@[^\r\n]*#")
-            self.process.sendline("stty -echo; export PS1='CS_READY> '")
+            self.process.sendline("stty -echo; umask 077; export PS1='CS_READY> '")
             self.process.expect("CS_READY> ")
         except Exception:
             try:

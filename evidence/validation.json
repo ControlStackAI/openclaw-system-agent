@@ -3,7 +3,7 @@
   "date": "2026-10-06",
   "status": "vm-validated-development-prototype",
   "unit_tests": {
-    "passed": 28
+    "passed": 31
   },
   "installer_contract": "passed",
   "nix_core_package": "built",
@@ -72,7 +72,6 @@
     "boot-critical updates",
     "pool feature upgrades",
     "desktop and encrypted disk boot (checks in progress)",
-    "interactive local installation review (check in progress)",
     "Secure Boot"
   ],
   "owner_profile": {
@@ -84,9 +83,9 @@
   },
   "usb_vm": {
     "status": "passed-no-desktop",
-    "source_commit": "b2e3491d4ef25b67476774d84ee779b3fdc174e8",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37533152301",
-    "iso_sha256": "6cc9b23c5c1272d1fb6c4f902b530d279eac30028518c1e777afeb63c6a5d93a",
+    "source_commit": "918705b",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37540467951",
+    "iso_sha256": "96dd5422982a9c1b898ad04d6d0c18e7fb41468d9613b91884bf39a5914df8f4",
     "checks": [
       "BIOS USB boot and automatic tty1 welcome",
       "offline sign-in gating",
@@ -98,11 +97,16 @@
       "ZFS-root boot without ISO",
       "independent machine/dataset/boot handoff verification",
       "no transfer of live credential fixture or provider config",
-      "installed OpenClaw reply with owner choices in request"
+      "installed OpenClaw reply with owner choices in request",
+      "shipped interactive questionnaire and separate exact disk approval",
+      "guided shutdown before USB removal",
+      "owner login on primary console and setup autostart",
+      "visible native OpenClaw TUI fixture reply on primary console",
+      "Ctrl+D returns from TUI to setup menu"
     ],
     "provider": "local deterministic fixture; no real account",
     "desktop": "none",
     "encryption": false,
-    "interactive_install_review": false
+    "interactive_install_review": true
   }
 }

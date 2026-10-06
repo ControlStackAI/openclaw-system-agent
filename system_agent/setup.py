@@ -36,7 +36,7 @@ class Setup:
             if key in os.environ:
                 env[key] = os.environ[key]
         return subprocess.run(["runuser", "-u", ACCOUNT, "--", "system-agent", *args],
-                              env=env, capture_output=capture, text=True)
+                              env=env, capture_output=capture, text=True, umask=0o077)
 
     def connect(self):
         # Consume the pinned installer readiness/networking implementation.
