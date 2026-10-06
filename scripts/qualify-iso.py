@@ -62,7 +62,7 @@ class Guest:
         self.count += 1
         marker = f"CS_DONE_{self.count}"
         self.process.sendline(command + (" " if command.rstrip().endswith("&") else "; ") + f"printf '\\n{marker}:%s\\n' \"$?\"")
-        self.process.expect(r"\r?\n" + marker + r":(\d+)\r?\n", timeout=timeout)
+        self.process.expect(marker + r":(\d+)", timeout=timeout)
         output = self.process.before
         if self.process.match.group(1) != "0":
             raise RuntimeError(f"Guest command failed: {command}\n{output[-4000:]}")
