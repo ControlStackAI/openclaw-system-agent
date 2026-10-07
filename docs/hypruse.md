@@ -30,8 +30,9 @@ owner processes); it is deliberately powerful and not a sandbox for the owner ho
 The center island shows whether desktop control is enabled. Clicking its mouse
 icon or pressing **Super+Shift+Backspace** stops the service and its connected
 servers. The OpenClaw monitor has **Stop desktop access** and **Resume** buttons.
-Stopping the bridge cuts off desktop access, while the resident system agent
-continues to run. Logging out stops the bridge; a new login starts it with the
+Stopping the bridge prevents further MCP desktop commands and ends connected
+servers, while the resident system agent continues to run. It does not undo
+completed changes or close applications already launched by the compositor. Logging out stops the bridge; a new login starts it with the
 new session environment. Pausing is session-local, not a persistent disable.
 To disable it declaratively, set `services.controlstackAgent.desktopOwner = null`.
 

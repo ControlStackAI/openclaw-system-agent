@@ -82,7 +82,7 @@ pkgs.testers.runNixOSTest {
         machine.wait_for_text("Ghostty terminal ready", timeout=30)
     finally:
         machine.screenshot("ghostty")
-    machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock")
+    machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock", timeout=30)
     machine.wait_for_unit("controlstack-agent.service")
     mcp_env = "runuser -u controlstack-agent -- env HOME=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json "
     for name in ("hypruse", "nixos"):
@@ -98,13 +98,13 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_text("Hypruse typed into Ghostty", timeout=30)
     machine.screenshot("hypruse-input")
     machine.send_key("meta_l-shift-backspace")
-    machine.wait_until_succeeds(owner + "systemctl --user is-active controlstack-hypruse.service | grep inactive")
+    machine.wait_until_succeeds(owner + "systemctl --user show controlstack-hypruse.service --property=ActiveState --value | grep -qx inactive", timeout=30)
     machine.succeed("test ! -S /run/controlstack-hypruse/mcp.sock")
     machine.succeed(gui + "controlstack-desktop-control start")
-    machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock")
+    machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock", timeout=30)
 
     machine.send_key("meta_l-c")
-    machine.wait_until_succeeds("! pgrep -u owner -x ghostty")
+    machine.wait_until_succeeds("! pgrep -u owner -x ghostty", timeout=30)
     machine.succeed(gui + "quickshell -c controlstack ipc call shell launcher")
     time.sleep(2)
     machine.screenshot("launcher")
