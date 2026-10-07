@@ -215,6 +215,8 @@ def main():
             guest.command("systemctl restart controlstack-agent")
             guest.gateway_ready("/run/controlstack-agent")
             guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
+            guest.command(live_env + "timeout 60 openclaw mcp doctor nixos --probe", timeout=90)
+            guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}; r=json.load(open('/tmp/fixture-request.json')); names={t['function']['name'] for t in r['tools']}; assert 'nixos__nix' in names; assert not any(n.startswith('hypruse__') for n in names)\"")
             guest.command(live_env + "system-agent setup-choice hostname vmresident")
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
             # Drive the shipped local review screen, including separate disk approval.
@@ -342,6 +344,10 @@ p.write_text(json.dumps(c))
             guest.gateway_ready("/var/lib/controlstack-agent")
             guest.command("runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
             guest.command("grep -q 'Owner.s chosen system' /tmp/fixture-request.json")
+            guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'nixos__nix' in {t['function']['name'] for t in r['tools']}\"")
+            if args.desktop == "hyprland":
+                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'hypruse__desktop' in {t['function']['name'] for t in r['tools']}\"")
+
             if args.desktop == "none":
                 guest.type_console("2")
                 guest.command("timeout 120 bash -c 'until grep -q \"resident conversation works\" /dev/vcs1; do sleep 2; done'")
@@ -400,6 +406,9 @@ p.write_text(json.dumps(c))
     with iso.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
+               "live_nixos_mcp_discovery": installing, "live_hypruse_disabled": installing,
+               "installed_nixos_mcp_discovery": installing,
+               "installed_hypruse_mcp_discovery": installing and args.desktop == "hyprland",
                "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,

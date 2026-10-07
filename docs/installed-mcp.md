@@ -1,14 +1,17 @@
-# MCP tools for the persistent installed agent
+# NixOS queries and persistent desktop MCP tools
 
 | Environment | mcp-nixos | Hypruse |
 | --- | --- | --- |
-| Live USB installer | Not enabled | Not enabled |
+| NixOS live USB installer | Enabled for installation planning | Not enabled |
 | Installed NixOS without a desktop | Enabled | Not enabled |
 | Installed NixOS with GNOME or Plasma | Enabled | Not enabled |
 | Installed NixOS with Hyprland | Enabled | Enabled during the owner's graphical session |
 
-The read-only USB store can contain these packages so installation need not
-fetch them again. Package presence is not an active MCP registration.
+The live NixOS agent uses mcp-nixos to look up packages, options and documentation
+while planning the target system. Hypruse is carried in the read-only USB store
+for installation but is not registered or started in the live environment.
+Live agent state remains private RAM state; installation creates fresh persistent
+configuration rather than copying live credentials.
 
 [mcp-nixos](https://github.com/utensils/mcp-nixos) is version 3.0.1 from our
 pinned nixpkgs revision `151fa4e8ddfdd8dd25d945ad94ed54a13de9f6e4`.

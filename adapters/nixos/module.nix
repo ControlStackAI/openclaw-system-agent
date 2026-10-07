@@ -50,7 +50,7 @@ in {
     corePackage = lib.mkOption { type = lib.types.package; default = pkgs.callPackage ./package.nix {}; };
     nixosMcp.enable = lib.mkOption {
       type = lib.types.bool; default = !cfg.ephemeral;
-      description = "Provide mcp-nixos to the resident installed-system agent; disabled on ephemeral live media.";
+      description = "Provide mcp-nixos queries; enabled by default on installed systems and explicitly enabled by the live-image profile.";
     };
     desktopOwner = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; description = "Hyprland owner granting full desktop control through Hypruse."; };
     port = lib.mkOption { type = lib.types.port; default = 18789; };

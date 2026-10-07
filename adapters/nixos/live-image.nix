@@ -4,6 +4,8 @@
   services.controlstackAgent = {
     enable = true;
     ephemeral = true;
+    # Query NixOS options/packages while planning installation; no desktop access.
+    nixosMcp.enable = true;
     mutableProviderSetup = true;
     workspaceExecution = true;
     zfs.enable = true;

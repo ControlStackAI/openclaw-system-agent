@@ -73,9 +73,11 @@ starter shell. See the [official Quickshell guide](https://quickshell.org/docs/v
 Use the pinned Hyprland Lua configuration and matching documentation rather than
 older hyprlang examples. No private host configuration is shipped.
 
-The resident assistant can explain or draft QML in its workspace. Its restricted
-service account has no access to the owner's home and no automatic privilege to
-apply desktop edits there. Installing this profile does not broaden those rights.
+The resident assistant can draft QML in its workspace and use the Hypruse bridge
+to launch owner processes and edit desktop files in the graphical session. This
+is full owner-level desktop control. The separate resident service account keeps
+its systemd restrictions; privileged system changes still require the maintenance
+plan. Stop/resume controls for desktop access are described above.
 
 ## Qualification
 
