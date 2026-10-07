@@ -28,6 +28,9 @@ pkgs.testers.runNixOSTest {
     gui = owner + "systemd-run --user --quiet --wait --pipe "
     machine.wait_until_succeeds(owner + "systemctl --user is-active controlstack-shell")
     time.sleep(8)
+    errors = json.loads(machine.succeed(gui + "hyprctl -j configerrors"))
+    assert not any(str(error).strip() for error in errors), errors
+    print(machine.succeed("journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager"))
     machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
     machine.screenshot("desktop")
     machine.succeed(gui + "quickshell -c controlstack ipc call shell launcher")
