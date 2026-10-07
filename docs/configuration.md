@@ -14,6 +14,13 @@ cannot see operator homes or host devices. It receives no sudo permission.
 `workspaceExecution = true` explicitly permits shell and edits as this account;
 it does not authorize root work and can damage this account's own state.
 
+The Hyprland installation additionally enables an owner-session [Hypruse bridge](hypruse.md).
+It deliberately grants full desktop control, including launching processes as the
+owner and accessing owner files through those processes. The service sandbox above
+describes the resident process, not a restriction on that desktop capability.
+[NixOS query tools](installed-mcp.md) are enabled on installed NixOS and in the live
+installation profile, using the pinned stdio server.
+
 Use `services.controlstackAgent.settings` for provider/model configuration.
 Provision provider credentials separately with a secret manager or private file
 readable only by the service account, referenced by OpenClaw's file SecretRef.

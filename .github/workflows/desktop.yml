@@ -23,6 +23,7 @@ jobs:
           sudo chmod a+rw /dev/kvm
       - run: nix build .#checks.x86_64-linux.desktop-vm.driver --out-link result-desktop-driver -L
       - name: Exercise the isolated desktop
+        timeout-minutes: 12
         run: |
           mkdir -p .build/desktop/results
           cd .build/desktop

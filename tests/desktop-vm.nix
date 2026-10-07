@@ -85,11 +85,15 @@ pkgs.testers.runNixOSTest {
     machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock")
     machine.wait_for_unit("controlstack-agent.service")
     mcp_env = "runuser -u controlstack-agent -- env HOME=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json "
-    print(machine.succeed(mcp_env + "timeout 60 openclaw mcp doctor hypruse --probe"))
-    print(machine.succeed(mcp_env + "timeout 60 openclaw mcp doctor nixos --probe"))
-    print(machine.succeed(mcp_env + "timeout 60 ${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./nixos-mcp-vm-client.py} ${pkgs.writeText "nixos-mcp-fixture" "MCP_NIXOS_STORE_FIXTURE"}"))
+    for name in ("hypruse", "nixos"):
+        status, output = machine.execute(mcp_env + "timeout --foreground --kill-after=5s 60s openclaw mcp doctor " + name + " --probe --json </dev/null >/tmp/mcp-doctor-" + name + ".log 2>&1", timeout=90)
+        print(machine.succeed("cat /tmp/mcp-doctor-" + name + ".log"))
+        if status:
+            print(machine.succeed("ps -eo user,pid,ppid,stat,args; journalctl -b _SYSTEMD_USER_UNIT=controlstack-hypruse.service --no-pager -n 100"))
+        assert status == 0, (name, status, output)
+    print(machine.succeed(mcp_env + "timeout --foreground --kill-after=5s 60s ${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./nixos-mcp-vm-client.py} ${pkgs.writeText "nixos-mcp-fixture" "MCP_NIXOS_STORE_FIXTURE"}"))
     # Calls cross the same socket/account boundary used by the real gateway.
-    print(machine.succeed(mcp_env + "timeout 60 ${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./hypruse-vm-client.py}"))
+    print(machine.succeed(mcp_env + "timeout --foreground --kill-after=5s 60s ${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./hypruse-vm-client.py}"))
     machine.wait_until_succeeds("grep -q 'Hypruse typed into Ghostty' /tmp/hypruse-input", timeout=30)
     machine.wait_for_text("Hypruse typed into Ghostty", timeout=30)
     machine.screenshot("hypruse-input")

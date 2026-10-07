@@ -34,8 +34,9 @@ archive/network tools are included. Language tooling includes Python/uv, Node/pn
 Go, Rust/Cargo, C/C++, CMake, Ninja, Make, pkg-config and GDB. Nix tooling includes
 nixd, nixfmt, direnv and nix-direnv. Podman provides rootless containers; no Docker
 socket or remote SSH server is enabled by this profile. Use per-project Nix shells
-for exact language versions. Hyprland also includes Kitty, Firefox, a file manager,
-a graphical password/keyring manager and the audio mixer.
+for exact language versions. Hyprland also includes Ghostty, Firefox, Yazi, Hyprshot with Satty, clipboard
+history, an emoji picker, a calculator and imv, plus a graphical password/keyring
+manager and the audio mixer. See [desktop choices](desktop-choices.md) for shortcuts.
 
 Codex CLI, Claude Code CLI, Codex Desktop (inside the official ChatGPT Linux app)
 and Claude Desktop are pinned through the public `numtide/llm-agents.nix` input.

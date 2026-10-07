@@ -215,7 +215,7 @@ def main():
             guest.command("systemctl restart controlstack-agent")
             guest.gateway_ready("/run/controlstack-agent")
             guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
-            guest.command(live_env + "timeout 60 openclaw mcp doctor nixos --probe", timeout=90)
+            guest.command(live_env + "timeout --foreground --kill-after=5s 60s openclaw mcp doctor nixos --probe --json </dev/null", timeout=90)
             guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}; r=json.load(open('/tmp/fixture-request.json')); names={t['function']['name'] for t in r['tools']}; assert 'nixos__nix' in names; assert not any(n.startswith('hypruse__') for n in names)\"")
             guest.command(live_env + "system-agent setup-choice hostname vmresident")
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
