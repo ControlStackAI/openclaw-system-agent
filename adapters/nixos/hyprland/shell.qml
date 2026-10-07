@@ -13,6 +13,10 @@ Scope {
         const entry = DesktopEntries.byId("controlstack-agent");
         if (entry) entry.execute();
     }
+    function lockScreen() {
+        shell.showControls = false;
+        Quickshell.execDetached(["hyprlock"]);
+    }
     function launch(entry) {
         // DesktopEntry.execute does not handle Terminal=true in this pinned release.
         if (entry.runInTerminal)
@@ -25,6 +29,7 @@ Scope {
         target: "shell"
         function launcher(): void { shell.showLauncher = !shell.showLauncher; }
         function assistant(): void { shell.assistant(); }
+        function lock(): void { shell.lockScreen(); }
     }
     Variants {
         model: Quickshell.screens
@@ -107,7 +112,7 @@ Scope {
             ShellButton { text: "Sound"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["pavucontrol"]) }
             ShellButton { text: "Files"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["thunar"]) }
             ShellButton { text: "Customize this desktop"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["mousepad", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
-            ShellButton { text: "Lock screen"; Layout.fillWidth: true; onClicked: { shell.showControls = false; Quickshell.execDetached(["loginctl", "lock-session"]); } }
+            ShellButton { text: "Lock screen"; Layout.fillWidth: true; onClicked: shell.lockScreen() }
             ShellButton { text: "Sign out…"; Layout.fillWidth: true; onClicked: confirmLogout.visible = true }
             Text { text: "Super + Space: applications   •   Super + A: assistant"; color: "#94a3b8"; font.pixelSize: 12 }
             Item { Layout.fillHeight: true }

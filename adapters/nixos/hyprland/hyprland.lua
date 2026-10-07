@@ -14,7 +14,7 @@ hl.bind("SUPER + Return", hl.dsp.exec_cmd("xterm"))
 hl.bind("SUPER + A", hl.dsp.exec_cmd("quickshell -c controlstack ipc call shell assistant"))
 hl.bind("SUPER + Space", hl.dsp.exec_cmd("quickshell -c controlstack ipc call shell launcher"))
 hl.bind("SUPER + E", hl.dsp.exec_cmd("thunar"))
-hl.bind("SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
 for i = 1, 5 do

@@ -348,8 +348,9 @@ p.write_text(json.dumps(c))
 
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
             if args.desktop == "hyprland":
-                # Exercise the actual desktop lock and password prompt.
-                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-l"})
+                # Invoke the same Quickshell action used by the panel's lock button.
+                # This runs from its user service, without a login-session ID.
+                guest.command(owner_env + "quickshell -c controlstack ipc call shell lock")
                 lock_status = owner_env + "systemd-run --user --quiet --wait --pipe hyprctl locked"
                 guest.command("timeout 60 bash -c " + shlex.quote("until " + lock_status + " | grep -qx true; do sleep 1; done"))
                 time.sleep(2)
