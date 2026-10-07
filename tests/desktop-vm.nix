@@ -29,7 +29,7 @@ pkgs.testers.runNixOSTest {
         width, height = struct.unpack(">II", shot.read_bytes()[16:24])
         tsv = subprocess.check_output(["${pkgs.tesseract}/bin/tesseract", str(shot), "stdout", "tsv"], text=True)
         lines = {}
-        for word in csv.DictReader(io.StringIO(tsv), delimiter="\t"):
+        for word in csv.DictReader(io.StringIO(tsv), delimiter="\t", quoting=csv.QUOTE_NONE):
             if word["text"].strip():
                 key = tuple(word[k] for k in ("page_num", "block_num", "par_num", "line_num"))
                 lines.setdefault(key, []).append(word)
@@ -37,7 +37,7 @@ pkgs.testers.runNixOSTest {
         for line in lines.values():
             for start in range(len(line)):
                 for end in range(start + 1, len(line) + 1):
-                    if " ".join(w["text"] for w in line[start:end]).lower() == label.lower():
+                    if " ".join(w["text"].strip(".,:;\"\'") for w in line[start:end]).lower() == label.lower():
                         matches.append(line[start:end])
         assert matches and (occurrence is not None or len(matches) == 1), (label, [" ".join(w["text"] for w in words) for words in lines.values()])
         matches.sort(key=lambda words: int(words[0]["top"]))
