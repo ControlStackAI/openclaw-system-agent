@@ -55,7 +55,7 @@ separately; a chosen desktop is not evidence that it was installed.
 
 On the NixOS USB, record each non-secret setup answer with
 `system-agent setup-choice KEY VALUE` when execution is available. Supported keys
-are hostname, username, desktop (none/plasma/gnome), locale, keyboard, timezone
+are hostname, username, desktop (none/plasma/gnome/hyprland), locale, keyboard, timezone
 and encrypt (yes/no). With no arguments it reads the current suggestions.
 Only record answers actually given; do not fill unknown choices silently. The
 local installation screen validates and reviews them with the owner, then asks

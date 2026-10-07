@@ -1,0 +1,91 @@
+{ config, lib, pkgs, ... }:
+let
+  defaults = pkgs.runCommand "controlstack-desktop-defaults" { } ''
+    mkdir -p $out/quickshell
+    cp ${./shell.qml} $out/quickshell/shell.qml
+    cp ${./ShellButton.qml} $out/quickshell/ShellButton.qml
+    substitute ${./hyprland.lua} $out/hyprland.lua \
+      --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
+    cp ${./hyprlock.conf} $out/hyprlock.conf
+    cp ${./hypridle.conf} $out/hypridle.conf
+  '';
+  session = pkgs.writeShellScript "controlstack-hyprland-session" ''
+    set -eu
+    cfg="''${XDG_CONFIG_HOME:-$HOME/.config}"
+    mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack"
+    # Seed only missing files. Never overwrite the owner's custom desktop.
+    for file in hyprland.lua hyprlock.conf hypridle.conf; do
+      if [ ! -e "$cfg/hypr/$file" ]; then
+        cp --no-clobber ${defaults}/"$file" "$cfg/hypr/$file"
+        chmod u+w "$cfg/hypr/$file"
+      fi
+    done
+    for file in shell.qml ShellButton.qml; do
+      if [ ! -e "$cfg/quickshell/controlstack/$file" ]; then
+        cp --no-clobber ${defaults}/quickshell/"$file" "$cfg/quickshell/controlstack/$file"
+        chmod u+w "$cfg/quickshell/controlstack/$file"
+      fi
+    done
+    exec ${config.programs.hyprland.package}/bin/Hyprland
+  '';
+  entry = pkgs.writeTextFile {
+    name = "controlstack-hyprland-session";
+    destination = "/share/wayland-sessions/controlstack-hyprland.desktop";
+    text = ''
+      [Desktop Entry]
+      Name=Hyprland + Quickshell
+      Comment=Customizable ControlStack desktop
+      Exec=${pkgs.uwsm}/bin/uwsm start -e -D Hyprland -- ${session}
+      Type=Application
+      DesktopNames=Hyprland
+    '';
+    passthru.providedSessions = [ "controlstack-hyprland" ];
+  };
+in {
+  services.xserver.enable = true;
+  programs.hyprland = { enable = true; withUWSM = true; };
+  programs.hyprlock.enable = true;
+  services.displayManager = {
+    sddm.enable = true;
+    defaultSession = "controlstack-hyprland";
+    sessionPackages = [ entry ];
+  };
+  security.rtkit.enable = true;
+  services.pipewire = { enable = true; alsa.enable = true; pulse.enable = true; };
+  services.upower.enable = true;
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  xdg.portal.config.Hyprland.default = [ "hyprland" "gtk" ];
+  environment.systemPackages = with pkgs; [
+    quickshell xterm thunar mousepad networkmanagerapplet pavucontrol
+    brightnessctl wl-clipboard libnotify polkit_gnome mako
+  ];
+  environment.etc."controlstack-agent/desktop-defaults".source = defaults;
+  systemd.user.services.controlstack-shell = {
+    description = "ControlStack Quickshell desktop";
+    enableDefaultPath = false;
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session-pre.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.quickshell}/bin/quickshell -c controlstack";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+  };
+  systemd.user.services.controlstack-polkit = {
+    description = "Desktop authorization prompts";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session-pre.target" ];
+    serviceConfig.ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+  };
+  systemd.user.services.controlstack-notifications = {
+    description = "Desktop notifications";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session-pre.target" ];
+    serviceConfig.ExecStart = "${pkgs.mako}/bin/mako";
+  };
+}

@@ -335,7 +335,7 @@ def describe_choices(choices):
     labels = {"hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
               "locale": "Language and region", "keyboard": "Keyboard", "timezone": "Time zone",
               "encrypt": "Disk encryption"}
-    names = {"none": "No desktop", "plasma": "KDE Plasma", "gnome": "GNOME",
+    names = {"none": "No desktop", "plasma": "KDE Plasma", "gnome": "GNOME", "hyprland": "Hyprland + Quickshell",
              "us": "US", "gb": "UK", "de": "German", "fr": "French", "es": "Spanish",
              "en_US.UTF-8": "English (United States)", "en_GB.UTF-8": "English (United Kingdom)",
              "de_DE.UTF-8": "German (Germany)", "fr_FR.UTF-8": "French (France)", "es_ES.UTF-8": "Spanish (Spain)"}
@@ -373,7 +373,7 @@ def interactive(state, suggestions=None):
     if "username" not in choices:
         choices["username"] = input("Name for your local account [owner]: ").strip() or "owner"
     if "desktop" not in choices:
-        choices["desktop"] = DESKTOPS[choose("Which desktop would you like?", ["No desktop — use the local text console", "KDE Plasma — a desktop with panels and application menus", "GNOME — an activities-based desktop"]) - 1]
+        choices["desktop"] = DESKTOPS[choose("Which desktop would you like?", ["No desktop — use the local text console", "KDE Plasma — a desktop with panels and application menus", "GNOME — an activities-based desktop", "Hyprland + Quickshell — a customizable tiling desktop"]) - 1]
     if "locale" not in choices:
         choices["locale"] = LOCALES[choose("Which system language and regional format?", ["English (United States)", "English (United Kingdom)", "German (Germany)", "French (France)", "Spanish (Spain)"]) - 1]
     if "keyboard" not in choices:

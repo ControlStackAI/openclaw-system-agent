@@ -2,7 +2,7 @@
 import re
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-DESKTOPS = ("none", "plasma", "gnome")
+DESKTOPS = ("none", "plasma", "gnome", "hyprland")
 LAYOUTS = ("us", "gb", "de", "fr", "es")
 LOCALES = ("en_US.UTF-8", "en_GB.UTF-8", "de_DE.UTF-8", "fr_FR.UTF-8", "es_ES.UTF-8")
 

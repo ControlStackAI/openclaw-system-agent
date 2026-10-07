@@ -32,7 +32,7 @@
           system.stateVersion = "26.05";
         })
       ];
-    }).config.system.build.toplevel) [ "plasma" "gnome" ];
+    }).config.system.build.toplevel) [ "plasma" "gnome" "hyprland" ];
     live = nixpkgs.lib.nixosSystem {
       inherit system;
       modules = [ self.nixosModules.liveImage ];

@@ -5,12 +5,16 @@ The aim is to help people inspect, configure, maintain and recover their systems
 using plain language and explicit owner authorization.
 
 **VM-tested development prototype.** The NixOS USB opens OpenClaw setup,
-offers no desktop, KDE Plasma or GNOME, and installs a resident assistant on ZFS.
+offers no desktop, KDE Plasma, GNOME or Hyprland + Quickshell, and installs a resident assistant on ZFS.
 The complete USB-to-installed-system journey passed isolated VM tests, including
 encrypted Plasma boot, ordinary owner login and visible fixture conversations.
 Real provider accounts and physical hardware remain unqualified.
 
-[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400) and follow the
+**Hyprland + Quickshell is newly implemented and awaiting image qualification.**
+See the [desktop guide](docs/hyprland-quickshell.md). The download below is the
+previous four-case image, which does not include it yet.
+
+[Download the previous tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400) and follow the
 [owner's USB guide](docs/usb-setup.md). Read the exact
 [qualification status](docs/qualification.md), including the ISO checksum, before
 trying it. Installation currently uses a whole internal disk in UEFI mode.
@@ -69,7 +73,7 @@ The conversation profile distinguishes setup, maintenance and recovery. During
 setup it asks about a desktop or no desktop, then other relevant OS decisions
 one at a time. A private USER.md template separates owner intentions from system
 facts and approvals. The USB profile can record typed non-secret choices for the
-local review screen. The NixOS adapter implements no desktop, Plasma and GNOME,
+local review screen. The NixOS adapter implements no desktop, Plasma, GNOME and Hyprland + Quickshell,
 regional settings, a local account and optional native ZFS encryption. Check the
 qualification matrix before treating any offered path as validated.
 

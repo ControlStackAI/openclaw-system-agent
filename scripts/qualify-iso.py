@@ -18,13 +18,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Guest:
-    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us"):
+    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us", gpu="std"):
         self.keyboard = keyboard
         self.area = area
         self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
         self.socket_path = Path(self.control.name) / "qmp.sock"
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
-        args = ["-machine", "q35", "-m", str(memory), "-smp", "2", "-display", "none", "-monitor", "none",
+        args = ["-vga", gpu, "-machine", "q35", "-m", str(memory), "-smp", "2", "-display", "none", "-monitor", "none",
                 "-device", "qemu-xhci,id=xhci", "-device", "usb-tablet,bus=xhci.0",
                 "-chardev", "stdio,id=serial0,signal=off", "-serial", "chardev:serial0", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
                 "-nic", "none" if offline else "user,model=virtio-net-pci", "-no-reboot"]
@@ -36,10 +36,11 @@ class Guest:
             args += ["-drive", f"if=none,id=live,format=raw,readonly=on,file={iso}",
                      "-device", "usb-storage,drive=live,bootindex=1"]
         if uefi:
-            code = Path("/usr/share/OVMF/OVMF_CODE_4M.fd")
+            firmware = Path(os.environ.get("CONTROLSTACK_OVMF_DIR", "/usr/share/OVMF"))
+            code = firmware / "OVMF_CODE_4M.fd"
             variables = area / "OVMF_VARS.fd"
             if not variables.exists():
-                shutil.copyfile("/usr/share/OVMF/OVMF_VARS_4M.fd", variables)
+                shutil.copyfile(firmware / "OVMF_VARS_4M.fd", variables)
             args += ["-drive", f"if=pflash,format=raw,readonly=on,file={code}",
                      "-drive", f"if=pflash,format=raw,file={variables}"]
             disk = area / "target.qcow2"
@@ -169,7 +170,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("iso", type=Path)
     parser.add_argument("--mode", choices=["bios-offline", "uefi-install"], required=True)
-    parser.add_argument("--desktop", choices=["none", "plasma", "gnome"], default="none")
+    parser.add_argument("--desktop", choices=["none", "plasma", "gnome", "hyprland"], default="none")
     parser.add_argument("--encrypted", action="store_true")
     parser.add_argument("--keyboard", choices=["us", "de"], default="us")
     args = parser.parse_args()
@@ -183,7 +184,7 @@ def main():
         (area / name).unlink(missing_ok=True)
     installing = args.mode == "uefi-install"
     memory = 4096 if args.desktop == "none" else 8192
-    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard)
+    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std")
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
         guest.command("timeout 180 bash -c 'until systemctl is-active --quiet NetworkManager && systemctl is-active --quiet controlstack-agent; do sleep 2; done'")
@@ -236,7 +237,7 @@ def main():
             answer("Choose a number:", "1")
             answer("Choose a number:", "1")
             answer("Name for your local account [owner]:", "owner")
-            answer("Choose a number:", str(["none", "plasma", "gnome"].index(args.desktop) + 1))
+            answer("Choose a number:", str(["none", "plasma", "gnome", "hyprland"].index(args.desktop) + 1))
             answer("Choose a number:", "1")
             if args.keyboard != "de":
                 answer("Choose a number:", "1")
@@ -256,7 +257,7 @@ def main():
     finally:
         guest.close()
     if installing:
-        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory, keyboard=args.keyboard)
+        guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std")
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("test ! -e /etc/agent-installer/live-image")
@@ -286,9 +287,21 @@ def main():
             if args.desktop == "none":
                 guest.command("cat /dev/vcs1 | grep 'OpenClaw is installed on this computer'")
             else:
-                shell_name = "gnome-shell" if args.desktop == "gnome" else "plasmashell"
+                shell_name = {"gnome": "gnome-shell", "plasma": "plasmashell", "hyprland": "Hyprland"}[args.desktop]
                 guest.command("timeout 120 bash -c " + shlex.quote(
                     "until pgrep -u owner -f '/bin/[^ ]*" + shell_name + "'; do sleep 2; done"))
+
+            if args.desktop == "hyprland":
+                owner_env = "runuser -u owner -- env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus "
+                guest.command(owner_env + "systemctl --user is-active graphical-session.target controlstack-shell controlstack-polkit controlstack-notifications hypridle")
+                guest.command("test -w /home/owner/.config/quickshell/controlstack/shell.qml")
+                guest.command("test -s /home/owner/.config/hypr/hyprland.lua")
+                guest.wait_screen_text("Applications")
+                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-spc"})
+                guest.wait_screen_text("Find an application")
+                guest.qmp("screendump", {"filename": str(area / "launcher.png"), "format": "png"})
+                guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
+                guest.command("! journalctl -b _UID=1000 -u user@1000.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
 
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
             guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
@@ -328,7 +341,7 @@ p.write_text(json.dumps(c))
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
         except Exception:
             guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
-            print(guest.command("journalctl -b -u display-manager -u controlstack-agent --no-pager -n 160; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|xterm|system_agent.setup' || true")[-16000:], flush=True)
+            print(guest.command("journalctl -b -u display-manager -u controlstack-agent --no-pager -n 160; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|Hyprland|quickshell|xterm|system_agent.setup' || true")[-16000:], flush=True)
             raise
         finally:
             guest.close()
@@ -338,6 +351,7 @@ p.write_text(json.dumps(c))
                "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
+               "quickshell_panel_and_launcher": installing and args.desktop == "hyprland",
                "primary_console_tui_reply": installing and args.desktop == "none",
                "graphical_tui_reply": installing and args.desktop != "none",
                "interactive_install_review": installing,

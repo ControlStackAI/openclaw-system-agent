@@ -17,7 +17,7 @@ provider sign-in have been qualified; the current test results are VM results.
    OpenClaw's setup wizard, and use its protected sign-in prompts. Then choose
    **Talk to the assistant**.
 3. Explain what this computer is for. The assistant's profile asks for relevant
-   choices one at a time, including KDE Plasma, GNOME or no desktop; language,
+   choices one at a time, including KDE Plasma, GNOME, Hyprland + Quickshell or no desktop; language,
    keyboard, time zone, computer name, account and encryption. Real-model
    interview quality still needs testing with an actual provider account.
 4. Press **Ctrl+D** to return to the setup screen and choose the installation
@@ -53,7 +53,8 @@ entry and included in early boot. The shared network/clock/ZFS checks
 are consumed from the pinned agent-installer source; that repository is unchanged.
 
 The experimental installer supports UEFI, a whole disk of at least 32 GiB, ZFS,
-and no desktop, KDE Plasma or GNOME. The console path was tested with 4 GiB
+and no desktop, KDE Plasma, GNOME or Hyprland + Quickshell.
+See the [Hyprland desktop guide](hyprland-quickshell.md) for its current qualification status. The console path was tested with 4 GiB
 of RAM. Desktop preparation requires 8 GB of usable RAM in this development
 image; a smaller machine is stopped before building or changing its disk. Optional
 desktop packages are carried on the read-only USB image to avoid filling RAM
