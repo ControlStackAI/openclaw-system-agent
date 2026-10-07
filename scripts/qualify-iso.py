@@ -300,9 +300,12 @@ def main():
                 guest.command("python3 -c " + shlex.quote("import json; assert json.load(open('/tmp/hypr-errors.json')) == []"))
                 guest.wait_screen_text("Applications")
                 guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-spc"})
-                guest.wait_screen_text("Find an application")
+                guest.wait_screen_text("Thunar File Manager")
                 guest.qmp("screendump", {"filename": str(area / "launcher.png"), "format": "png"})
-                guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
+                guest.type_console("mousepad")
+                guest.command("timeout 60 bash -c " + shlex.quote("until pgrep -u owner -f '[m]ousepad'; do sleep 1; done"))
+                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-q"})
+                guest.wait_screen_text("Choose a number")
                 guest.command("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
 
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
@@ -344,9 +347,12 @@ p.write_text(json.dumps(c))
             if args.desktop == "hyprland":
                 # Exercise the actual desktop lock and password prompt.
                 guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-l"})
-                guest.wait_screen_text("Enter your account password")
+                lock_status = owner_env + "systemd-run --user --quiet --wait --pipe hyprctl locked"
+                guest.command("timeout 60 bash -c " + shlex.quote("until " + lock_status + " | grep -qx true; do sleep 1; done"))
+                time.sleep(2)
                 guest.qmp("screendump", {"filename": str(area / "locked.png"), "format": "png"})
                 guest.type_console("vmonlytestpassword")
+                guest.command("timeout 60 bash -c " + shlex.quote("until " + lock_status + " | grep -qx false; do sleep 1; done"))
                 guest.wait_screen_text("What would you like to do?")
                 guest.command("printf '\\n// owner customization survives reboot\\n' >> /home/owner/.config/quickshell/controlstack/shell.qml")
                 guest.command("cat /proc/sys/kernel/random/boot_id > /home/owner/desktop-test-boot-id")
@@ -377,6 +383,7 @@ p.write_text(json.dumps(c))
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
                "quickshell_panel_and_launcher": installing and args.desktop == "hyprland",
+               "quickshell_launcher_opens_application": installing and args.desktop == "hyprland",
                "desktop_customization_survives_reboot": installing and args.desktop == "hyprland",
                "desktop_lock_unlock": installing and args.desktop == "hyprland",
                "primary_console_tui_reply": installing and args.desktop == "none",
