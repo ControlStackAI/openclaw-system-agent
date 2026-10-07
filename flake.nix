@@ -16,13 +16,18 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
     ai = llm-agents.packages.${system};
+    # GUI binaries must use the same libc as the system graphics drivers.
+    desktopAi = (import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+      overlays = [ llm-agents.overlays.shared-nixpkgs ];
+    }).llm-agents;
     aiTools = pkgs.buildEnv {
       name = "controlstack-ai-tools";
-      paths = [ ai.codex ai.claude-code ai.chatgpt
+      paths = [ ai.codex ai.claude-code desktopAi.chatgpt
         (pkgs.symlinkJoin {
           name = "controlstack-claude-desktop";
-          # Use the operating system's FHS glibc so host graphics drivers can load.
-          paths = [ (ai.claude-desktop.override { buildFHSEnv = pkgs.buildFHSEnv; }) ];
+          paths = [ desktopAi.claude-desktop ];
           nativeBuildInputs = [ pkgs.makeWrapper ];
           postBuild = ''
             wrapProgram "$out/bin/claude-desktop" --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [ pkgs.libglvnd ]}"

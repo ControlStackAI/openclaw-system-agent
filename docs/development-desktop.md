@@ -40,7 +40,8 @@ a graphical password/keyring manager and the audio mixer.
 Codex CLI, Claude Code CLI, Codex Desktop (inside the official ChatGPT Linux app)
 and Claude Desktop are pinned through the public `numtide/llm-agents.nix` input.
 Their upstream Linux binaries and NixOS compatibility wrappers are included, with
-all runtime helpers. Owner sign-in happens after installation; no operator login
+all runtime helpers. Desktop wrappers are rebuilt against the system’s pinned
+libraries so the graphics driver and application C libraries agree. Owner sign-in happens after installation; no operator login
 or live installer credentials are imported. Desktop sign-in requires network access.
 NixOS is outside the vendors' listed supported Linux distributions, so NixOS launch
 qualification and authenticated product functionality must be reported separately.

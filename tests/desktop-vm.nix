@@ -107,8 +107,12 @@ pkgs.testers.runNixOSTest {
     for app, match in [("chatgpt", "chatgpt"), ("claude-desktop", "claude")]:
         machine.succeed(owner + "systemd-run --user --quiet --unit=app-test " + app + (" codex://" if app == "chatgpt" else ""))
         machine.wait_until_succeeds(gui + "hyprctl -j clients | grep -i " + match, timeout=120)
-        machine.wait_for_text("Sign in|Log in|Welcome", timeout=90)
-        machine.screenshot(app)
+        try:
+            machine.wait_for_text("Sign in|Log in|Welcome|Get started", timeout=90)
+        finally:
+            machine.screenshot(app)
+            print(machine.succeed(owner + "journalctl --user -u app-test --no-pager -n 80"))
+        machine.succeed("! journalctl -b --no-pager | grep -E 'GLIBC_[0-9.]+.*not found'")
         machine.succeed(owner + "systemctl --user stop app-test")
     machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError|Could not load icon'")
   '';
