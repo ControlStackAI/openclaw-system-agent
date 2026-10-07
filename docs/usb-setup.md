@@ -1,7 +1,7 @@
 # NixOS USB setup (development image)
 
-[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313).
-SHA-256: `233f616a2381a9ab41e104b572c96b65f4fad40e889fbbe2c40a1f4ecb072111`. See [qualification](qualification.md) for the exact test scope.
+[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654).
+SHA-256: `a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a`. See [qualification](qualification.md) for the exact test scope.
 
 ## What the owner does
 
@@ -95,6 +95,6 @@ fixture reply through the normal local interface. The endpoint was a non-secret
 local fixture; real provider sign-in, physical hardware, Secure Boot and
 installed-root recovery remain unqualified.
 
-The current image additionally passed the [Hyprland installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780)
+The current image additionally passed the [Hyprland installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487)
 with the final development tools and desktop polish. Other profiles were tested
 on the preceding five-case image; see [qualification](qualification.md).

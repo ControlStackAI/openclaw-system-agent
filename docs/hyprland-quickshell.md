@@ -81,20 +81,23 @@ plan. Stop/resume controls for desktop access are described above.
 
 ## Qualification
 
-The newer 32-pixel island adjustment passed 33 unit tests, source CI, and a
-local Quickshell text-fit geometry check. The image and native VM results below
-predate that adjustment: attempts to dispatch fresh checks returned HTTP 500
-from GitHub. The downloadable image still has 36-pixel islands.
+The 32-pixel islands, Ghostty defaults and MCP integrations are included in the
+current image and VM checks below. All 38 local and source-CI tests passed.
 
-The [current image check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780) passed on source `b2534eba90c4c7035b7d170d5a702605e1e5350c`.
+The [current image check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) passed on source `ff6e287e34070ff2ae581f1676e25a29b10f28f3`.
 It installed onto a disposable 48 GiB disk, booted its ZFS root without the USB,
 logged in through SDDM, opened an application from the launcher and displayed an
 OpenClaw TUI reply from a local fixture. It verified the monitor during an actual
 service stop/start, the audio and Ethernet panels, the CLI/editor defaults,
 lock/password unlock and customization retained after another reboot.
 
-The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37589254877) separately verified speaker
+The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421) separately verified speaker
 and microphone selection, mute/unmute, both coding CLIs, Neovim and both vendor
 apps' first-run screens. See [qualification](qualification.md) for the image
 checksum and limits. Real account login, physical GPU/audio/Wi-Fi and suspend/resume
 remain unqualified. No operator credentials were used.
+
+The desktop VM also verified real Hypruse typing, screenshots, clipboard,
+workspace control and stop/resume, plus mcp-nixos store queries. The USB test
+verified NixOS tools in the live agent and both MCP integrations after installing
+Hyprland. See [MCP integration](installed-mcp.md) for their distinct lifecycles.

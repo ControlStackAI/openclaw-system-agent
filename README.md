@@ -15,7 +15,7 @@ Hyprland + Quickshell also passed screen locking and customization persistence
 across another reboot. See the [desktop guide](docs/hyprland-quickshell.md).
 Real provider accounts and physical hardware remain unqualified.
 
-[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313) and follow the
+[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) and follow the
 [owner's USB guide](docs/usb-setup.md). Read the exact
 [qualification status](docs/qualification.md), including the ISO checksum, before
 trying it. Installation currently uses a whole internal disk in UEFI mode.

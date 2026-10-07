@@ -59,8 +59,9 @@ The installed skill file is checked separately. Local tests cover peer rejection
 stdio forwarding, preservation of unexpected socket-path files, and restoration
 of MCP registration after onboarding. The desktop VM test exercises native
 OpenClaw discovery plus actual MCP desktop, typing, screenshot, clipboard,
-workspace, and stop/resume operations. Its result must be recorded separately;
-implementation and test definitions alone do not qualify the installed image.
+workspace, and stop/resume operations. These checks [passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421). The separate
+[USB installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) verifies discovery after installing and booting
+without the ISO. Neither test uses an authenticated model.
 
 References: [OpenClaw 2026.9.5 MCP configuration](https://github.com/openclaw/openclaw/blob/v2026.9.5/docs/tools/mcp.md),
 [tool policy](https://github.com/openclaw/openclaw/blob/v2026.9.5/docs/gateway/config-tools/tool-policy.md).

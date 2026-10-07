@@ -62,22 +62,29 @@ were absent and that the installed owner choices reached a new provider request.
 The model endpoint was a deterministic fixture throughout; this does not qualify
 real account sign-in, real-model interview quality, or physical hardware.
 
-The [current development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313) has SHA-256
-`233f616a2381a9ab41e104b572c96b65f4fad40e889fbbe2c40a1f4ecb072111` and was built from `b2534eba90c4c7035b7d170d5a702605e1e5350c`.
-Its [Hyprland USB check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780) passed the complete installation, disk boot,
+The [current development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) has SHA-256
+`a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a` and was built from `ff6e287e34070ff2ae581f1676e25a29b10f28f3`.
+Its [Hyprland USB check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) passed the complete installation, disk boot,
 resident fixture conversation, monitor, panels, launcher, lock and persistence path.
 The five-case results above belong to the preceding build `a4441724d56267eaf48d1bd568d672d4381dcf96`;
 those other desktop profiles have not been rerun against the current ISO bytes.
 
-The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37589254877) passed on
-`a10970cdf31006ebe9b590deab7675de62e74a3f`. It switched synthetic speaker and microphone devices
+The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421) passed on
+`6b5a5008d04426e67c6807f709a384305be097b2`. It switched synthetic speaker and microphone devices
 through the visible UI and verified PipeWire defaults, tested microphone mute and
 unmute, checked Neovim and both CLIs with Codex helpers, and rendered the official
 Codex sign-in and Claude for Linux welcome screens. It rejected QML/icon errors
 and C-library/graphics-driver version mismatches. This does not test authenticated
 vendor sessions, physical audio, Wi-Fi association, Bluetooth or Claude Cowork.
 The desktop VM and current image have identical runtime and desktop sources;
-the later test revision corrects its recognition of the vendor welcome screen.
+the later test revision corrects detection of the stopped Hypruse service.
+
+The image exposes mcp-nixos during live setup and retains it after installation.
+Hypruse is absent from the live tool catalog and present after the owner logs into
+installed Hyprland. The desktop VM probes both servers with the official CLI,
+queries a public Nix store fixture, and exercises actual Hypruse desktop input,
+screenshot, clipboard, workspace switching and owner stop/resume. This does not
+qualify autonomous tool selection by an authenticated model.
 
 Exact scoped receipts and retained earlier evidence are in
 [validation.json](../evidence/validation.json). Encrypted replication,
