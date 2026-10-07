@@ -54,6 +54,7 @@ pkgs.testers.runNixOSTest {
             {"type": "abs", "data": {"axis": "x", "value": 16384}},
             {"type": "abs", "data": {"axis": "y", "value": 30000}}]})))
         time.sleep(1)
+        return events
 
     machine.start()
     machine.wait_for_unit("display-manager.service")
@@ -82,9 +83,14 @@ pkgs.testers.runNixOSTest {
     click_label("Headset microphone")
     machine.wait_until_succeeds(gui + "wpctl inspect @DEFAULT_AUDIO_SOURCE@ | grep test-headset")
     machine.screenshot("audio-selected")
-    click_label("Mute", occurrence=1)
+    mute_position = click_label("Mute", occurrence=1)
     machine.wait_until_succeeds(gui + "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep MUTED")
-    click_label("Muted")
+    # Click the same visible toggle again; selected outlines confuse OCR segmentation.
+    assert machine.qmp_client is not None
+    machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": mute_position})))
+    for down in (True, False):
+        machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": [{"type": "btn", "data": {"button": "left", "down": down}}]})))
+    time.sleep(1)
     machine.succeed(gui + "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -v MUTED")
     machine.succeed(gui + "quickshell -c controlstack ipc call shell network")
     time.sleep(2)

@@ -7,21 +7,24 @@ closure alongside Plasma and GNOME. Kernel, OpenZFS and OpenClaw pins are unchan
 
 This profile uses pinned Hyprland 0.56.2 and Quickshell 0.3.1. SDDM starts an
 UWSM-managed session so the desktop, portals and user services share a proper
-session lifecycle. System Assistant opens automatically at login. Hyprland may
-show its first-use release-notes box; choose **Thanks!**, then click the assistant
-window to continue. This notice does not mean an automatic system update ran.
+session lifecycle. System Assistant opens automatically at login.
 
 ## The starting desktop
 
-The Quickshell panel provides Applications, five workspace buttons, Assistant,
-Controls and a clock. The searchable application launcher opens installed apps.
-Controls opens network setup, sound, files, the shell editor, screen locking and
-a confirmed sign-out. PipeWire supplies audio, NetworkManager supplies networking,
-and GTK/Hyprland portals provide application integration. Mako supplies basic
-notifications and Hyprlock supplies locking; these are not custom Quickshell UIs.
-Automatic locking starts after ten idle minutes, with locking before suspend.
-To unlock, type your account password and press Enter; the lock screen can
-initially appear as a plain dark background.
+Three compact Quickshell islands sit at the top of the screen. The left opens the
+icon-based application launcher and switches workspaces. The center shows the
+resident OpenClaw service status; click it for CPU, memory and restart details, or
+use its conversation button to open System Assistant. The right holds the tray,
+network, speaker, microphone, battery (on laptops), clock and quick settings.
+
+Quick settings separates Audio, Network and System. Audio offers speaker and
+microphone selection, volume and mute. Network shows wired and wireless connections
+and masked Wi-Fi sign-in. System provides Bluetooth, brightness, resource usage,
+keep-awake and desktop customization. Lock and confirmed sign-out remain available.
+PipeWire owns audio and NetworkManager owns networking. Mako provides notifications;
+Hyprlock locks after ten idle minutes and before suspend. Type your account password
+and press Enter to unlock. See [development desktop](development-desktop.md) for
+the included editors, coding agents and development tools.
 
 - **Super + Space** opens Applications.
 - **Super + A** opens System Assistant.
@@ -38,11 +41,13 @@ to applications and the assistant without requiring shortcut knowledge.
 The first login seeds owner-writable files, without overwriting existing files:
 
 - `~/.config/quickshell/controlstack/shell.qml`: panel, launcher and controls.
-- `~/.config/quickshell/controlstack/ShellButton.qml`: reusable button style.
+- `~/.config/quickshell/controlstack/Theme.js` and the other QML files: colors, icons,
+  controls, audio and networking components.
+- `~/.config/kitty/kitty.conf`: terminal appearance.
 - `~/.config/hypr/hyprland.lua`: compositor, keyboard and shortcuts.
 - `~/.config/hypr/hyprlock.conf` and `hypridle.conf`: lock and idle settings.
 
-**Controls → Customize this desktop** opens the QML source. Quickshell reloads
+**Quick settings → System → Customize** opens the QML source in Neovim. Quickshell reloads
 saved changes automatically. These files persist on the home ZFS dataset; system
 updates and later logins do not overwrite them. Read-only factory defaults remain
 in `/etc/controlstack-agent/desktop-defaults`. Keep a copy before major edits;
@@ -61,7 +66,7 @@ apply desktop edits there. Installing this profile does not broaden those rights
 
 ## Qualification
 
-The [five-case USB workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) passed on source
+The earlier starter desktop [five-case USB workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) passed on source
 `982254d06685519c7377b6bd9d3586c3f2aca8f1`. The Hyprland case installed onto a disposable 48 GiB disk,
 booted without the USB, logged in through SDDM, displayed the Quickshell panel and
 launcher, opened Mousepad through it, and displayed a native OpenClaw TUI reply from a local provider fixture.
@@ -72,3 +77,6 @@ an owner QML change across another reboot and graphical login.
 See [qualification](qualification.md) for the image download and SHA-256.
 Real GPU hardware, suspend/resume and a real AI provider remain unqualified.
 The fixture response proves the local interface path, not actual model access.
+
+The redesigned desktop and development applications are being qualified separately;
+this earlier result does not qualify those additions.
