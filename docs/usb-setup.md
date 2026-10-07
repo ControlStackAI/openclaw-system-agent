@@ -26,7 +26,9 @@ provider sign-in have been qualified; the current test results are VM results.
 5. After installation, choose shutdown, remove the USB, and start the computer.
    Unlock the disk if encryption was selected, then sign in to the local account.
    System Assistant opens automatically. The system checks that it really booted
-   from the installed ZFS root.
+   from the installed ZFS root. GNOME may offer a desktop tour; choose **Skip**
+   to go straight to the assistant, then click the **System Assistant** window
+   in the overview to continue.
 6. Sign in to OpenClaw again on the installed computer. This creates persistent
    credentials there; USB credentials are deliberately not copied. The assistant
    retains the chosen OS settings and can continue helping with the computer.
