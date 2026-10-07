@@ -6,13 +6,18 @@ let
     substitute ${./hyprland.lua} $out/hyprland.lua \
       --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
     cp ${./hyprlock.conf} $out/hyprlock.conf
+    cp ${./kitty.conf} $out/kitty.conf
     cp ${./hypridle.conf} $out/hypridle.conf
   '';
   # The executable basename selects UWSM's Hyprland environment plugin.
   session = pkgs.writeShellScriptBin "start-hyprland" ''
     set -eu
     cfg="''${XDG_CONFIG_HOME:-$HOME/.config}"
-    mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack"
+    mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack" "$cfg/kitty"
+    if [ ! -e "$cfg/kitty/kitty.conf" ]; then
+      cp --no-clobber ${defaults}/kitty.conf "$cfg/kitty/kitty.conf"
+      chmod u+w "$cfg/kitty/kitty.conf"
+    fi
     # Seed only missing files. Never overwrite the owner's custom desktop.
     for file in hyprland.lua hyprlock.conf hypridle.conf; do
       if [ ! -e "$cfg/hypr/$file" ]; then
@@ -56,7 +61,28 @@ in {
   hardware.bluetooth.powerOnBoot = false;
   services.blueman.enable = true;
   fonts.packages = [ pkgs.inter pkgs.noto-fonts pkgs.noto-fonts-color-emoji ];
-  environment.sessionVariables.QT_QUICK_CONTROLS_STYLE = "Basic";
+  environment.sessionVariables = {
+    QT_QUICK_CONTROLS_STYLE = "Basic";
+    NIXOS_OZONE_WL = "1";
+    TERMINAL = "kitty";
+  };
+  xdg.mime.defaultApplications = {
+    "text/html" = "firefox.desktop";
+    "x-scheme-handler/http" = "firefox.desktop";
+    "x-scheme-handler/https" = "firefox.desktop";
+  };
+  environment.etc."xdg/mako/config".text = ''
+    font=Inter 10
+    background-color=#0d1b2ef0
+    text-color=#e4edf8
+    border-color=#29435f
+    border-size=1
+    border-radius=12
+    padding=16
+    margin=12
+    width=360
+    default-timeout=7000
+  '';
   environment.etc."xdg/gtk-3.0/settings.ini".text = "[Settings]\ngtk-application-prefer-dark-theme=1\ngtk-icon-theme-name=Papirus-Dark\ngtk-font-name=Inter 10\n";
   security.rtkit.enable = true;
   services.pipewire = { enable = true; alsa.enable = true; pulse.enable = true; };

@@ -57,3 +57,8 @@ kernel and released OpenZFS pins are independent of these application packages.
 - [Official ChatGPT/Codex Linux app](https://learn.chatgpt.com/docs/linux/linux-app)
 - [Official Claude Desktop Linux support](https://code.claude.com/docs/en/desktop-linux)
 - [Pinned public AI packaging](https://github.com/numtide/llm-agents.nix/tree/59d0417c2017794f8872b5556f133c8b0b413734)
+
+Virtual machines qualify software interactions, not physical audio quality,
+Bluetooth pairing, laptop backlight behavior or real wireless coverage. Those
+hardware checks remain separate from synthetic audio/device tests. Vendor desktop
+launch tests do not qualify signed-in conversations or Claude Cowork's nested VM.

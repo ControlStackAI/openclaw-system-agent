@@ -30,11 +30,16 @@ Scope {
         popupScreen = screen || Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) || Quickshell.screens[0];
         panel = panel === name ? "" : name;
     }
-    function settings(tab, screen) { settingsTab = tab; open("controls", screen); }
+    function settings(tab, screen) {
+        const same = panel === "controls" && settingsTab === tab;
+        settingsTab = tab;
+        popupScreen = screen || Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) || Quickshell.screens[0];
+        panel = same ? "" : "controls";
+    }
     function assistant() { const entry = DesktopEntries.byId("controlstack-agent"); if (entry) entry.execute(); panel = ""; }
     function lockScreen() { panel = ""; Quickshell.execDetached(["hyprlock"]); }
     function launch(entry) {
-        if (entry.runInTerminal) Quickshell.execDetached({command: ["xterm", "-e"].concat(entry.command), workingDirectory: entry.workingDirectory});
+        if (entry.runInTerminal) Quickshell.execDetached({command: ["kitty", "-e"].concat(entry.command), workingDirectory: entry.workingDirectory});
         else entry.execute();
         panel = "";
     }
@@ -66,7 +71,12 @@ Scope {
         function controls(): void { shell.open("controls"); }
         function network(): void { shell.settings("network"); }
         function monitor(): void { shell.open("monitor"); }
-        function settings(tab, screen) { settingsTab = tab; open("controls", screen); }
+        function settings(tab, screen) {
+        const same = panel === "controls" && settingsTab === tab;
+        settingsTab = tab;
+        popupScreen = screen || Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) || Quickshell.screens[0];
+        panel = same ? "" : "controls";
+    }
     function assistant(): void { shell.assistant(); }
         function lock(): void { shell.lockScreen(); }
     }
@@ -298,7 +308,7 @@ Scope {
                             ShellButton { visible: shell.settingsTab === "audio"; text: "Sound mixer"; iconName: "multimedia-volume-control"; onClicked: Quickshell.execDetached(["pavucontrol"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Dim"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "5%-"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Brighten"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "+5%"]) }
-                            ShellButton { visible: shell.settingsTab === "system"; text: "Customize"; iconName: "preferences-desktop-theme"; onClicked: Quickshell.execDetached(["xterm", "-e", "nvim", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
+                            ShellButton { visible: shell.settingsTab === "system"; text: "Customize"; iconName: "preferences-desktop-theme"; onClicked: Quickshell.execDetached(["kitty", "-e", "nvim", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: shell.keepAwake ? "Keeping awake" : "Keep awake"; selected: shell.keepAwake; iconName: "weather-clear-night"; onClicked: shell.keepAwake = !shell.keepAwake }
                             ShellButton { text: "Lock"; iconName: "system-lock-screen"; onClicked: shell.lockScreen() }
                             ShellButton { text: "Sign out"; iconName: "system-log-out"; onClicked: shell.panel = "logout" }

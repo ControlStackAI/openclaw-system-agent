@@ -16,6 +16,10 @@ ColumnLayout {
         Text { text: "Connections"; color: Theme.text; font { family: Theme.font; pixelSize: 14; weight: Font.DemiBold } Layout.fillWidth: true }
         ShellButton { text: Networking.wifiEnabled ? "Wi-Fi on" : "Wi-Fi off"; selected: Networking.wifiEnabled; enabled: Networking.wifiHardwareEnabled; onClicked: Networking.wifiEnabled = !Networking.wifiEnabled }
     }
+    Text {
+        text: Networking.connectivity === NetworkConnectivity.Portal ? "This network needs browser sign-in" : Networking.connectivity === NetworkConnectivity.Limited ? "Connected, with limited internet access" : Networking.connectivity === NetworkConnectivity.Full ? "Internet connected" : "Choose a connection below"
+        color: Theme.muted; font { family: Theme.font; pixelSize: 12 }
+    }
     Repeater {
         model: Networking.devices
         ColumnLayout {

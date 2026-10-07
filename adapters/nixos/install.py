@@ -152,7 +152,7 @@ def render_target(plan, inputs):
       Comment=Talk to your resident computer assistant
       Icon=computer
       Categories=System;
-      Exec=${{pkgs.xterm}}/bin/xterm -T "System Assistant" -fa Monospace -fs 12 -bg black -fg white -geometry 100x30 -e sudo {inputs["core"]}/bin/system-agent-setup
+      Exec=${{pkgs.xterm}}/bin/xterm -T "System Assistant" -fa Monospace -fs 12 -bg "#0b1626" -fg "#dce7f7" -geometry 100x30 -e sudo {inputs["core"]}/bin/system-agent-setup
       Terminal=false
     \'\';
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
