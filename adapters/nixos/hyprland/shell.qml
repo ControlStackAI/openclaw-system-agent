@@ -120,23 +120,29 @@ Scope {
                 id: bar
                 screen: modelData
                 anchors { top: true; left: true; right: true }
-                implicitHeight: width < 800 ? 96 : 56
+                implicitHeight: width < 800 ? 88 : 48
                 color: "transparent"
                 WlrLayershell.namespace: "controlstack-islands"
                 readonly property bool compact: width < 1200
+                // Keep the regular text and icon sizes inside the shorter islands.
+                component IslandButton: ShellButton {
+                    implicitHeight: 28
+                    topPadding: 4
+                    bottomPadding: 4
+                }
                 IdleInhibitor { window: bar; enabled: shell.keepAwake }
                 mask: Region { Region { item: leftIsland } Region { item: centerIsland } Region { item: rightIsland } }
                 Rectangle {
                     id: leftIsland
-                    x: 12; y: 10; height: 36; width: leftRow.implicitWidth + 10
+                    x: 12; y: 8; height: 32; width: leftRow.implicitWidth + 10
                     radius: 12; color: Theme.bg; border.color: Theme.border
                     RowLayout {
                         id: leftRow; anchors.centerIn: parent; spacing: 2
-                        ShellButton { text: bar.compact ? "" : "Applications"; iconName: "view-grid-symbolic"; hint: "Applications · Super + Space"; onClicked: shell.open("launcher", bar.screen) }
+                        IslandButton { text: bar.compact ? "" : "Applications"; iconName: "view-grid-symbolic"; hint: "Applications · Super + Space"; onClicked: shell.open("launcher", bar.screen) }
                         Rectangle { width: 1; height: 14; color: Theme.border; Layout.leftMargin: 3; Layout.rightMargin: 3 }
                         Repeater {
                             model: 5
-                            ShellButton {
+                            IslandButton {
                                 required property int index
                                 text: String(index + 1); implicitWidth: 27
                                 selected: Hyprland.monitorFor(bar.screen)?.activeWorkspace?.id === index + 1
@@ -149,26 +155,26 @@ Scope {
                 Rectangle {
                     id: centerIsland
                     anchors.horizontalCenter: parent.horizontalCenter
-                    y: bar.width < 800 ? 52 : 10; height: 36; width: centerRow.implicitWidth + 14
+                    y: bar.width < 800 ? 48 : 8; height: 32; width: centerRow.implicitWidth + 14
                     radius: 12; color: Theme.bg; border.color: Theme.border
                     RowLayout {
                         id: centerRow; anchors.centerIn: parent; spacing: 6
                         Rectangle { width: 6; height: 6; radius: 3; color: shell.fresh && shell.stats.agent.state === "active" ? Theme.green : Theme.warning }
-                        ShellButton { text: "OpenClaw"; hint: "Resident agent monitor"; onClicked: shell.open("monitor", bar.screen) }
+                        IslandButton { text: "OpenClaw"; hint: "Resident agent monitor"; onClicked: shell.open("monitor", bar.screen) }
                         Text { visible: !bar.compact; text: shell.agentLabel; color: Theme.muted; font { family: Theme.font; pixelSize: 11 } }
-                        ShellButton { iconName: "chat-message-new-symbolic"; hint: "Talk to OpenClaw · Super + A"; onClicked: shell.assistant() }
+                        IslandButton { iconName: "chat-message-new-symbolic"; hint: "Talk to OpenClaw · Super + A"; onClicked: shell.assistant() }
                     }
                 }
                 Rectangle {
                     id: rightIsland
                     anchors.right: parent.right; anchors.rightMargin: 12
-                    y: 10; height: 36; width: rightRow.implicitWidth + 12
+                    y: 8; height: 32; width: rightRow.implicitWidth + 12
                     radius: 12; color: Theme.bg; border.color: Theme.border
                     RowLayout {
                         id: rightRow; anchors.centerIn: parent; spacing: 1
                         Repeater {
                             model: SystemTray.items
-                            ShellButton {
+                            IslandButton {
                                 required property var modelData
                                 visible: !bar.compact
                                 implicitWidth: 28; hint: modelData.title
@@ -176,12 +182,12 @@ Scope {
                                 onClicked: if (modelData.hasMenu) modelData.display(bar, rightIsland.x, bar.height); else modelData.activate()
                             }
                         }
-                        ShellButton { iconName: shell.connected.some(d => d.type === DeviceType.Wifi) ? "network-wireless" : shell.connected.length ? "network-wired" : "network-offline"; hint: "Wi-Fi and Ethernet connections"; onClicked: shell.settings("network", bar.screen) }
-                        ShellButton { iconName: shell.sink?.audio?.muted ? "audio-volume-muted" : "audio-volume-high"; hint: "Speakers and volume"; onClicked: shell.settings("audio", bar.screen) }
-                        ShellButton { iconName: shell.source?.audio?.muted ? "microphone-sensitivity-muted-symbolic" : "audio-input-microphone"; hint: "Microphone and input device"; onClicked: shell.settings("audio", bar.screen) }
+                        IslandButton { iconName: shell.connected.some(d => d.type === DeviceType.Wifi) ? "network-wireless" : shell.connected.length ? "network-wired" : "network-offline"; hint: "Wi-Fi and Ethernet connections"; onClicked: shell.settings("network", bar.screen) }
+                        IslandButton { iconName: shell.sink?.audio?.muted ? "audio-volume-muted" : "audio-volume-high"; hint: "Speakers and volume"; onClicked: shell.settings("audio", bar.screen) }
+                        IslandButton { iconName: shell.source?.audio?.muted ? "microphone-sensitivity-muted-symbolic" : "audio-input-microphone"; hint: "Microphone and input device"; onClicked: shell.settings("audio", bar.screen) }
                         Text { visible: UPower.displayDevice?.isLaptopBattery ?? false; text: Math.round((UPower.displayDevice?.percentage ?? 0) * 100) + "%"; color: Theme.muted; font.pixelSize: 11; Layout.rightMargin: 6 }
-                        ShellButton { text: Qt.formatDateTime(clock.date, bar.compact ? "hh:mm" : "ddd  hh:mm"); hint: Qt.formatDateTime(clock.date, "dddd, d MMMM yyyy"); onClicked: shell.open("controls", bar.screen) }
-                        ShellButton { iconName: "preferences-system-symbolic"; hint: "Quick settings"; onClicked: shell.open("controls", bar.screen) }
+                        IslandButton { text: Qt.formatDateTime(clock.date, bar.compact ? "hh:mm" : "ddd  hh:mm"); hint: Qt.formatDateTime(clock.date, "dddd, d MMMM yyyy"); onClicked: shell.open("controls", bar.screen) }
+                        IslandButton { iconName: "preferences-system-symbolic"; hint: "Quick settings"; onClicked: shell.open("controls", bar.screen) }
                     }
                 }
             }
@@ -263,8 +269,8 @@ Scope {
         }
         Rectangle {
             visible: shell.panel === "controls" || shell.panel === "monitor" || shell.panel === "logout"
-            anchors { top: parent.top; right: parent.right; topMargin: 64; rightMargin: 14 }
-            width: Math.min(430, parent.width - 28); height: Math.min(content.implicitHeight + 40, parent.height - 86)
+            anchors { top: parent.top; right: parent.right; topMargin: 56; rightMargin: 14 }
+            width: Math.min(430, parent.width - 28); height: Math.min(content.implicitHeight + 40, parent.height - 78)
             radius: 20; color: Theme.bg; border.color: Theme.border
             MouseArea { anchors.fill: parent }
             ScrollView {

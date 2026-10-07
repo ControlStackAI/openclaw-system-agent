@@ -11,7 +11,8 @@ session lifecycle. System Assistant opens automatically at login.
 
 ## The starting desktop
 
-Three compact Quickshell islands sit at the top of the screen. The left opens the
+Three compact, 32-pixel-high Quickshell islands sit at the top of the screen,
+with unchanged text and icon sizes and 48 pixels reserved for the top bar. The left opens the
 icon-based application launcher and switches workspaces. The center shows the
 resident OpenClaw service status; click it for CPU, memory and restart details, or
 use its conversation button to open System Assistant. The right holds the tray,
