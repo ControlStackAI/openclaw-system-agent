@@ -66,17 +66,15 @@ apply desktop edits there. Installing this profile does not broaden those rights
 
 ## Qualification
 
-The earlier starter desktop [five-case USB workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) passed on source
-`982254d06685519c7377b6bd9d3586c3f2aca8f1`. The Hyprland case installed onto a disposable 48 GiB disk,
-booted without the USB, logged in through SDDM, displayed the Quickshell panel and
-launcher, opened Mousepad through it, and displayed a native OpenClaw TUI reply from a local provider fixture.
-It checked active graphical session services, no Hyprland configuration errors,
-owner write access to the shell, screen lock/password unlock, and preservation of
-an owner QML change across another reboot and graphical login.
+The [current image check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780) passed on source `b2534eba90c4c7035b7d170d5a702605e1e5350c`.
+It installed onto a disposable 48 GiB disk, booted its ZFS root without the USB,
+logged in through SDDM, opened an application from the launcher and displayed an
+OpenClaw TUI reply from a local fixture. It verified the monitor during an actual
+service stop/start, the audio and Ethernet panels, the CLI/editor defaults,
+lock/password unlock and customization retained after another reboot.
 
-See [qualification](qualification.md) for the image download and SHA-256.
-Real GPU hardware, suspend/resume and a real AI provider remain unqualified.
-The fixture response proves the local interface path, not actual model access.
-
-The redesigned desktop and development applications are being qualified separately;
-this earlier result does not qualify those additions.
+The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37589254877) separately verified speaker
+and microphone selection, mute/unmute, both coding CLIs, Neovim and both vendor
+apps' first-run screens. See [qualification](qualification.md) for the image
+checksum and limits. Real account login, physical GPU/audio/Wi-Fi and suspend/resume
+remain unqualified. No operator credentials were used.

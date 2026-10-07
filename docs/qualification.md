@@ -1,10 +1,12 @@
 # Qualification status
 
-This is a development prototype. Validation recorded on 2026-10-07 UTC:
+This is a development prototype. Validation recorded on 2026-10-07 UTC.
+The current download passed the Hyprland installation check. The broader USB
+matrix below refers to the preceding five-case image; exact revisions follow.
 
 | Check | Result |
 | --- | --- |
-| Portable lifecycle, readiness, choices and approval unit tests | 31 passed |
+| Portable lifecycle, readiness, choices and approval unit tests | 33 passed |
 | Pinned public installer contract check | Passed |
 | NixOS module and VM-test derivation evaluation | Passed |
 | Nix lifecycle package build and installed CLI entry points | Passed |
@@ -14,7 +16,7 @@ This is a development prototype. Validation recorded on 2026-10-07 UTC:
 | Owner profile loading, reboot persistence and native backup/restore | Passed in the OpenClaw fixture VM |
 | Guided OS choices | Typed-choice handoff and questionnaire implemented; real-model interview quality unqualified |
 | Real account login and model response | Not tested; no operator credentials used |
-| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541): direct USB boot, tty1 startup, offline gating |
+| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964): direct USB boot, tty1 startup, offline gating |
 | No-desktop UEFI installation and ZFS-root boot without USB | Passed on a disposable VM disk, with installed OpenClaw fixture response |
 | Plasma and GNOME owner login, automatic assistant window and visible TUI reply | Passed with the local provider fixture |
 | Hyprland + Quickshell login, panel, launcher and visible assistant reply | Passed with the local provider fixture |
@@ -43,7 +45,7 @@ are not qualified. Snapshot execution is tested through the owner-run broker;
 service-restart and scrub-start branches still need dedicated native tests.
 
 The older lifecycle VM uses an ext4 root with ZFS file-backed vdevs. The
-[full ISO workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) independently installed onto blank 48 GiB virtual
+[full ISO workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964) independently installed onto blank 48 GiB virtual
 disks and booted their ZFS roots with the USB detached. It passed all five cases:
 BIOS/offline live boot, a 4 GiB no-desktop installation, an 8 GiB encrypted Plasma
 installation with a German keyboard, an 8 GiB GNOME installation, and an 8 GiB
@@ -60,16 +62,28 @@ were absent and that the installed owner choices reached a new provider request.
 The model endpoint was a deterministic fixture throughout; this does not qualify
 real account sign-in, real-model interview quality, or physical hardware.
 
-The [tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541/artifacts/11463339348) has SHA-256
-`166f1792f4b26f11ae6f67981b4eb10f8d7e7bbd6487ab0fc065f2c5ea5c05c1` and was built from source
-`982254d06685519c7377b6bd9d3586c3f2aca8f1`. All five receipts identify those same ISO bytes.
-Exact receipts and retained earlier lifecycle evidence are in
-[validation.json](../evidence/validation.json). No-desktop, GNOME and Hyprland used
-unencrypted roots; encrypted root was tested with Plasma. Encrypted replication,
-installed-root rollback/recovery, real-provider interruption/reconnection, and a
-friendly privileged-maintenance approval UI remain separate work. The installer
-supports whole-disk UEFI installation only; BIOS installation and preserving an
-existing partition layout are not implemented.
+The [current development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313) has SHA-256
+`233f616a2381a9ab41e104b572c96b65f4fad40e889fbbe2c40a1f4ecb072111` and was built from `b2534eba90c4c7035b7d170d5a702605e1e5350c`.
+Its [Hyprland USB check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780) passed the complete installation, disk boot,
+resident fixture conversation, monitor, panels, launcher, lock and persistence path.
+The five-case results above belong to the preceding build `a4441724d56267eaf48d1bd568d672d4381dcf96`;
+those other desktop profiles have not been rerun against the current ISO bytes.
+
+The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37589254877) passed on
+`a10970cdf31006ebe9b590deab7675de62e74a3f`. It switched synthetic speaker and microphone devices
+through the visible UI and verified PipeWire defaults, tested microphone mute and
+unmute, checked Neovim and both CLIs with Codex helpers, and rendered the official
+Codex sign-in and Claude for Linux welcome screens. It rejected QML/icon errors
+and C-library/graphics-driver version mismatches. This does not test authenticated
+vendor sessions, physical audio, Wi-Fi association, Bluetooth or Claude Cowork.
+The desktop VM and current image have identical runtime and desktop sources;
+the later test revision corrects its recognition of the vendor welcome screen.
+
+Exact scoped receipts and retained earlier evidence are in
+[validation.json](../evidence/validation.json). Encrypted replication,
+installed-root recovery and real-provider interruption/reconnection remain separate
+work. The installer supports whole-disk UEFI installation; preserving partitions,
+dual boot and BIOS installation are not implemented.
 
 A build, service template or health endpoint is not completed model authentication
 or installed-system qualification.

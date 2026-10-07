@@ -1,6 +1,6 @@
 # ControlStackAI System Agent
 
-The new [development desktop](docs/development-desktop.md) adds three Quickshell islands, native device controls and pinned coding tools. Its updated image qualification is in progress; the previously qualified image below predates this redesign.
+The new [development desktop](docs/development-desktop.md) adds three Quickshell islands, native device controls and pinned coding tools. The current image passed the Hyprland USB-to-disk VM check; the other profiles passed on the preceding build. See the exact scopes below.
 
 An OpenClaw-based local Linux assistant that stays with the installed computer.
 The aim is to help people inspect, configure, maintain and recover their systems
@@ -8,13 +8,14 @@ using plain language and explicit owner authorization.
 
 **VM-tested development prototype.** The NixOS USB opens OpenClaw setup,
 offers no desktop, KDE Plasma, GNOME or Hyprland + Quickshell, and installs a resident assistant on ZFS.
-The complete USB-to-installed-system journey passed isolated VM tests, including
-encrypted Plasma boot, ordinary owner login and visible fixture conversations.
+The current Hyprland USB-to-installed-system journey passed isolated VM tests.
+The preceding five-case build also passed encrypted Plasma, GNOME and console
+installation, ordinary owner login and visible fixture conversations.
 Hyprland + Quickshell also passed screen locking and customization persistence
 across another reboot. See the [desktop guide](docs/hyprland-quickshell.md).
 Real provider accounts and physical hardware remain unqualified.
 
-[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541/artifacts/11463339348) and follow the
+[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313) and follow the
 [owner's USB guide](docs/usb-setup.md). Read the exact
 [qualification status](docs/qualification.md), including the ISO checksum, before
 trying it. Installation currently uses a whole internal disk in UEFI mode.

@@ -1,13 +1,13 @@
 # NixOS USB setup (development image)
 
-[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541/artifacts/11463339348).
-SHA-256: `166f1792f4b26f11ae6f67981b4eb10f8d7e7bbd6487ab0fc065f2c5ea5c05c1`. See [qualification](qualification.md) for the exact test scope.
+[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313).
+SHA-256: `233f616a2381a9ab41e104b572c96b65f4fad40e889fbbe2c40a1f4ecb072111`. See [qualification](qualification.md) for the exact test scope.
 
 ## What the owner does
 
-Download the development ISO from a successful full qualification run and use
-an image writer to write it to a USB drive of at least 8 GB. Writing the image
-erases that USB drive. Use a disposable test computer until hardware and real
+Download the image archive from the linked successful qualification run and unzip
+it. Select its `.iso` file in your image writer and write it to a USB drive;
+16 GB or larger is recommended. Writing the image erases that USB drive. Use a disposable test computer until hardware and real
 provider sign-in have been qualified; the current test results are VM results.
 
 1. Start the computer from the USB in UEFI mode. The setup screen opens
@@ -31,8 +31,7 @@ provider sign-in have been qualified; the current test results are VM results.
    System Assistant opens automatically. The system checks that it really booted
    from the installed ZFS root. GNOME may offer a desktop tour; choose **Skip**
    to go straight to the assistant, then click the **System Assistant** window
-   in the overview to continue. Hyprland may show a release-notes box; choose
-   **Thanks!**, then click the assistant window.
+   in the overview to continue.
 6. Sign in to OpenClaw again on the installed computer. This creates persistent
    credentials there; USB credentials are deliberately not copied. The assistant
    retains the chosen OS settings and can continue helping with the computer.
@@ -87,7 +86,7 @@ The assistant can inspect and edit its own state but has no sudo grant. Privileg
 installation remains in the owner-operated local screen. Remote access and
 unattended updates are off. Backups still need an independent destination.
 
-The [full qualification run](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) passed BIOS/UEFI live boot, offline gating,
+The preceding build’s [full qualification run](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964) passed BIOS/UEFI live boot, offline gating,
 no-desktop installation, encrypted Plasma with a German keyboard, GNOME, and
 Hyprland + Quickshell. The Hyprland case additionally checked the launcher, lock
 and unlock, and retention of a QML customization after another reboot.
@@ -95,3 +94,7 @@ Each installed case booted its ZFS root without the USB and displayed an OpenCla
 fixture reply through the normal local interface. The endpoint was a non-secret
 local fixture; real provider sign-in, physical hardware, Secure Boot and
 installed-root recovery remain unqualified.
+
+The current image additionally passed the [Hyprland installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780)
+with the final development tools and desktop polish. Other profiles were tested
+on the preceding five-case image; see [qualification](qualification.md).
