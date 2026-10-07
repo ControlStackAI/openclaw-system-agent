@@ -50,6 +50,9 @@ pkgs.testers.runNixOSTest {
         machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": events})))
         for down in (True, False):
             machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": [{"type": "btn", "data": {"button": "left", "down": down}}]})))
+        machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": [
+            {"type": "abs", "data": {"axis": "x", "value": 16384}},
+            {"type": "abs", "data": {"axis": "y", "value": 30000}}]})))
         time.sleep(1)
 
     machine.start()

@@ -10,9 +10,13 @@ Button {
     implicitHeight: 34
     implicitWidth: row.implicitWidth + 20
     hoverEnabled: true
-    ToolTip.visible: hovered && hint.length > 0
-    ToolTip.delay: 650
-    ToolTip.text: hint
+    ToolTip {
+        visible: control.hovered && control.hint.length > 0
+        delay: 800
+        text: control.hint
+        contentItem: Text { text: control.hint; color: Theme.text; font { family: Theme.font; pixelSize: 11 } }
+        background: Rectangle { radius: 6; color: Theme.surface; border.color: Theme.border }
+    }
     Accessible.name: hint
     contentItem: RowLayout {
         id: row
