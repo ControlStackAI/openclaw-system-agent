@@ -10,7 +10,7 @@ let
     cp ${./hypridle.conf} $out/hypridle.conf
   '';
   # The executable basename selects UWSM's Hyprland environment plugin.
-  session = pkgs.writeShellScriptBin "Hyprland" ''
+  session = pkgs.writeShellScriptBin "start-hyprland" ''
     set -eu
     cfg="''${XDG_CONFIG_HOME:-$HOME/.config}"
     mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack"
@@ -27,7 +27,7 @@ let
         chmod u+w "$cfg/quickshell/controlstack/$file"
       fi
     done
-    exec ${config.programs.hyprland.package}/bin/Hyprland
+    exec ${config.programs.hyprland.package}/bin/start-hyprland
   '';
   entry = pkgs.writeTextFile {
     name = "controlstack-hyprland-session";
@@ -36,7 +36,7 @@ let
       [Desktop Entry]
       Name=Hyprland + Quickshell
       Comment=Customizable ControlStack desktop
-      Exec=${pkgs.uwsm}/bin/uwsm start -e -D Hyprland -- ${session}/bin/Hyprland
+      Exec=${pkgs.uwsm}/bin/uwsm start -e -D Hyprland -- ${session}/bin/start-hyprland
       Type=Application
       DesktopNames=Hyprland
     '';
