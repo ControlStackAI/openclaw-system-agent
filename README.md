@@ -1,5 +1,7 @@
 # ControlStackAI System Agent
 
+The new [development desktop](docs/development-desktop.md) adds three Quickshell islands, native device controls and pinned coding tools. Its updated image qualification is in progress; the previously qualified image below predates this redesign.
+
 An OpenClaw-based local Linux assistant that stays with the installed computer.
 The aim is to help people inspect, configure, maintain and recover their systems
 using plain language and explicit owner authorization.

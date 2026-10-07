@@ -62,3 +62,10 @@ Virtual machines qualify software interactions, not physical audio quality,
 Bluetooth pairing, laptop backlight behavior or real wireless coverage. Those
 hardware checks remain separate from synthetic audio/device tests. Vendor desktop
 launch tests do not qualify signed-in conversations or Claude Cowork's nested VM.
+
+The current application pin provides Codex CLI 0.160.0, Claude Code 2.1.289,
+ChatGPT/Codex Desktop 26.930.41038 and Claude Desktop 2.9939.4. NixOS updates
+replace those packages through reviewed pins. The ChatGPT wrapper also repairs
+the ELF loader paths of vendor runtime bundles downloaded into the owner's cache;
+those later downloads are not part of the image's reproducible build or VM
+qualification. Claude's compatibility wrapper uses a normal user FHS environment.

@@ -21,8 +21,14 @@ jobs:
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
-      - run: nix build .#checks.x86_64-linux.desktop-vm --out-link result-desktop -L
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - run: nix build .#checks.x86_64-linux.desktop-vm.driver --out-link result-desktop-driver -L
+      - name: Exercise the isolated desktop
+        run: |
+          mkdir -p .build/desktop/results
+          cd .build/desktop
+          ../../result-desktop-driver/bin/nixos-test-driver --output_directory results
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: desktop-qualification
-          path: result-desktop/*
+          path: .build/desktop/results/*

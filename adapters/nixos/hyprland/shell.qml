@@ -308,7 +308,7 @@ Scope {
                         Rectangle { height: 1; Layout.fillWidth: true; color: Theme.border }
                         Text { visible: shell.settingsTab === "system"; text: "CPU  " + Math.round(shell.cpu) + "%     Memory  " + (shell.stats.memory_percent ?? "—") + "%"; color: Theme.muted; font { family: Theme.font; pixelSize: 12 } }
                         Flow {
-                            Layout.fillWidth: true; implicitHeight: childrenRect.height; spacing: 4
+                            Layout.fillWidth: true; spacing: 4
                             ShellButton { visible: shell.settingsTab === "system"; text: "Bluetooth"; iconName: "bluetooth"; onClicked: Quickshell.execDetached(["blueman-manager"]) }
                             ShellButton { visible: shell.settingsTab === "audio"; text: "Sound mixer"; iconName: "multimedia-volume-control"; onClicked: Quickshell.execDetached(["pavucontrol"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Dim"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "5%-"]) }
