@@ -23,7 +23,7 @@ class Guest:
         self.area = area
         self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
         self.socket_path = Path(self.control.name) / "qmp.sock"
-        self.log = (area / ("installed.log" if installed else "live.log")).open("w")
+        self.log = (area / ("installed.log" if installed else "live.log")).open("a")
         args = ["-vga", gpu, "-machine", "q35", "-m", str(memory), "-smp", "2", "-display", "none", "-monitor", "none",
                 "-device", "qemu-xhci,id=xhci", "-device", "usb-tablet,bus=xhci.0",
                 "-chardev", "stdio,id=serial0,signal=off", "-serial", "chardev:serial0", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
@@ -294,14 +294,16 @@ def main():
             if args.desktop == "hyprland":
                 owner_env = "runuser -u owner -- env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus "
                 guest.command(owner_env + "systemctl --user is-active graphical-session.target controlstack-shell controlstack-polkit controlstack-notifications hypridle")
-                guest.command("test -w /home/owner/.config/quickshell/controlstack/shell.qml")
+                guest.command("runuser -u owner -- test -w /home/owner/.config/quickshell/controlstack/shell.qml")
                 guest.command("test -s /home/owner/.config/hypr/hyprland.lua")
+                guest.command(owner_env + "systemd-run --user --quiet --wait --pipe hyprctl -j configerrors > /tmp/hypr-errors.json")
+                guest.command("python3 -c " + shlex.quote("import json; assert json.load(open('/tmp/hypr-errors.json')) == []"))
                 guest.wait_screen_text("Applications")
                 guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-spc"})
                 guest.wait_screen_text("Find an application")
                 guest.qmp("screendump", {"filename": str(area / "launcher.png"), "format": "png"})
                 guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
-                guest.command("! journalctl -b _UID=1000 -u user@1000.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
+                guest.command("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
 
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
             guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
@@ -339,9 +341,32 @@ p.write_text(json.dumps(c))
                 guest.wait_screen_text("What would you like to do?")
 
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
+            if args.desktop == "hyprland":
+                # Exercise the actual desktop lock and password prompt.
+                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-l"})
+                guest.wait_screen_text("Enter your account password")
+                guest.qmp("screendump", {"filename": str(area / "locked.png"), "format": "png"})
+                guest.type_console("vmonlytestpassword")
+                guest.wait_screen_text("What would you like to do?")
+                guest.command("printf '\\n// owner customization survives reboot\\n' >> /home/owner/.config/quickshell/controlstack/shell.qml")
+                guest.command("cat /proc/sys/kernel/random/boot_id > /home/owner/desktop-test-boot-id")
+                guest.close()
+                guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted,
+                              memory=memory, keyboard=args.keyboard, gpu="virtio")
+                guest.command("test $(cat /proc/sys/kernel/random/boot_id) != $(cat /home/owner/desktop-test-boot-id)")
+                guest.wait_screen_text("owner")
+                guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-a"})
+                guest.type_console("vmonlytestpassword")
+                guest.wait_screen_text("Applications")
+                guest.wait_screen_text("Choose a number")
+                guest.command("grep -q 'owner customization survives reboot' /home/owner/.config/quickshell/controlstack/shell.qml")
+                guest.command(owner_env + "systemctl --user is-active controlstack-shell graphical-session.target")
+                guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
+                guest.qmp("screendump", {"filename": str(area / "desktop-reboot.png"), "format": "png"})
         except Exception:
-            guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
-            print(guest.command("journalctl -b -u display-manager -u controlstack-agent --no-pager -n 160; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|Hyprland|quickshell|xterm|system_agent.setup' || true")[-16000:], flush=True)
+            if guest.process.isalive():
+                guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
+                print(guest.command("journalctl -b -u display-manager -u controlstack-agent --no-pager -n 100; journalctl -b _UID=1000 --no-pager -n 160; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|Hyprland|quickshell|xterm|system_agent.setup' || true")[-22000:], flush=True)
             raise
         finally:
             guest.close()
@@ -352,6 +377,8 @@ p.write_text(json.dumps(c))
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
                "quickshell_panel_and_launcher": installing and args.desktop == "hyprland",
+               "desktop_customization_survives_reboot": installing and args.desktop == "hyprland",
+               "desktop_lock_unlock": installing and args.desktop == "hyprland",
                "primary_console_tui_reply": installing and args.desktop == "none",
                "graphical_tui_reply": installing and args.desktop != "none",
                "interactive_install_review": installing,

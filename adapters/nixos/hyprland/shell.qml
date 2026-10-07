@@ -106,7 +106,7 @@ Scope {
             ShellButton { text: "Network connections"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["xterm", "-T", "Network connections", "-e", "nmtui"]) }
             ShellButton { text: "Sound"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["pavucontrol"]) }
             ShellButton { text: "Files"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["thunar"]) }
-            ShellButton { text: "Customize this desktop"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["mousepad", Quickshell.env("HOME") + "/.config/quickshell/controlstack/shell.qml"]) }
+            ShellButton { text: "Customize this desktop"; Layout.fillWidth: true; onClicked: Quickshell.execDetached(["mousepad", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
             ShellButton { text: "Lock screen"; Layout.fillWidth: true; onClicked: { shell.showControls = false; Quickshell.execDetached(["loginctl", "lock-session"]); } }
             ShellButton { text: "Sign out…"; Layout.fillWidth: true; onClicked: confirmLogout.visible = true }
             Text { text: "Super + Space: applications   •   Super + A: assistant"; color: "#94a3b8"; font.pixelSize: 12 }
