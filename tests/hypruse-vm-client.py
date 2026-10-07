@@ -20,7 +20,7 @@ async def main():
             state = await call("desktop", {})
             assert "ghostty" in str(state).lower(), state
             await call("pointer", {"action": "move", "x": 600, "y": 400})
-            await call("keyboard", {"action": "type", "text": "printf HYPRUSE_TYPED_IN_GHOSTTY"})
+            await call("keyboard", {"action": "type", "text": "echo Hypruse typed into Ghostty | tee /tmp/hypruse-input"})
             await call("keyboard", {"action": "key", "keys": "enter"})
             image = await call("screenshot", {"window": "active"})
             assert any(item.type == "image" and len(item.data) > 100 for item in image.content)
