@@ -27,7 +27,8 @@ pkgs.testers.runNixOSTest {
     owner = "runuser -u owner -- env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus "
     gui = owner + "systemd-run --user --quiet --wait --pipe "
     machine.wait_until_succeeds(owner + "systemctl --user is-active controlstack-shell")
-    time.sleep(8)
+    machine.wait_until_succeeds(gui + "quickshell -c controlstack ipc show", timeout=90)
+    time.sleep(3)
     errors = json.loads(machine.succeed(gui + "hyprctl -j configerrors"))
     assert not any(str(error).strip() for error in errors), errors
     print(machine.succeed("journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager"))

@@ -14,7 +14,7 @@ ColumnLayout {
     function needsPassword(n) { return [WifiSecurityType.WpaPsk, WifiSecurityType.Wpa2Psk, WifiSecurityType.Sae].includes(n.security); }
     RowLayout {
         Text { text: "Connections"; color: Theme.text; font { family: Theme.font; pixelSize: 14; weight: Font.DemiBold } Layout.fillWidth: true }
-        ShellButton { text: Networking.wifiEnabled ? "Wi-Fi on" : "Wi-Fi off"; selected: Networking.wifiEnabled; enabled: Networking.wifiHardwareEnabled; onClicked: Networking.wifiEnabled = !Networking.wifiEnabled }
+        ShellButton { visible: Networking.devices.values.some(d => d.type === DeviceType.Wifi); text: Networking.wifiEnabled ? "Wi-Fi on" : "Wi-Fi off"; selected: Networking.wifiEnabled; enabled: Networking.wifiHardwareEnabled; onClicked: Networking.wifiEnabled = !Networking.wifiEnabled }
     }
     Text {
         text: Networking.connectivity === NetworkConnectivity.Portal ? "This network needs browser sign-in" : Networking.connectivity === NetworkConnectivity.Limited ? "Connected, with limited internet access" : Networking.connectivity === NetworkConnectivity.Full ? "Internet connected" : "Choose a connection below"

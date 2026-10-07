@@ -2,7 +2,7 @@
 let
   defaults = pkgs.runCommand "controlstack-desktop-defaults" { } ''
     mkdir -p $out/quickshell
-    cp ${./.}/*.qml ${./Theme.js} $out/quickshell/
+    cp ${./.}/*.qml ${./.}/Theme.js $out/quickshell/
     substitute ${./hyprland.lua} $out/hyprland.lua \
       --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
     cp ${./hyprlock.conf} $out/hyprlock.conf

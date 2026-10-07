@@ -14,18 +14,23 @@ import "Theme.js" as Theme
 Scope {
     id: shell
     property string panel: ""
+    onPanelChanged: if (panel === "launcher") {
+        search.text = "";
+        apps.currentIndex = 0;
+        Qt.callLater(() => search.forceActiveFocus());
+    }
     property string settingsTab: "audio"
     property bool keepAwake: false
     property var popupScreen: Quickshell.screens[0]
     property var stats: ({agent: {state: "unknown"}})
     property real cpu: 0
-    property real agentCpu: 0
+    property real agentCpu: -1
     property double lastSample: 0
     readonly property bool fresh: clock.date.getTime() / 1000 - lastSample < 15
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
     readonly property var connected: Networking.devices.values.filter(d => d.connected)
-    readonly property string agentLabel: !fresh ? "Unavailable" : lastSample === 0 ? "Checking…" : stats.agent.state === "active" ? "Running" : stats.agent.state === "failed" ? "Needs attention" : stats.agent.state === "inactive" ? "Stopped" : stats.agent.state
+    readonly property string agentLabel: lastSample === 0 ? "Checking…" : !fresh ? "Unavailable" : stats.agent.state === "active" ? "Running" : stats.agent.state === "failed" ? "Needs attention" : stats.agent.state === "inactive" ? "Stopped" : stats.agent.state
     function open(name, screen) {
         popupScreen = screen || Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) || Quickshell.screens[0];
         panel = panel === name ? "" : name;
@@ -57,7 +62,7 @@ Scope {
                     if (shell.lastSample > 0) {
                         const delta = next.cpu_total - (shell.stats.cpu_total || 0);
                         shell.cpu = delta > 0 ? Math.max(0, Math.min(100, 100 * (1 - (next.cpu_idle - shell.stats.cpu_idle) / delta))) : 0;
-                        shell.agentCpu = next.agent.cpu_ns !== null && shell.stats.agent.cpu_ns !== null ? Math.max(0, (next.agent.cpu_ns - shell.stats.agent.cpu_ns) / ((next.sampled - shell.lastSample) * 1e7)) : 0;
+                        shell.agentCpu = next.agent.cpu_ns !== null && shell.stats.agent.cpu_ns !== null ? Math.max(0, (next.agent.cpu_ns - shell.stats.agent.cpu_ns) / ((next.sampled - shell.lastSample) * 1e7)) : -1;
                     }
                     shell.stats = next; shell.lastSample = next.sampled;
                 } catch (e) { shell.lastSample = 0; }
@@ -277,9 +282,9 @@ Scope {
                     }
                     ColumnLayout {
                         visible: shell.panel === "monitor"; Layout.fillWidth: true; spacing: 14
-                        Text { text: "●  " + shell.agentLabel; color: Theme.green; font { family: Theme.font; pixelSize: 16 } }
+                        Text { text: "●  " + shell.agentLabel; color: shell.fresh && shell.stats.agent.state === "active" ? Theme.green : Theme.warning; font { family: Theme.font; pixelSize: 16 } }
                         Text { text: "Resident system agent"; color: Theme.muted; font.family: Theme.font }
-                        Text { text: "Memory   " + shell.memory(shell.stats.agent.memory) + "\nCPU   " + shell.agentCpu.toFixed(1) + "%\nRestarts   " + (shell.stats.agent.restarts ?? "Unavailable"); color: Theme.text; lineHeight: 1.7; font { family: Theme.font; pixelSize: 14 } }
+                        Text { text: "Memory   " + shell.memory(shell.stats.agent.memory) + "\nCPU   " + (shell.agentCpu < 0 ? "Unavailable" : shell.agentCpu.toFixed(1) + "%") + "\nRestarts   " + (shell.stats.agent.restarts ?? "Unavailable"); color: Theme.text; lineHeight: 1.7; font { family: Theme.font; pixelSize: 14 } }
                         Text { text: "Live service status, refreshed every four seconds. Provider sign-in and model availability are checked inside the assistant."; color: Theme.muted; wrapMode: Text.Wrap; Layout.fillWidth: true; font { family: Theme.font; pixelSize: 12 } }
                         ShellButton { text: "Open assistant"; iconName: "chat-message-new-symbolic"; selected: true; onClicked: shell.assistant() }
                     }
