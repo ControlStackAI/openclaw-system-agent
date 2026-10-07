@@ -56,10 +56,27 @@ jobs:
             .build/iso-test/**/*.log
             .build/iso-test/**/*.png
             .build/iso-test/**/result.json
-      - name: Preserve qualified development ISO
-        if: success() && inputs.case == 'all'
+      - name: Record the image qualification scope
+        if: success()
+        env:
+          QUALIFICATION_CASE: ${{ inputs.case }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          from pathlib import Path
+          Path("qualification-scope.json").write_text(json.dumps({
+              "source_commit": os.environ["GITHUB_SHA"],
+              "passed_case": os.environ["QUALIFICATION_CASE"],
+              "real_account_login": False,
+              "physical_hardware": False,
+          }, indent=2) + "\n")
+          PYTHON
+      - name: Preserve the tested development ISO
+        if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: openclaw-nixos-development-iso
-          path: result-iso/iso/*.iso
+          path: |
+            result-iso/iso/*.iso
+            qualification-scope.json
           compression-level: 0
