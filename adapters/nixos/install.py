@@ -92,7 +92,7 @@ def render_target(plan, inputs):
   system = "x86_64-linux";
   configuration = {{ config, pkgs, lib, ... }}: {{
     imports = [ {q(inputs["source"] + "/adapters/nixos/module.nix")}
-      (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; }}) ];
+      (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; aiTools = {"builtins.storePath " + q(inputs["ai_tools"]) if "ai_tools" in inputs else "null"}; }}) ];
     services.controlstackAgent = {{
       enable = true; mutableProviderSetup = true; workspaceExecution = true; zfs.enable = true;
       package = builtins.storePath {q(inputs["runtime"])};
@@ -125,7 +125,7 @@ def render_target(plan, inputs):
     console.earlySetup = true;
     users.mutableUsers = true;
     users.users.{c["username"]} = {{
-      isNormalUser = true; extraGroups = [ "wheel" "networkmanager" ];
+      isNormalUser = true; extraGroups = [ "wheel" "networkmanager" "kvm" ];
       hashedPasswordFile = "/var/lib/controlstack-owner.password";
     }};
     security.sudo.extraRules = [ {{ users = [ {q(c["username"])} ]; commands = [

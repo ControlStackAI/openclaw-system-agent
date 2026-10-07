@@ -84,6 +84,8 @@ in {
         UMask = "0077";
         ExecStartPre = [ "${cfg.corePackage}/bin/system-agent initialize --seed-config ${configFile}" "${cfg.corePackage}/bin/system-agent refresh" ];
         ExecStart = "${cfg.package}/bin/openclaw gateway run";
+        CPUAccounting = true;
+        MemoryAccounting = true;
         Restart = "on-failure";
         RestartSec = 5;
         TimeoutStopSec = 120;

@@ -2,8 +2,7 @@
 let
   defaults = pkgs.runCommand "controlstack-desktop-defaults" { } ''
     mkdir -p $out/quickshell
-    cp ${./shell.qml} $out/quickshell/shell.qml
-    cp ${./ShellButton.qml} $out/quickshell/ShellButton.qml
+    cp ${./.}/*.qml ${./Theme.js} $out/quickshell/
     substitute ${./hyprland.lua} $out/hyprland.lua \
       --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
     cp ${./hyprlock.conf} $out/hyprlock.conf
@@ -21,7 +20,8 @@ let
         chmod u+w "$cfg/hypr/$file"
       fi
     done
-    for file in shell.qml ShellButton.qml; do
+    for path in ${defaults}/quickshell/*; do
+      file="$(basename "$path")"
       if [ ! -e "$cfg/quickshell/controlstack/$file" ]; then
         cp --no-clobber ${defaults}/quickshell/"$file" "$cfg/quickshell/controlstack/$file"
         chmod u+w "$cfg/quickshell/controlstack/$file"
@@ -45,15 +45,23 @@ let
 in {
   services.xserver.enable = true;
   programs.hyprland = { enable = true; withUWSM = true; };
+  programs.neovim.enable = true;
   programs.hyprlock.enable = true;
   services.displayManager = {
     sddm.enable = true;
     defaultSession = "controlstack-hyprland";
     sessionPackages = [ entry ];
   };
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = false;
+  services.blueman.enable = true;
+  fonts.packages = [ pkgs.inter pkgs.noto-fonts pkgs.noto-fonts-color-emoji ];
+  environment.sessionVariables.QT_QUICK_CONTROLS_STYLE = "Basic";
+  environment.etc."xdg/gtk-3.0/settings.ini".text = "[Settings]\ngtk-application-prefer-dark-theme=1\ngtk-icon-theme-name=Papirus-Dark\ngtk-font-name=Inter 10\n";
   security.rtkit.enable = true;
   services.pipewire = { enable = true; alsa.enable = true; pulse.enable = true; };
   services.upower.enable = true;
+  services.gnome.gnome-keyring.enable = true;
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
@@ -61,6 +69,12 @@ in {
   environment.systemPackages = with pkgs; [
     quickshell xterm thunar mousepad networkmanagerapplet pavucontrol
     brightnessctl wl-clipboard libnotify polkit_gnome mako
+    papirus-icon-theme adwaita-icon-theme blueman kitty firefox seahorse
+    (writeShellApplication {
+      name = "controlstack-desktop-status";
+      runtimeInputs = [ python3 systemd ];
+      text = "exec python3 ${./desktop-status.py}";
+    })
   ];
   environment.etc."controlstack-agent/desktop-defaults".source = defaults;
   systemd.user.services.controlstack-shell = {

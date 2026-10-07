@@ -3,14 +3,15 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
     input = { kb_layout = "@keyboard@", follow_mouse = 0, touchpad = { natural_scroll = true } },
     general = { gaps_in = 6, gaps_out = 12, border_size = 2, layout = "dwindle",
-        col = { active_border = "rgba(76c7c0ff)", inactive_border = "rgba(334155ff)" } },
-    decoration = { rounding = 8, blur = { enabled = false } },
+        col = { active_border = "rgba(88bdffff)", inactive_border = "rgba(29435fff)" } },
+    decoration = { rounding = 12, blur = { enabled = false } },
     animations = { enabled = false },
-    misc = { disable_hyprland_logo = true, force_default_wallpaper = 0 },
+    misc = { disable_hyprland_logo = true, force_default_wallpaper = 0, disable_splash_rendering = true },
+    ecosystem = { no_donation_nag = true, no_update_news = true },
     dwindle = { preserve_split = true },
 })
 hl.on("hyprland.start", function () hl.exec_cmd("uwsm finalize") end)
-hl.bind("SUPER + Return", hl.dsp.exec_cmd("xterm"))
+hl.bind("SUPER + Return", hl.dsp.exec_cmd("kitty"))
 hl.bind("SUPER + A", hl.dsp.exec_cmd("quickshell -c controlstack ipc call shell assistant"))
 hl.bind("SUPER + Space", hl.dsp.exec_cmd("quickshell -c controlstack ipc call shell launcher"))
 hl.bind("SUPER + E", hl.dsp.exec_cmd("thunar"))
@@ -31,3 +32,5 @@ hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl set +5%"))
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"))
+
+hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"))
