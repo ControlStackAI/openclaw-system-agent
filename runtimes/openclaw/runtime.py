@@ -36,7 +36,7 @@ def onboard(state, config=None):
                           "--skip-bootstrap", "--skip-hooks", "--skip-search", "--workspace", str(Path(state).absolute() / "workspace")], config)
 
 
-def local_policy(state, config_path=None):
+def local_policy(state, config_path=None, desktop_mcp_path="/etc/controlstack-agent/desktop-mcp.json"):
     """Reapply the installer access boundary as the unprivileged service account."""
     from system_agent.state import private_dir, create_private, default_config
     state = private_dir(state)
@@ -49,6 +49,15 @@ def local_policy(state, config_path=None):
     config.setdefault("secrets", {}).setdefault("providers", {})["gateway"] = defaults["secrets"]["providers"]["gateway"]
     config.setdefault("agents", {}).setdefault("defaults", {}).update(workspace=str(state / "workspace"), skipBootstrap=True)
     config["tools"] = {"profile": "full", "allow": ["read", "session_status", "exec", "process", "write", "edit"], "elevated": {"enabled": False}}
+    # Reapply the installed desktop contract after official onboarding. This
+    # file is root-owned Nix configuration, never a desktop-provided command.
+    desktop_mcp = Path(desktop_mcp_path)
+    if desktop_mcp.is_file():
+        servers = json.loads(desktop_mcp.read_text())
+        if set(servers) != {"hypruse"}:
+            raise ValueError("Unexpected desktop MCP integration")
+        config.setdefault("mcp", {}).setdefault("servers", {}).update(servers)
+        config["tools"]["allow"].append("hypruse__*")
     config["channels"] = {}
     temporary = state / ("config-" + secrets.token_hex(8))
     create_private(temporary, json.dumps(config, indent=2) + "\n")

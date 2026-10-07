@@ -70,7 +70,7 @@
       live-iso = live.config.system.build.isoImage;
     };
     checks.${system} = {
-      desktop-vm = import ./tests/desktop-vm.nix { inherit pkgs aiTools; };
+      desktop-vm = import ./tests/desktop-vm.nix { inherit pkgs aiTools; module = self.nixosModules.default; };
       core-vm = import ./tests/core-vm.nix { inherit pkgs; module = self.nixosModules.default; };
       lifecycle-vm = import ./tests/nixos-vm.nix { inherit pkgs; module = self.nixosModules.default; };
     };

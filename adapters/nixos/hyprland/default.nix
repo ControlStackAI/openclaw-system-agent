@@ -6,17 +6,21 @@ let
     substitute ${./hyprland.lua} $out/hyprland.lua \
       --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
     cp ${./hyprlock.conf} $out/hyprlock.conf
-    cp ${./kitty.conf} $out/kitty.conf
+    cp ${./ghostty.conf} $out/ghostty.conf
     cp ${./hypridle.conf} $out/hypridle.conf
   '';
   # The executable basename selects UWSM's Hyprland environment plugin.
   session = pkgs.writeShellScriptBin "start-hyprland" ''
     set -eu
     cfg="''${XDG_CONFIG_HOME:-$HOME/.config}"
-    mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack" "$cfg/kitty"
-    if [ ! -e "$cfg/kitty/kitty.conf" ]; then
-      cp --no-clobber ${defaults}/kitty.conf "$cfg/kitty/kitty.conf"
-      chmod u+w "$cfg/kitty/kitty.conf"
+    mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack" "$cfg/ghostty" "$cfg/rofi"
+    if [ ! -e "$cfg/ghostty/config" ]; then
+      cp --no-clobber ${defaults}/ghostty.conf "$cfg/ghostty/config"
+      chmod u+w "$cfg/ghostty/config"
+    fi
+    if [ ! -e "$cfg/rofi/config.rasi" ]; then
+      cp --no-clobber ${./rofi.rasi} "$cfg/rofi/config.rasi"
+      chmod u+w "$cfg/rofi/config.rasi"
     fi
     # Seed only missing files. Never overwrite the owner's custom desktop.
     for file in hyprland.lua hyprlock.conf hypridle.conf; do
@@ -48,6 +52,7 @@ let
     passthru.providedSessions = [ "controlstack-hyprland" ];
   };
 in {
+  imports = [ ../hypruse ];
   services.xserver.enable = true;
   programs.hyprland = { enable = true; withUWSM = true; };
   programs.neovim.enable = true;
@@ -60,14 +65,17 @@ in {
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = false;
   services.blueman.enable = true;
-  fonts.packages = [ pkgs.inter pkgs.noto-fonts pkgs.noto-fonts-color-emoji ];
+  fonts.packages = [ pkgs.inter pkgs.noto-fonts pkgs.noto-fonts-color-emoji pkgs.nerd-fonts.jetbrains-mono ];
   environment.sessionVariables = {
     QT_QUICK_CONTROLS_STYLE = "Basic";
     NIXOS_OZONE_WL = "1";
-    TERMINAL = "kitty";
+    TERMINAL = "ghostty";
   };
   xdg.mime.defaultApplications = {
     "text/html" = "firefox.desktop";
+    "image/png" = "imv.desktop";
+    "image/jpeg" = "imv.desktop";
+    "image/webp" = "imv.desktop";
     "x-scheme-handler/http" = "firefox.desktop";
     "x-scheme-handler/https" = "firefox.desktop";
   };
@@ -96,7 +104,29 @@ in {
   environment.systemPackages = with pkgs; [
     quickshell xterm thunar mousepad networkmanagerapplet pavucontrol
     brightnessctl wl-clipboard libnotify polkit_gnome mako
-    papirus-icon-theme adwaita-icon-theme blueman kitty firefox seahorse
+    papirus-icon-theme adwaita-icon-theme blueman ghostty playerctl firefox seahorse
+    yazi (hyprshot.override { withFreeze = true; }) satty grim slurp cliphist rofimoji imv
+    config.services.controlstackHypruse.package
+    (rofi.override { plugins = [ rofi-calc ]; })
+    (writeShellApplication {
+      name = "controlstack-desktop-menu";
+      runtimeInputs = [ ghostty rofi less systemd uwsm ];
+      text = ''
+        case "''${1:-}" in
+          shortcuts) exec ghostty -e less ${./shortcuts.txt} ;;
+          search) rofi -dmenu -i -p "Keyboard shortcuts" < ${./shortcuts.txt} >/dev/null || true ;;
+          power)
+            choice=$(printf '%s\n' 'Cancel' 'Lock' 'Suspend' 'Sign out' 'Restart' 'Power off' | rofi -dmenu -i -p 'Power') || exit 0
+            case "$choice" in
+              Lock) exec ${pkgs.hyprlock}/bin/hyprlock ;;
+              Suspend) exec systemctl suspend ;;
+              'Sign out') exec uwsm stop ;;
+              Restart) exec systemctl reboot ;;
+              'Power off') exec systemctl poweroff ;;
+            esac ;;
+        esac
+      '';
+    })
     (writeShellApplication {
       name = "controlstack-desktop-status";
       runtimeInputs = [ python3 systemd ];
@@ -104,6 +134,17 @@ in {
     })
   ];
   environment.etc."controlstack-agent/desktop-defaults".source = defaults;
+  systemd.user.services.controlstack-clipboard = {
+    description = "Desktop clipboard history";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session-pre.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --type text --watch ${pkgs.cliphist}/bin/cliphist store";
+      UMask = "0077";
+      Restart = "on-failure";
+    };
+  };
   systemd.user.services.controlstack-shell = {
     description = "ControlStack Quickshell desktop";
     enableDefaultPath = false;

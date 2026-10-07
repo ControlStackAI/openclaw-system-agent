@@ -27,15 +27,27 @@ Hyprlock locks after ten idle minutes and before suspend. Type your account pass
 and press Enter to unlock. See [development desktop](development-desktop.md) for
 the included editors, coding agents and development tools.
 
-- **Super + Space** opens Applications.
-- **Super + A** opens System Assistant.
-- **Super + Enter** opens a terminal; **Super + E** opens Files.
-- **Super + 1–5** switches workspaces; add Shift to move the current window.
-- **Super + Q** closes the focused window; **Super + L** locks the screen.
+- **Super + R** opens Applications.
+- **Super + Space** opens System Assistant; **Super + A** opens audio selection.
+- **Super + Enter** opens Ghostty; **Super + E** opens Files.
+- **Super + 1–9 / 0** switches workspaces; add Shift to move the current window.
+- **Super + C** closes the focused window; **Super + F12** locks the screen.
+- **Super + arrows / H J K L** focuses a window; Shift moves it, Ctrl swaps it.
+- **Super + Alt + Left/Right or H/L** moves a window between monitors.
+- **Super + S** toggles the scratchpad; Shift sends a window there.
+- **Super + Alt + C/X** opens Claude/Codex Desktop.
+- **Super + N**, Shift+N and Ctrl+N dismiss, clear and restore notifications.
 - Hold Super and drag with the left/right mouse button to move/resize a window.
 
 Super is usually the key with the Windows logo. The panel offers mouse access
 to applications and the assistant without requiring shortcut knowledge.
+
+Ghostty uses its native `key=value` configuration; Hyprland uses Lua. The terminal
+launcher, terminal application entries, customization editor and resident assistant
+all use Ghostty in the Hyprland profile. Optional Nova applications and their
+reserved bindings are listed in [the desktop choices](desktop-choices.md).
+[Hypruse](hypruse.md) provides the resident agent full desktop control, with
+stop/resume buttons in the monitor and Super+Shift+Backspace to stop immediately.
 
 ## Building custom components
 
@@ -44,7 +56,7 @@ The first login seeds owner-writable files, without overwriting existing files:
 - `~/.config/quickshell/controlstack/shell.qml`: panel, launcher and controls.
 - `~/.config/quickshell/controlstack/Theme.js` and the other QML files: colors, icons,
   controls, audio and networking components.
-- `~/.config/kitty/kitty.conf`: terminal appearance.
+- `~/.config/ghostty/config`: terminal appearance and Ctrl+A leader shortcuts.
 - `~/.config/hypr/hyprland.lua`: compositor, keyboard and shortcuts.
 - `~/.config/hypr/hyprlock.conf` and `hypridle.conf`: lock and idle settings.
 

@@ -29,9 +29,15 @@ def snapshot():
         agent = service_status(result.stdout)
     except (OSError, subprocess.SubprocessError):
         agent = service_status("")
+    try:
+        result = subprocess.run(["systemctl", "--user", "is-active", "controlstack-hypruse.service"],
+            capture_output=True, text=True, timeout=2)
+        desktop_control = "enabled" if result.stdout.strip() == "active" else "stopped"
+    except (OSError, subprocess.SubprocessError):
+        desktop_control = "unavailable"
     memory = dict((line.split(":")[0], int(line.split()[1])) for line in Path("/proc/meminfo").read_text().splitlines())
     cpu = [int(n) for n in Path("/proc/stat").read_text().splitlines()[0].split()[1:9]]
-    return {"sampled": time.time(), "agent": agent, "memory_percent": round(100 * (1 - memory["MemAvailable"] / memory["MemTotal"])),
+    return {"sampled": time.time(), "agent": agent, "desktop_control": desktop_control, "memory_percent": round(100 * (1 - memory["MemAvailable"] / memory["MemTotal"])),
             "cpu_total": sum(cpu), "cpu_idle": cpu[3] + cpu[4]}
 
 

@@ -46,7 +46,7 @@ Scope {
     function assistant() { const entry = DesktopEntries.byId("controlstack-agent"); if (entry) entry.execute(); panel = ""; }
     function lockScreen() { panel = ""; Quickshell.execDetached(["hyprlock"]); }
     function launch(entry) {
-        if (entry.runInTerminal) Quickshell.execDetached({command: ["kitty", "-e"].concat(entry.command), workingDirectory: entry.workingDirectory});
+        if (entry.runInTerminal) Quickshell.execDetached({command: ["ghostty", "-e"].concat(entry.command), workingDirectory: entry.workingDirectory});
         else entry.execute();
         panel = "";
     }
@@ -76,6 +76,8 @@ Scope {
         target: "shell"
         function launcher(): void { shell.open("launcher"); }
         function controls(): void { shell.open("controls"); }
+        function audio(): void { shell.settings("audio"); }
+        function logout(): void { shell.open("logout"); }
         function network(): void { shell.settings("network"); }
         function monitor(): void { shell.open("monitor"); }
         function assistant(): void { shell.assistant(); }
@@ -138,7 +140,7 @@ Scope {
                     radius: 12; color: Theme.bg; border.color: Theme.border
                     RowLayout {
                         id: leftRow; anchors.centerIn: parent; spacing: 2
-                        IslandButton { text: bar.compact ? "" : "Applications"; iconName: "view-grid-symbolic"; hint: "Applications · Super + Space"; onClicked: shell.open("launcher", bar.screen) }
+                        IslandButton { text: bar.compact ? "" : "Applications"; iconName: "view-grid-symbolic"; hint: "Applications · Super + R"; onClicked: shell.open("launcher", bar.screen) }
                         Rectangle { width: 1; height: 14; color: Theme.border; Layout.leftMargin: 3; Layout.rightMargin: 3 }
                         Repeater {
                             model: 5
@@ -159,10 +161,11 @@ Scope {
                     radius: 12; color: Theme.bg; border.color: Theme.border
                     RowLayout {
                         id: centerRow; anchors.centerIn: parent; spacing: 6
+                        IslandButton { iconName: "input-mouse-symbolic"; selected: shell.fresh && shell.stats.desktop_control === "enabled"; hint: "Desktop control " + (shell.stats.desktop_control ?? "unavailable") + " · Click to stop"; onClicked: Quickshell.execDetached(["controlstack-desktop-control", "stop"]) }
                         Rectangle { width: 6; height: 6; radius: 3; color: shell.fresh && shell.stats.agent.state === "active" ? Theme.green : Theme.warning }
                         IslandButton { text: "OpenClaw"; hint: "Resident agent monitor"; onClicked: shell.open("monitor", bar.screen) }
                         Text { visible: !bar.compact; text: shell.agentLabel; color: Theme.muted; font { family: Theme.font; pixelSize: 11 } }
-                        IslandButton { iconName: "chat-message-new-symbolic"; hint: "Talk to OpenClaw · Super + A"; onClicked: shell.assistant() }
+                        IslandButton { iconName: "chat-message-new-symbolic"; hint: "Talk to OpenClaw · Super + Space"; onClicked: shell.assistant() }
                     }
                 }
                 Rectangle {
@@ -288,6 +291,11 @@ Scope {
                         Text { text: "Resident system agent"; color: Theme.muted; font.family: Theme.font }
                         Text { text: "Memory   " + shell.memory(shell.stats.agent.memory) + "\nCPU   " + (shell.agentCpu < 0 ? "Unavailable" : shell.agentCpu.toFixed(1) + "%") + "\nRestarts   " + (shell.stats.agent.restarts ?? "Unavailable"); color: Theme.text; lineHeight: 1.7; font { family: Theme.font; pixelSize: 14 } }
                         Text { text: "Live service status, refreshed every four seconds. Provider sign-in and model availability are checked inside the assistant."; color: Theme.muted; wrapMode: Text.Wrap; Layout.fillWidth: true; font { family: Theme.font; pixelSize: 12 } }
+                        Text { text: "Desktop control: " + (shell.fresh ? (shell.stats.desktop_control ?? "unavailable") : "unavailable"); color: Theme.muted; font { family: Theme.font; pixelSize: 12 } }
+                        RowLayout {
+                            ShellButton { text: "Stop desktop access"; iconName: "process-stop"; onClicked: Quickshell.execDetached(["controlstack-desktop-control", "stop"]) }
+                            ShellButton { text: "Resume"; onClicked: Quickshell.execDetached(["controlstack-desktop-control", "start"]) }
+                        }
                         ShellButton { text: "Open assistant"; iconName: "chat-message-new-symbolic"; selected: true; onClicked: shell.assistant() }
                     }
                     ColumnLayout {
@@ -311,11 +319,12 @@ Scope {
                         Text { visible: shell.settingsTab === "system"; text: "CPU  " + Math.round(shell.cpu) + "%     Memory  " + (shell.stats.memory_percent ?? "—") + "%"; color: Theme.muted; font { family: Theme.font; pixelSize: 12 } }
                         Flow {
                             Layout.fillWidth: true; spacing: 4
+                            ShellButton { visible: shell.settingsTab === "system"; text: "Clear clipboard history"; iconName: "edit-clear"; onClicked: Quickshell.execDetached(["cliphist", "wipe"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Bluetooth"; iconName: "bluetooth"; onClicked: Quickshell.execDetached(["blueman-manager"]) }
                             ShellButton { visible: shell.settingsTab === "audio"; text: "Sound mixer"; iconName: "multimedia-volume-control"; onClicked: Quickshell.execDetached(["pavucontrol"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Dim"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "5%-"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Brighten"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "+5%"]) }
-                            ShellButton { visible: shell.settingsTab === "system"; text: "Customize"; iconName: "preferences-desktop-theme"; onClicked: Quickshell.execDetached(["kitty", "-e", "nvim", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
+                            ShellButton { visible: shell.settingsTab === "system"; text: "Customize"; iconName: "preferences-desktop-theme"; onClicked: Quickshell.execDetached(["ghostty", "-e", "nvim", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: shell.keepAwake ? "Keeping awake" : "Keep awake"; selected: shell.keepAwake; iconName: "weather-clear-night"; onClicked: shell.keepAwake = !shell.keepAwake }
                             ShellButton { text: "Lock"; iconName: "system-lock-screen"; onClicked: shell.lockScreen() }
                             ShellButton { text: "Sign out"; iconName: "system-log-out"; onClicked: shell.panel = "logout" }

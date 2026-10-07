@@ -1,0 +1,49 @@
+CONTROLSTACK DESKTOP — SUPER IS THE WINDOWS KEY
+
+APPS
+Super+Enter             Ghostty terminal
+Super+R                 Applications
+Super+E                 Yazi files in Ghostty
+Super+B                 Firefox
+Super+Alt+C / Alt+X      Claude / Codex Desktop
+Super+Space             OpenClaw assistant
+Super+Ctrl+O            OpenClaw monitor and desktop-control settings
+Super+A                 Speaker and microphone selection
+Super+Tab               Window switcher
+Super+/                 SSH picker
+Super+Z                 Clipboard history (clear in Quick settings > System)
+Super+.                 Emoji picker
+Super+=                 Calculator
+Super+F11 / Shift+F11   This reference / search shortcuts
+
+WINDOWS
+Super+C                 Close focused window
+Super+V / P             Toggle floating / pseudo tiling
+Super+Backslash          Toggle split orientation
+Super+Arrows or HJKL     Focus window
+Add Shift               Move window
+Add Ctrl                Swap windows
+Super+Alt+Left/Right     Move window across monitors (also H/L)
+Super+1–9 / 0            Workspaces 1–10; add Shift to move window
+Super+S / Shift+S        Show scratchpad / move window to scratchpad
+Super+Mouse wheel       Previous/next workspace
+Super+Left/Right drag   Move/resize window
+
+CAPTURE AND SESSION
+Print                   Select screenshot region
+Shift+Print             Screenshot window
+Super+Print             Screenshot monitor
+Super+Shift+Print       Select and annotate with Satty
+Super+N / Shift+N        Dismiss one / all notifications
+Super+Ctrl+N            Restore last notification
+Super+F12               Lock
+Super+M                 Sign out confirmation
+Super+X                 Power menu
+Super+Shift+Backspace   Stop OpenClaw desktop control
+
+GHOSTTY — CTRL+A, THEN
+Shift+Backslash / Minus Split right / below
+H J K L                 Focus terminal split
+Z                       Zoom terminal split
+C                       New tab
+Ctrl+A                  Send literal Ctrl+A

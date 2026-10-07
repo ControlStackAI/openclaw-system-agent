@@ -1,14 +1,15 @@
 # Desktop-only iteration, with synthetic audio devices and no account credentials.
-{ pkgs, aiTools }:
+{ pkgs, aiTools, module }:
 pkgs.testers.runNixOSTest {
   name = "controlstack-desktop";
   enableOCR = true;
   nodes.machine = { pkgs, lib, ... }: {
-    imports = [ (import ../adapters/nixos/desktop.nix { desktop = "hyprland"; inherit aiTools; }) ];
+    imports = [ module (import ../adapters/nixos/desktop.nix { desktop = "hyprland"; inherit aiTools; }) ];
+    services.controlstackAgent = { enable = true; workspaceExecution = true; desktopOwner = "owner"; };
     networking.networkmanager.enable = true;
     users.users.owner = { isNormalUser = true; extraGroups = [ "wheel" "networkmanager" ]; password = "vm-only"; };
     services.displayManager.autoLogin = { enable = true; user = "owner"; };
-    virtualisation = { memorySize = 3072; cores = 2; qemu.options = [ "-vga virtio" ]; };
+    virtualisation = { memorySize = 4096; cores = 2; qemu.options = [ "-vga virtio" ]; };
     environment.systemPackages = [ pkgs.python3 pkgs.pulseaudio ];
     services.pipewire.extraConfig.pipewire."99-test-devices"."context.objects" = map (device: {
       factory = "adapter";
@@ -68,6 +69,30 @@ pkgs.testers.runNixOSTest {
     print(machine.succeed("journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager"))
     machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError|Could not load icon'")
     machine.screenshot("desktop")
+    # Exercise the real default terminal through Nova's keyboard binding.
+    machine.succeed(owner + "ghostty +validate-config")
+    machine.send_key("meta_l-ret")
+    machine.wait_until_succeeds(gui + "hyprctl -j activewindow | grep -i ghostty")
+    machine.send_chars("printf 'GHOSTTY_READY\\n'")
+    machine.send_key("ret")
+    machine.wait_for_text("GHOSTTY_READY")
+    machine.screenshot("ghostty")
+    machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock")
+    machine.wait_for_unit("controlstack-agent.service")
+    mcp_env = "runuser -u controlstack-agent -- env HOME=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json "
+    print(machine.succeed(mcp_env + "openclaw mcp doctor hypruse --probe"))
+    # Calls cross the same socket/account boundary used by the real gateway.
+    print(machine.succeed(mcp_env + "${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./hypruse-vm-client.py}"))
+    machine.wait_for_text("HYPRUSE_TYPED_IN_GHOSTTY")
+    machine.screenshot("hypruse-input")
+    machine.send_key("meta_l-shift-backspace")
+    machine.wait_until_succeeds(owner + "systemctl --user is-active controlstack-hypruse.service | grep inactive")
+    machine.succeed("test ! -S /run/controlstack-hypruse/mcp.sock")
+    machine.succeed(gui + "controlstack-desktop-control start")
+    machine.wait_until_succeeds("test -S /run/controlstack-hypruse/mcp.sock")
+
+    machine.send_key("meta_l-c")
+    machine.wait_until_succeeds("! pgrep -u owner -x ghostty")
     machine.succeed(gui + "quickshell -c controlstack ipc call shell launcher")
     time.sleep(2)
     machine.screenshot("launcher")

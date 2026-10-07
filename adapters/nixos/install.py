@@ -88,6 +88,9 @@ def nix_string(value):
 def render_target(plan, inputs):
     c = validate_choices(plan["choices"])
     q = nix_string
+    terminal_exec = ('${pkgs.ghostty}/bin/ghostty --title="System Assistant" -e'
+                     if c["desktop"] == "hyprland" else
+                     '${pkgs.xterm}/bin/xterm -T "System Assistant" -fa Monospace -fs 12 -bg "#0b1626" -fg "#dce7f7" -geometry 100x30 -e')
     return f'''import {q(inputs["nixpkgs"] + "/nixos")} {{
   system = "x86_64-linux";
   configuration = {{ config, pkgs, lib, ... }}: {{
@@ -95,6 +98,7 @@ def render_target(plan, inputs):
       (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; aiTools = {"builtins.storePath " + q(inputs["ai_tools"]) if "ai_tools" in inputs else "null"}; }}) ];
     services.controlstackAgent = {{
       enable = true; mutableProviderSetup = true; workspaceExecution = true; zfs.enable = true;
+      desktopOwner = {q(c["username"]) if c["desktop"] == "hyprland" else "null"};
       package = builtins.storePath {q(inputs["runtime"])};
       corePackage = builtins.storePath {q(inputs["core"])};
     }};
@@ -152,7 +156,7 @@ def render_target(plan, inputs):
       Comment=Talk to your resident computer assistant
       Icon=computer
       Categories=System;
-      Exec=${{pkgs.xterm}}/bin/xterm -T "System Assistant" -fa Monospace -fs 12 -bg "#0b1626" -fg "#dce7f7" -geometry 100x30 -e sudo {inputs["core"]}/bin/system-agent-setup
+      Exec={terminal_exec} sudo {inputs["core"]}/bin/system-agent-setup
       Terminal=false
     \'\';
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -385,6 +389,8 @@ def interactive(state, suggestions=None):
     validate_choices(choices)
     plan = prepare(node, choices)
     print("\nPlease review your installation:")
+    if choices["desktop"] == "hyprland":
+        print("OpenClaw will have full control of your logged-in Hyprland desktop: apps, windows, screenshots, mouse, keyboard and clipboard. The center island can stop desktop access.")
     print("  Disk: " + labels[index - 1])
     describe_choices(choices)
     print("All contents of that disk will be lost. Other disks are excluded.\n"

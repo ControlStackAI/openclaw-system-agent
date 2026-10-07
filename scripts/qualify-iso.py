@@ -299,7 +299,7 @@ def main():
                 guest.command(owner_env + "systemd-run --user --quiet --wait --pipe hyprctl -j configerrors > /tmp/hypr-errors.json")
                 guest.command("python3 -c " + shlex.quote("import json; errors = json.load(open('/tmp/hypr-errors.json')); assert not any(line.strip() for line in errors), errors"))
                 guest.wait_screen_text("OpenClaw")
-                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-spc"})
+                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-r"})
                 guest.wait_screen_text("Applications")
                 guest.qmp("screendump", {"filename": str(area / "launcher.png"), "format": "png"})
                 guest.type_console("mousepad")
@@ -307,7 +307,7 @@ def main():
                 focused_app = owner_env + "systemd-run --user --quiet --wait --pipe hyprctl -j activewindow"
                 check_mousepad = "import json,sys; assert 'mousepad' in json.load(sys.stdin).get('class', '').lower()"
                 guest.command("timeout 60 bash -c " + shlex.quote("until " + focused_app + " | python3 -c " + shlex.quote(check_mousepad) + "; do sleep 1; done"))
-                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-q"})
+                guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-c"})
                 guest.wait_screen_text("Choose a number")
                 ui = owner_env + "systemd-run --user --quiet --wait --pipe quickshell -c controlstack ipc call shell "
                 guest.command(ui + "monitor")

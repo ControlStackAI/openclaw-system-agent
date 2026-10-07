@@ -1,0 +1,22 @@
+configuration {
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+    font: "Inter 12";
+    terminal: "ghostty";
+    matching: "fuzzy";
+}
+* {
+    background-color: #0d1b2e;
+    text-color: #e4edf8;
+    border-color: #29435f;
+}
+window { width: 620px; padding: 24px; border: 1px; border-radius: 18px; }
+mainbox { spacing: 16px; }
+inputbar { padding: 12px; background-color: #14263c; border-radius: 10px; }
+entry { background-color: inherit; placeholder: "Search…"; }
+prompt { background-color: inherit; margin: 0px 12px 0px 0px; }
+listview { lines: 9; spacing: 5px; scrollbar: false; }
+element { padding: 12px; border-radius: 10px; }
+element selected.normal { background-color: #203953; text-color: #88bdff; }
+element-icon { size: 24px; margin: 0px 12px 0px 0px; background-color: inherit; }
+element-text { vertical-align: 0.5; background-color: inherit; text-color: inherit; }

@@ -3,6 +3,17 @@ let
   cfg = config.services.controlstackAgent;
   state = if cfg.ephemeral then "/run/controlstack-agent" else "/var/lib/controlstack-agent";
   configPath = if cfg.mutableProviderSetup then "${state}/openclaw.json" else "/etc/controlstack-agent/openclaw.json";
+  desktopMcp = lib.optionalAttrs (cfg.desktopOwner != null) {
+    hypruse = {
+      enabled = true;
+      transport = "stdio";
+      command = "${config.services.controlstackHypruse.clientPackage}/bin/controlstack-hypruse-mcp";
+      connectionTimeoutMs = 10000;
+      requestTimeoutMs = 60000;
+      supportsParallelToolCalls = false;
+      codex.defaultToolsApprovalMode = "approve";
+    };
+  };
   defaults = {
     gateway = {
       mode = "local";
@@ -14,18 +25,22 @@ let
     agents.defaults = { workspace = "${state}/workspace"; skipBootstrap = true; };
     tools = {
       profile = "full";
-      allow = [ "read" "session_status" ] ++ lib.optionals cfg.workspaceExecution [ "exec" "process" "write" "edit" ];
+      allow = [ "read" "session_status" ] ++ lib.optionals cfg.workspaceExecution [ "exec" "process" "write" "edit" ]
+        ++ lib.optionals (cfg.desktopOwner != null) [ "hypruse__*" ];
       elevated.enabled = false;
     };
+    mcp.servers = desktopMcp;
     discovery.mdns.mode = "off";
   };
   settings = lib.recursiveUpdate defaults cfg.settings;
   configFile = pkgs.writeText "controlstack-openclaw.json" (builtins.toJSON settings);
 in {
+  imports = [ ./hypruse ];
   options.services.controlstackAgent = {
     enable = lib.mkEnableOption "the resident ControlStackAI OpenClaw agent";
     package = lib.mkOption { type = lib.types.package; description = "Pinned complete OpenClaw runtime package."; };
     corePackage = lib.mkOption { type = lib.types.package; default = pkgs.callPackage ./package.nix {}; };
+    desktopOwner = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; description = "Hyprland owner granting full desktop control through Hypruse."; };
     port = lib.mkOption { type = lib.types.port; default = 18789; };
     workspaceExecution = lib.mkOption {
       type = lib.types.bool; default = false;
@@ -46,6 +61,10 @@ in {
     installInputs = lib.mkOption { type = lib.types.attrsOf lib.types.str; default = {}; internal = true; };
   };
   config = lib.mkIf cfg.enable {
+    services.controlstackHypruse.owner = cfg.desktopOwner;
+    environment.etc."controlstack-agent/desktop-mcp.json" = lib.mkIf (cfg.desktopOwner != null) {
+      text = builtins.toJSON desktopMcp;
+    };
     users.groups.controlstack-agent = {};
     users.users.controlstack-agent = {
       isSystemUser = true; group = "controlstack-agent";
