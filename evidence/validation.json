@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "date": "2026-10-06",
+  "date": "2026-10-07",
   "status": "vm-validated-development-prototype",
   "unit_tests": {
     "passed": 31
@@ -59,8 +59,8 @@
   "live_iso": true,
   "source_ci": {
     "status": "passed",
-    "source_commit": "da2b34ad316d444191f63ae7316a4cf876f44aae",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37542939514"
+    "source_commit": "cbacb60268ecc1f9cee5c39905592ea3afc6565e",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553896297"
   },
   "production_ready": false,
   "not_qualified": [
@@ -71,8 +71,9 @@
     "physical installation or ZFS-root recovery",
     "boot-critical updates",
     "pool feature upgrades",
-    "desktop and encrypted disk boot (checks in progress)",
-    "Secure Boot"
+    "Secure Boot",
+    "real-provider sign-in interruption and reconnection",
+    "owner-friendly privileged maintenance approval UI"
   ],
   "owner_profile": {
     "status": "typed-choices-and-installed-profile",
@@ -82,10 +83,10 @@
     "desktop_executor": true
   },
   "usb_vm": {
-    "status": "passed-no-desktop",
-    "source_commit": "918705b",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37540467951",
-    "iso_sha256": "96dd5422982a9c1b898ad04d6d0c18e7fb41468d9613b91884bf39a5914df8f4",
+    "status": "passed-all-four-cases",
+    "source_commit": "cbacb60268ecc1f9cee5c39905592ea3afc6565e",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672",
+    "iso_sha256": "54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e",
     "checks": [
       "BIOS USB boot and automatic tty1 welcome",
       "offline sign-in gating",
@@ -102,11 +103,93 @@
       "guided shutdown before USB removal",
       "owner login on primary console and setup autostart",
       "visible native OpenClaw TUI fixture reply on primary console",
-      "Ctrl+D returns from TUI to setup menu"
+      "Ctrl+D returns from TUI to setup menu",
+      "GNOME graphical owner login, setup autostart and visible TUI fixture reply",
+      "encrypted ZFS-root boot with German keyboard and Plasma owner login",
+      "Plasma setup autostart and visible TUI fixture reply",
+      "Ctrl+D returns from the TUI to the menu on both desktops"
     ],
     "provider": "local deterministic fixture; no real account",
-    "desktop": "none",
-    "encryption": false,
-    "interactive_install_review": true
+    "interactive_install_review": true,
+    "artifact_url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400",
+    "artifact_expires_at": "2027-01-05T00:49:02Z",
+    "cases": {
+      "bios-offline-none-us": {
+        "mode": "bios-offline",
+        "iso_sha256": "54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e",
+        "passed": true,
+        "installation": false,
+        "disk_boot_without_iso": false,
+        "ram_mib": 4096,
+        "desktop": "none",
+        "encryption": false,
+        "keyboard": "us",
+        "graphical_owner_login": false,
+        "installed_setup_autostart": false,
+        "primary_console_tui_reply": false,
+        "graphical_tui_reply": false,
+        "interactive_install_review": false,
+        "provider": "none",
+        "real_account_login": false,
+        "physical_disks_attached": false
+      },
+      "uefi-install-none-us": {
+        "mode": "uefi-install",
+        "iso_sha256": "54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e",
+        "passed": true,
+        "installation": true,
+        "disk_boot_without_iso": true,
+        "ram_mib": 4096,
+        "desktop": "none",
+        "encryption": false,
+        "keyboard": "us",
+        "graphical_owner_login": false,
+        "installed_setup_autostart": true,
+        "primary_console_tui_reply": true,
+        "graphical_tui_reply": false,
+        "interactive_install_review": true,
+        "provider": "local deterministic fixture",
+        "real_account_login": false,
+        "physical_disks_attached": false
+      },
+      "uefi-install-plasma-encrypted-de": {
+        "mode": "uefi-install",
+        "iso_sha256": "54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e",
+        "passed": true,
+        "installation": true,
+        "disk_boot_without_iso": true,
+        "ram_mib": 8192,
+        "desktop": "plasma",
+        "encryption": true,
+        "keyboard": "de",
+        "graphical_owner_login": true,
+        "installed_setup_autostart": true,
+        "primary_console_tui_reply": false,
+        "graphical_tui_reply": true,
+        "interactive_install_review": true,
+        "provider": "local deterministic fixture",
+        "real_account_login": false,
+        "physical_disks_attached": false
+      },
+      "uefi-install-gnome-us": {
+        "mode": "uefi-install",
+        "iso_sha256": "54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e",
+        "passed": true,
+        "installation": true,
+        "disk_boot_without_iso": true,
+        "ram_mib": 8192,
+        "desktop": "gnome",
+        "encryption": false,
+        "keyboard": "us",
+        "graphical_owner_login": true,
+        "installed_setup_autostart": true,
+        "primary_console_tui_reply": false,
+        "graphical_tui_reply": true,
+        "interactive_install_review": true,
+        "provider": "local deterministic fixture",
+        "real_account_login": false,
+        "physical_disks_attached": false
+      }
+    }
   }
 }

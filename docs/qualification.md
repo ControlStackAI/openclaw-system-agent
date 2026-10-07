@@ -1,6 +1,6 @@
 # Qualification status
 
-This is a development prototype. Validation recorded on 2026-10-06:
+This is a development prototype. Validation recorded on 2026-10-07 UTC:
 
 | Check | Result |
 | --- | --- |
@@ -14,9 +14,11 @@ This is a development prototype. Validation recorded on 2026-10-06:
 | Owner profile loading, reboot persistence and native backup/restore | Passed in the OpenClaw fixture VM |
 | Guided OS choices | Typed-choice handoff and questionnaire implemented; real-model interview quality unqualified |
 | Real account login and model response | Not tested; no operator credentials used |
-| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37540467951): direct USB boot, tty1 startup, offline gating |
+| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672): direct USB boot, tty1 startup, offline gating |
 | No-desktop UEFI installation and ZFS-root boot without USB | Passed on a disposable VM disk, with installed OpenClaw fixture response |
-| Physical hardware, encrypted boot, desktop login, ZFS-root recovery | Not yet qualified |
+| Plasma and GNOME owner login, automatic assistant window and visible TUI reply | Passed with the local provider fixture |
+| Encrypted ZFS-root boot and German keyboard | Passed in the Plasma VM |
+| Physical hardware, Secure Boot and installed ZFS-root recovery | Not yet qualified |
 | Provider setup | Official interactive wizard wrapped by local menu; native synthetic custom-provider flow tested; real account login untested |
 | Boot-critical updates and pool feature upgrades | No executor |
 | Local whole-disk installer | Implemented; interactive questionnaire, exact disk approval and guided shutdown passed in VM |
@@ -38,21 +40,33 @@ an actual model response, and resuming a conversation from the restored archive
 are not qualified. Snapshot execution is tested through the owner-run broker;
 service-restart and scrub-start branches still need dedicated native tests.
 
-The older lifecycle VM uses an ext4 root with ZFS file-backed vdevs. The new ISO
-workflow independently installs onto a blank 48 GiB virtual disk and boots the
-ZFS root with the USB detached. The NixOS adapter emits the narrow handoff;
-verification checks a new boot ID, matching machine identity and the real writable
-root dataset. The latest console-qualified ISO digest is
-`96dd5422982a9c1b898ad04d6d0c18e7fb41468d9613b91884bf39a5914df8f4`, source
-`918705b`. This newer run passed the complete interactive console installation,
-guided shutdown, primary-console owner login, automatic setup and a visible
-native OpenClaw TUI fixture reply. Its desktop preparation step failed before
-disk erasure, so the overall workflow did not pass. Desktop and encryption
-qualification remains in progress. Exact revisions and check lists are in
-[validation.json](../evidence/validation.json).
+The older lifecycle VM uses an ext4 root with ZFS file-backed vdevs. The
+[full ISO workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672) independently installed onto blank 48 GiB virtual
+disks and booted their ZFS roots with the USB detached. It passed all four cases:
+BIOS/offline live boot, a 4 GiB no-desktop installation, an 8 GiB encrypted Plasma
+installation with a German keyboard, and an 8 GiB GNOME installation. Each
+installed case used the shipped questionnaire, separate exact disk approval,
+guided shutdown, ordinary owner login and automatic setup entry point. Both
+desktops and the primary console displayed a native OpenClaw TUI fixture reply
+and returned to the menu with Ctrl+D. GNOME's first-login tour was dismissed and
+the assistant window selected through normal input events.
+
+The independent boot check verified a new boot ID, matching machine identity and
+the actual writable ZFS root. Tests also checked that live credentials/configuration
+were absent and that the installed owner choices reached a new provider request.
+The model endpoint was a deterministic fixture throughout; this does not qualify
+real account sign-in, real-model interview quality, or physical hardware.
+
+The [tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400) has SHA-256
+`54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e` and was built from source
+`cbacb60268ecc1f9cee5c39905592ea3afc6565e`. All four receipts identify those same ISO bytes.
+Exact receipts and retained earlier lifecycle evidence are in
+[validation.json](../evidence/validation.json). No-desktop and GNOME used
+unencrypted roots; encrypted root was tested with Plasma. Encrypted replication,
+installed-root rollback/recovery, real-provider interruption/reconnection, and a
+friendly privileged-maintenance approval UI remain separate work. The installer
+supports whole-disk UEFI installation only; BIOS installation and preserving an
+existing partition layout are not implemented.
 
 A build, service template or health endpoint is not completed model authentication
 or installed-system qualification.
-Local cache attempts encountered HTTP/2 framing/resume errors; a retry using the
-official cache over HTTP/1.1 made progress but npm/cache connections subsequently
-reset or timed out. Pins, hashes and signature checks remain unchanged.

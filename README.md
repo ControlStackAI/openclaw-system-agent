@@ -4,13 +4,22 @@ An OpenClaw-based local Linux assistant that stays with the installed computer.
 The aim is to help people inspect, configure, maintain and recover their systems
 using plain language and explicit owner authorization.
 
-**Development prototype, not a qualified OS installer or unattended administrator.**
-The resident lifecycle and NixOS service have passed isolated VM tests, including
-gateway health, fixture conversations across reboot, private state and native
-backup/restore. Arch packaging is an adapter under qualification. An owner-run broker implements narrowly scoped ZFS snapshots, pool scrub requests
-and service restarts. The daemon gets no sudo permission. Disk erasure and
-boot-critical updates have no resident executor. An experimental USB installer is under qualification; see [USB setup](docs/usb-setup.md).
-See the exact [validation status](docs/qualification.md) before trying it.
+**VM-tested development prototype.** The NixOS USB opens OpenClaw setup,
+offers no desktop, KDE Plasma or GNOME, and installs a resident assistant on ZFS.
+The complete USB-to-installed-system journey passed isolated VM tests, including
+encrypted Plasma boot, ordinary owner login and visible fixture conversations.
+Real provider accounts and physical hardware remain unqualified.
+
+[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400) and follow the
+[owner's USB guide](docs/usb-setup.md). Read the exact
+[qualification status](docs/qualification.md), including the ISO checksum, before
+trying it. Installation currently uses a whole internal disk in UEFI mode.
+
+The resident lifecycle also passed separate reboot and native backup/restore
+tests. Arch packaging is scaffolded and has no native runtime qualification.
+An owner-run broker implements narrowly scoped ZFS snapshots, scrub requests and
+service restarts; its friendly approval UI remains future work. The daemon has
+no sudo grant, disk-erasure executor or boot-critical update executor.
 
 This repository is separate from [agent-installer](https://github.com/ControlStackAI/agent-installer),
 whose pinned network/clock/ZFS readiness code is consumed by this image. No private host configuration or prior
@@ -31,6 +40,7 @@ agent state is included. All project history begins with generic source.
 
 ```sh
 python3 -m unittest discover -s tests -v
+nix build .#live-iso --out-link result-iso
 nix build .#system-agent
 nix build .#openclaw
 nix build .#checks.x86_64-linux.core-vm --max-jobs 1 --cores 2

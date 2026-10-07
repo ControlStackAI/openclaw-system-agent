@@ -1,4 +1,7 @@
-# NixOS USB setup (under qualification)
+# NixOS USB setup (development image)
+
+[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400).
+SHA-256: `54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e`. See [qualification](qualification.md) for the exact test scope.
 
 ## What the owner does
 
@@ -82,8 +85,9 @@ The assistant can inspect and edit its own state but has no sudo grant. Privileg
 installation remains in the owner-operated local screen. Remote access and
 unattended updates are off. Backups still need an independent destination.
 
-Qualification is in progress. Source/guard tests and Nix evaluation do not prove
-USB boot, installation, encryption, desktop startup or actual provider sign-in.
-The workflow builds the real ISO, boots it as a USB in BIOS and UEFI VMs, checks
-offline gating, installs onto a disposable disk and boots that disk without the
-ISO. Its model endpoint is a non-secret fixture, never an operator account.
+The [full qualification run](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672) passed BIOS/UEFI live boot, offline gating,
+no-desktop installation, encrypted Plasma with a German keyboard, and GNOME.
+Each installed case booted its ZFS root without the USB and displayed an OpenClaw
+fixture reply through the normal local interface. The endpoint was a non-secret
+local fixture; real provider sign-in, physical hardware, Secure Boot and
+installed-root recovery remain unqualified.
