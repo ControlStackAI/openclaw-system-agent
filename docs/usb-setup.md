@@ -2,11 +2,17 @@
 
 ## What the owner does
 
+Download the development ISO from a successful full qualification run and use
+an image writer to write it to a USB drive of at least 8 GB. Writing the image
+erases that USB drive. Use a disposable test computer until hardware and real
+provider sign-in have been qualified; the current test results are VM results.
+
 1. Start the computer from the USB in UEFI mode. The setup screen opens
    automatically. Choose a keyboard layout, then connect to Wi-Fi if Ethernet
    has not already connected.
-2. Choose **Sign in**, select a supported provider in OpenClaw's setup wizard,
-   and use its protected sign-in prompts. Then choose **Talk to your assistant**.
+2. Choose **Sign in or change AI provider**, select a supported provider in
+   OpenClaw's setup wizard, and use its protected sign-in prompts. Then choose
+   **Talk to the assistant**.
 3. Explain what this computer is for. The assistant's profile asks for relevant
    choices one at a time, including KDE Plasma, GNOME or no desktop; language,
    keyboard, time zone, computer name, account and encryption. Real-model

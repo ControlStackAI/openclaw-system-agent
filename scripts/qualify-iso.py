@@ -123,7 +123,7 @@ class Guest:
     def wait_screen_text(self, expected, timeout=120):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            if expected.casefold() in self.screen_text().casefold():
+            if " ".join(expected.casefold().split()) in " ".join(self.screen_text().casefold().split()):
                 return
             time.sleep(2)
         raise RuntimeError("Graphical screen did not show: " + expected)
