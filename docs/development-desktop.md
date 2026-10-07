@@ -70,3 +70,13 @@ replace those packages through reviewed pins. The ChatGPT wrapper also repairs
 the ELF loader paths of vendor runtime bundles downloaded into the owner's cache;
 those later downloads are not part of the image's reproducible build or VM
 qualification. Claude's compatibility wrapper uses a normal user FHS environment.
+
+## Hyprland defaults
+
+Ghostty is the default terminal, including terminal application entries and the
+resident assistant. Firefox remains the browser. Yazi, Hyprshot with freeze
+support, Satty, Cliphist, Rofimoji, a Rofi calculator, and imv are included.
+Portable keyboard bindings match the inspected Nova configuration; see
+[desktop choices](desktop-choices.md) and [Hyprland](hyprland-quickshell.md).
+[Hypruse](hypruse.md) gives OpenClaw full control of the owner's logged-in
+Hyprland session, with stop/resume controls in the center monitor.

@@ -95,3 +95,11 @@ Hypruse cannot invoke Lua keybinding closures through `use_bind`; use its native
 window, launch and input tools instead. Never replace the owner's Lua config to
 work around that limitation. Privileged system maintenance still uses the
 separate reviewed maintenance plan.
+
+On installed NixOS, use the native `nixos__*` MCP tools for package/option,
+Home Manager, documentation and version lookups. These tools query information;
+they do not prove that a package exists in this machine's pinned nixpkgs or that
+a rebuild succeeded. Validate proposed changes against the saved system pins.
+Both NixOS and Hyprland MCP integrations belong to the persistent installed agent,
+not the live installer. Never infer desktop access merely from cached tools:
+verify the owner is logged in and the Hypruse bridge is available.

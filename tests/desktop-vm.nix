@@ -72,7 +72,7 @@ pkgs.testers.runNixOSTest {
     # Exercise the real default terminal through Nova's keyboard binding.
     machine.succeed(owner + "ghostty +validate-config")
     machine.send_key("meta_l-ret")
-    machine.wait_until_succeeds(gui + "hyprctl -j activewindow | grep -i ghostty")
+    machine.wait_until_succeeds(gui + "hyprctl -j activewindow | grep -i ghostty", timeout=90)
     machine.send_chars("printf 'GHOSTTY_READY\\n'")
     machine.send_key("ret")
     machine.wait_for_text("GHOSTTY_READY")
@@ -81,6 +81,8 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_unit("controlstack-agent.service")
     mcp_env = "runuser -u controlstack-agent -- env HOME=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/etc/controlstack-agent/openclaw.json "
     print(machine.succeed(mcp_env + "openclaw mcp doctor hypruse --probe"))
+    print(machine.succeed(mcp_env + "openclaw mcp doctor nixos --probe"))
+    print(machine.succeed(mcp_env + "${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./nixos-mcp-vm-client.py} ${pkgs.writeText "nixos-mcp-fixture" "MCP_NIXOS_STORE_FIXTURE"}"))
     # Calls cross the same socket/account boundary used by the real gateway.
     print(machine.succeed(mcp_env + "${pkgs.python3.withPackages (p: [ p.mcp ])}/bin/python3 ${./hypruse-vm-client.py}"))
     machine.wait_for_text("HYPRUSE_TYPED_IN_GHOSTTY")

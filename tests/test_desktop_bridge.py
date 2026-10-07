@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from runtimes.openclaw.runtime import local_policy
+from runtimes.openclaw.runtime import local_policy, sync_installed_mcp
 from system_agent.state import initialize
 
 spec = importlib.util.spec_from_file_location("desktop_bridge", Path(__file__).parents[1] / "adapters/nixos/hypruse/bridge.py")
@@ -66,10 +66,30 @@ class DesktopPolicy(unittest.TestCase):
             definition = {"hypruse": {"command": "/nix/store/fixture/bin/bridge", "transport": "stdio", "enabled": True}}
             path = root / "desktop-mcp.json"
             path.write_text(json.dumps(definition))
-            local_policy(state, desktop_mcp_path=path)
+            local_policy(state, installed_mcp_path=path)
             config = json.loads((state / "openclaw.json").read_text())
             self.assertEqual(config["mcp"]["servers"], definition)
             self.assertIn("hypruse__*", config["tools"]["allow"])
             self.assertFalse(config["tools"]["elevated"]["enabled"])
-            local_policy(state, desktop_mcp_path=path)
+            local_policy(state, installed_mcp_path=path)
             self.assertEqual(json.loads((state / "openclaw.json").read_text())["tools"]["allow"].count("hypruse__*"), 1)
+
+    def test_reboot_sync_preserves_provider_and_removes_disabled_managed_servers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "state"
+            initialize(state, root / "empty-identity")
+            config_path = state / "openclaw.json"
+            config = json.loads(config_path.read_text())
+            config["models"] = {"fixture": "preserve-provider"}
+            config["mcp"] = {"servers": {"other": {"command": "keep"}, "hypruse": {"command": "old"}}}
+            config["tools"]["allow"] = ["read", "hypruse__*"]
+            config_path.write_text(json.dumps(config))
+            contract = root / "installed-mcp.json"
+            contract.write_text(json.dumps({"nixos": {"command": "new-pinned-server"}}))
+            sync_installed_mcp(state, contract=contract)
+            result = json.loads(config_path.read_text())
+            self.assertEqual(result["models"], config["models"])
+            self.assertEqual(set(result["mcp"]["servers"]), {"other", "nixos"})
+            self.assertEqual(result["tools"]["allow"], ["read", "nixos__*"])
+            self.assertEqual(config_path.stat().st_mode & 0o777, 0o600)

@@ -36,7 +36,7 @@ def onboard(state, config=None):
                           "--skip-bootstrap", "--skip-hooks", "--skip-search", "--workspace", str(Path(state).absolute() / "workspace")], config)
 
 
-def local_policy(state, config_path=None, desktop_mcp_path="/etc/controlstack-agent/desktop-mcp.json"):
+def local_policy(state, config_path=None, installed_mcp_path="/etc/controlstack-agent/installed-mcp.json"):
     """Reapply the installer access boundary as the unprivileged service account."""
     from system_agent.state import private_dir, create_private, default_config
     state = private_dir(state)
@@ -49,17 +49,44 @@ def local_policy(state, config_path=None, desktop_mcp_path="/etc/controlstack-ag
     config.setdefault("secrets", {}).setdefault("providers", {})["gateway"] = defaults["secrets"]["providers"]["gateway"]
     config.setdefault("agents", {}).setdefault("defaults", {}).update(workspace=str(state / "workspace"), skipBootstrap=True)
     config["tools"] = {"profile": "full", "allow": ["read", "session_status", "exec", "process", "write", "edit"], "elevated": {"enabled": False}}
-    # Reapply the installed desktop contract after official onboarding. This
-    # file is root-owned Nix configuration, never a desktop-provided command.
-    desktop_mcp = Path(desktop_mcp_path)
-    if desktop_mcp.is_file():
-        servers = json.loads(desktop_mcp.read_text())
-        if set(servers) != {"hypruse"}:
-            raise ValueError("Unexpected desktop MCP integration")
-        config.setdefault("mcp", {}).setdefault("servers", {}).update(servers)
-        config["tools"]["allow"].append("hypruse__*")
+    merge_installed_mcp(config, installed_mcp_path)
     config["channels"] = {}
     temporary = state / ("config-" + secrets.token_hex(8))
     create_private(temporary, json.dumps(config, indent=2) + "\n")
     os.replace(temporary, path)
     return {"local_policy": "applied", "elevated": False}
+
+
+def merge_installed_mcp(config, contract):
+    """Merge the root-owned distribution contract, preserving unrelated servers."""
+    path = Path(contract)
+    if not path.is_file():
+        return
+    servers = json.loads(path.read_text())
+    managed = {"hypruse", "nixos"}
+    if not isinstance(servers, dict) or not set(servers) <= managed:
+        raise ValueError("Unexpected installed MCP integration")
+    definitions = config.setdefault("mcp", {}).setdefault("servers", {})
+    for name in managed:
+        definitions.pop(name, None)
+    definitions.update(servers)
+    policy = config.setdefault("tools", {})
+    key = "allow" if "allow" in policy else "alsoAllow"
+    patterns = {name + "__*" for name in managed}
+    policy[key] = [x for x in policy.get(key, []) if x not in patterns]
+    policy[key].extend(name + "__*" for name in sorted(servers))
+
+
+def sync_installed_mcp(state, config_path=None, contract="/etc/controlstack-agent/installed-mcp.json"):
+    """Refresh pinned integration commands after reboot/update without touching login."""
+    from system_agent.state import private_dir, create_private
+    state = private_dir(state)
+    path = Path(config_path or state / "openclaw.json")
+    if path != state / "openclaw.json" or path.is_symlink():
+        raise ValueError("Only the private mutable runtime config can be updated.")
+    config = json.loads(path.read_text())
+    merge_installed_mcp(config, contract)
+    temporary = state / ("config-" + secrets.token_hex(8))
+    create_private(temporary, json.dumps(config, indent=2) + "\n")
+    os.replace(temporary, path)
+    return {"installed_mcp": "synchronized"}

@@ -3,7 +3,14 @@ let
   cfg = config.services.controlstackAgent;
   state = if cfg.ephemeral then "/run/controlstack-agent" else "/var/lib/controlstack-agent";
   configPath = if cfg.mutableProviderSetup then "${state}/openclaw.json" else "/etc/controlstack-agent/openclaw.json";
-  desktopMcp = lib.optionalAttrs (cfg.desktopOwner != null) {
+  installedMcp = lib.optionalAttrs cfg.nixosMcp.enable {
+    nixos = {
+      enabled = true; transport = "stdio";
+      command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
+      env.MCP_NIXOS_TRANSPORT = "stdio";
+      connectionTimeoutMs = 15000; requestTimeoutMs = 60000;
+    };
+  } // lib.optionalAttrs (cfg.desktopOwner != null) {
     hypruse = {
       enabled = true;
       transport = "stdio";
@@ -26,10 +33,11 @@ let
     tools = {
       profile = "full";
       allow = [ "read" "session_status" ] ++ lib.optionals cfg.workspaceExecution [ "exec" "process" "write" "edit" ]
-        ++ lib.optionals (cfg.desktopOwner != null) [ "hypruse__*" ];
+        ++ lib.optionals (cfg.desktopOwner != null) [ "hypruse__*" ]
+        ++ lib.optionals cfg.nixosMcp.enable [ "nixos__*" ];
       elevated.enabled = false;
     };
-    mcp.servers = desktopMcp;
+    mcp.servers = installedMcp;
     discovery.mdns.mode = "off";
   };
   settings = lib.recursiveUpdate defaults cfg.settings;
@@ -40,6 +48,10 @@ in {
     enable = lib.mkEnableOption "the resident ControlStackAI OpenClaw agent";
     package = lib.mkOption { type = lib.types.package; description = "Pinned complete OpenClaw runtime package."; };
     corePackage = lib.mkOption { type = lib.types.package; default = pkgs.callPackage ./package.nix {}; };
+    nixosMcp.enable = lib.mkOption {
+      type = lib.types.bool; default = !cfg.ephemeral;
+      description = "Provide mcp-nixos to the resident installed-system agent; disabled on ephemeral live media.";
+    };
     desktopOwner = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; description = "Hyprland owner granting full desktop control through Hypruse."; };
     port = lib.mkOption { type = lib.types.port; default = 18789; };
     workspaceExecution = lib.mkOption {
@@ -62,15 +74,15 @@ in {
   };
   config = lib.mkIf cfg.enable {
     services.controlstackHypruse.owner = cfg.desktopOwner;
-    environment.etc."controlstack-agent/desktop-mcp.json" = lib.mkIf (cfg.desktopOwner != null) {
-      text = builtins.toJSON desktopMcp;
+    environment.etc."controlstack-agent/installed-mcp.json" = {
+      text = builtins.toJSON installedMcp;
     };
     users.groups.controlstack-agent = {};
     users.users.controlstack-agent = {
       isSystemUser = true; group = "controlstack-agent";
       home = state; createHome = false;
     };
-    environment.systemPackages = [ cfg.corePackage cfg.package ];
+    environment.systemPackages = [ cfg.corePackage cfg.package ] ++ lib.optionals cfg.nixosMcp.enable [ pkgs.mcp-nixos ];
     environment.etc."controlstack-agent/openclaw.json".source = configFile;
     environment.etc."controlstack-agent/capabilities.json".text = builtins.toJSON cfg.capabilities;
     environment.etc."controlstack-agent/install-inputs.json" = lib.mkIf (cfg.installInputs != {}) {
@@ -80,7 +92,7 @@ in {
       description = "ControlStackAI resident system agent";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      path = [ cfg.package cfg.corePackage pkgs.util-linux pkgs.systemd pkgs.coreutils ];
+      path = [ cfg.package cfg.corePackage pkgs.util-linux pkgs.systemd pkgs.coreutils ] ++ lib.optionals cfg.nixosMcp.enable [ pkgs.nix ];
       environment = {
         HOME = state;
         OPENCLAW_HOME = state;
@@ -101,7 +113,9 @@ in {
         RuntimeDirectoryMode = "0700";
         RuntimeDirectoryPreserve = lib.mkIf cfg.ephemeral "yes";
         UMask = "0077";
-        ExecStartPre = [ "${cfg.corePackage}/bin/system-agent initialize --seed-config ${configFile}" "${cfg.corePackage}/bin/system-agent refresh" ];
+        ExecStartPre = [ "${cfg.corePackage}/bin/system-agent initialize --seed-config ${configFile}" ]
+          ++ lib.optionals cfg.mutableProviderSetup [ "${cfg.corePackage}/bin/system-agent sync-mcp" ]
+          ++ [ "${cfg.corePackage}/bin/system-agent refresh" ];
         ExecStart = "${cfg.package}/bin/openclaw gateway run";
         CPUAccounting = true;
         MemoryAccounting = true;

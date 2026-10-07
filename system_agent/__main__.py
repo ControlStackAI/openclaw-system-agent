@@ -23,6 +23,7 @@ def main():
     handoff.add_argument("file", type=Path)
     sub.add_parser("verify-boot")
     sub.add_parser("local-policy")
+    sub.add_parser("sync-mcp")
     choices = sub.add_parser("setup-choice")
     choices.add_argument("key", nargs="?")
     choices.add_argument("value", nargs="?")
@@ -59,6 +60,8 @@ def main():
                 result = choices.update(args.state, args.key, args.value)
             else:
                 raise ValueError("Supply both a choice and its value, or neither to read choices.")
+        elif args.command == "sync-mcp":
+            result = runtime.sync_installed_mcp(args.state, args.config)
         elif args.command == "local-policy":
             result = runtime.local_policy(args.state, args.config)
         elif args.command == "onboard":

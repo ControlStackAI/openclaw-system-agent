@@ -6,8 +6,12 @@ The installation review explicitly describes full desktop access. Once the owner
 logs in, OpenClaw can inspect and arrange windows/workspaces, launch applications,
 capture the screen, use the mouse/keyboard, and read/write the clipboard.
 
+Neither MCP server is activated in the live installer. Hypruse is registered
+only for an installed Hyprland owner; [mcp-nixos](installed-mcp.md) is enabled
+for all installed NixOS profiles. The USB carries package closures for installation.
+
 The installed OpenClaw 2026.9.5 runtime uses its native `mcp.servers.hypruse`
-configuration, with `hypruse__*` in its tool policy. Official onboarding reapplies
+configuration, with `hypruse__*` in its tool policy. Official onboarding and service startup reapply
 this integration alongside the local system-agent policy. No mcporter shim or
 unversioned uvx download is required. Provider credentials are still entered by
 the new owner; no build credentials are copied.
