@@ -304,6 +304,9 @@ def main():
                 guest.qmp("screendump", {"filename": str(area / "launcher.png"), "format": "png"})
                 guest.type_console("mousepad")
                 guest.command("timeout 60 bash -c " + shlex.quote("until pgrep -u owner -f '[m]ousepad'; do sleep 1; done"))
+                focused_app = owner_env + "systemd-run --user --quiet --wait --pipe hyprctl -j activewindow"
+                check_mousepad = "import json,sys; assert 'mousepad' in json.load(sys.stdin).get('class', '').lower()"
+                guest.command("timeout 60 bash -c " + shlex.quote("until " + focused_app + " | python3 -c " + shlex.quote(check_mousepad) + "; do sleep 1; done"))
                 guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-q"})
                 guest.wait_screen_text("Choose a number")
                 guest.command("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
