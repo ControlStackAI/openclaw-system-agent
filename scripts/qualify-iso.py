@@ -297,8 +297,11 @@ p.write_text(json.dumps(c))
                 guest.command("sleep 3; grep -q \"What would you like to do?\" /dev/vcs1")
 
             if args.desktop != "none":
-                if args.desktop == "gnome" and "type to search" in guest.screen_text().casefold():
+                if args.desktop == "gnome":
+                    # GNOME starts in overview. Its faint search placeholder is
+                    # not reliable OCR; Escape closes overview before typing.
                     guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
+                    time.sleep(1)
                 guest.wait_screen_text("Choose a number")
                 guest.type_console("2")
                 guest.wait_screen_text("resident conversation works")

@@ -1,5 +1,38 @@
 # NixOS USB setup (under qualification)
 
+## What the owner does
+
+1. Start the computer from the USB in UEFI mode. The setup screen opens
+   automatically. Choose a keyboard layout, then connect to Wi-Fi if Ethernet
+   has not already connected.
+2. Choose **Sign in**, select a supported provider in OpenClaw's setup wizard,
+   and use its protected sign-in prompts. Then choose **Talk to your assistant**.
+3. Explain what this computer is for. The assistant's profile asks for relevant
+   choices one at a time, including KDE Plasma, GNOME or no desktop; language,
+   keyboard, time zone, computer name, account and encryption. Real-model
+   interview quality still needs testing with an actual provider account.
+4. Press **Ctrl+D** to return to the setup screen and choose the installation
+   review. It collects missing choices, prepares the selected system, and shows
+   the disk and storage plan. Nothing is erased until the separate local disk
+   confirmation. This version uses the whole selected disk and erases its data.
+   Account passwords and the optional disk passphrase use hidden local prompts,
+   never the chat.
+5. After installation, choose shutdown, remove the USB, and start the computer.
+   Unlock the disk if encryption was selected, then sign in to the local account.
+   System Assistant opens automatically. The system checks that it really booted
+   from the installed ZFS root.
+6. Sign in to OpenClaw again on the installed computer. This creates persistent
+   credentials there; USB credentials are deliberately not copied. The assistant
+   retains the chosen OS settings and can continue helping with the computer.
+   Later sessions and its workspace persist across restarts. On a desktop, open
+   **System Assistant** from the application menu whenever needed.
+
+The installed agent can inspect the system and propose changes. Maintenance that
+needs elevated access uses the separate owner-operated approval mechanism;
+automatic privileged administration is not enabled by signing in.
+
+## Implementation and limits
+
 The live image opens the local setup screen on tty1. Other consoles remain
 available. It offers network setup, official OpenClaw sign-in and conversation,
 then a separate local installation review. The USB starts with a US keyboard;
