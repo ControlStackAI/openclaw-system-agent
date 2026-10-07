@@ -1,3 +1,5 @@
+//@ pragma IconTheme Papirus-Dark
+//@ pragma UseQApplication
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -76,13 +78,7 @@ Scope {
         function controls(): void { shell.open("controls"); }
         function network(): void { shell.settings("network"); }
         function monitor(): void { shell.open("monitor"); }
-        function settings(tab, screen) {
-        const same = panel === "controls" && settingsTab === tab;
-        settingsTab = tab;
-        popupScreen = screen || Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) || Quickshell.screens[0];
-        panel = same ? "" : "controls";
-    }
-    function assistant(): void { shell.assistant(); }
+        function assistant(): void { shell.assistant(); }
         function lock(): void { shell.lockScreen(); }
     }
     Variants {

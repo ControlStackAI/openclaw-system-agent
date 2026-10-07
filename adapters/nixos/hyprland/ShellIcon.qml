@@ -4,5 +4,5 @@ import Quickshell.Widgets
 IconImage {
     property string name: "application-x-executable"
     implicitSize: 20
-    source: Quickshell.iconPath(name, "application-x-executable")
+    source: name === "" ? "" : Quickshell.iconPath(Quickshell.hasThemeIcon(name) || name.startsWith("/") ? name : "application-x-executable")
 }

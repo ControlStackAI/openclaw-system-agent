@@ -2,6 +2,7 @@
 { pkgs, aiTools }:
 pkgs.testers.runNixOSTest {
   name = "controlstack-desktop";
+  enableOCR = true;
   nodes.machine = { pkgs, lib, ... }: {
     imports = [ (import ../adapters/nixos/desktop.nix { desktop = "hyprland"; inherit aiTools; }) ];
     networking.networkmanager.enable = true;
@@ -61,7 +62,7 @@ pkgs.testers.runNixOSTest {
     errors = json.loads(machine.succeed(gui + "hyprctl -j configerrors"))
     assert not any(str(error).strip() for error in errors), errors
     print(machine.succeed("journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager"))
-    machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
+    machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError|Could not load icon'")
     machine.screenshot("desktop")
     machine.succeed(gui + "quickshell -c controlstack ipc call shell launcher")
     time.sleep(2)
@@ -91,12 +92,15 @@ pkgs.testers.runNixOSTest {
     machine.succeed("test -x $(dirname $(readlink -f $(command -v codex)))/codex-code-mode-host")
     machine.succeed("test -x $(dirname $(readlink -f $(command -v codex)))/logs_client")
     machine.succeed(owner + "nvim --headless '+lua assert(vim.o.number)' +qall")
+    machine.succeed("pkill -u owner mousepad")
+    # Autologin deliberately skips PAM authentication; unlock a disposable fixture keyring.
+    machine.succeed("printf vm-only | " + gui + "gnome-keyring-daemon --unlock")
     for app, match in [("chatgpt", "chatgpt"), ("claude-desktop", "claude")]:
         machine.succeed(owner + "systemd-run --user --quiet --unit=app-test " + app + (" codex://" if app == "chatgpt" else ""))
         machine.wait_until_succeeds(gui + "hyprctl -j clients | grep -i " + match, timeout=120)
-        time.sleep(6)
+        machine.wait_for_text("Sign in|Log in|Welcome", timeout=90)
         machine.screenshot(app)
         machine.succeed(owner + "systemctl --user stop app-test")
-    machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
+    machine.succeed("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError|Could not load icon'")
   '';
 }

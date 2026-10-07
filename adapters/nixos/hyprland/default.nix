@@ -88,6 +88,7 @@ in {
   services.pipewire = { enable = true; alsa.enable = true; pulse.enable = true; };
   services.upower.enable = true;
   services.gnome.gnome-keyring.enable = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];

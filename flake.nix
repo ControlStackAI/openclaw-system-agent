@@ -21,7 +21,8 @@
       paths = [ ai.codex ai.claude-code ai.chatgpt
         (pkgs.symlinkJoin {
           name = "controlstack-claude-desktop";
-          paths = [ ai.claude-desktop ];
+          # Use the operating system's FHS glibc so host graphics drivers can load.
+          paths = [ (ai.claude-desktop.override { buildFHSEnv = pkgs.buildFHSEnv; }) ];
           nativeBuildInputs = [ pkgs.makeWrapper ];
           postBuild = ''
             wrapProgram "$out/bin/claude-desktop" --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [ pkgs.libglvnd ]}"
