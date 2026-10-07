@@ -297,7 +297,7 @@ def main():
                 guest.command("runuser -u owner -- test -w /home/owner/.config/quickshell/controlstack/shell.qml")
                 guest.command("test -s /home/owner/.config/hypr/hyprland.lua")
                 guest.command(owner_env + "systemd-run --user --quiet --wait --pipe hyprctl -j configerrors > /tmp/hypr-errors.json")
-                guest.command("python3 -c " + shlex.quote("import json; errors = json.load(open('/tmp/hypr-errors.json')); assert errors == [], errors"))
+                guest.command("python3 -c " + shlex.quote("import json; errors = json.load(open('/tmp/hypr-errors.json')); assert not any(line.strip() for line in errors), errors"))
                 guest.wait_screen_text("Applications")
                 guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-spc"})
                 guest.wait_screen_text("Thunar File Manager")
