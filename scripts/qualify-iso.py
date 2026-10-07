@@ -88,6 +88,13 @@ class Guest:
         self.process.expect("CS_READY> ")
         return output
 
+    def gateway_ready(self, state):
+        probe = ("runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=" + state +
+                 " OPENCLAW_CONFIG_PATH=" + state + "/openclaw.json OPENCLAW_NIX_MODE=0 system-agent health")
+        self.command("timeout 120 bash -c " + shlex.quote(
+            "until " + probe + " >/tmp/gateway-health.log 2>&1; do sleep 2; done") +
+            " || { journalctl -b -u controlstack-agent --no-pager -n 100; cat /tmp/gateway-health.log; exit 1; }", timeout=180)
+
     def put(self, path, data):
         payload = base64.b64encode(data.encode()).decode()
         self.command(f"echo {payload} | base64 -d > {path}")
@@ -189,7 +196,8 @@ def main():
             live_env = "runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/run/controlstack-agent OPENCLAW_CONFIG_PATH=/run/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 "
             guest.command(live_env + "openclaw onboard --non-interactive --accept-risk --mode local --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search --auth-choice custom-api-key --custom-base-url http://127.0.0.1:18080/v1 --custom-model-id fixture-model --custom-provider-id fixture --custom-compatibility openai --custom-api-key non-secret-vm-fixture", timeout=180)
             guest.command(live_env + "system-agent local-policy")
-            guest.command("systemctl restart controlstack-agent; sleep 10")
+            guest.command("systemctl restart controlstack-agent")
+            guest.gateway_ready("/run/controlstack-agent")
             guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
             guest.command(live_env + "system-agent setup-choice hostname vmresident")
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
@@ -278,7 +286,8 @@ c['models']={'providers':{'fixture':{'baseUrl':'http://127.0.0.1:18080/v1','api'
 p.write_text(json.dumps(c))
 ''')
             guest.command("python3 /tmp/provider-config.py; systemctl restart controlstack-agent")
-            guest.command("sleep 10; runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
+            guest.gateway_ready("/var/lib/controlstack-agent")
+            guest.command("runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
             guest.command("grep -q 'Owner.s chosen system' /tmp/fixture-request.json")
             if args.desktop == "none":
                 guest.type_console("2")
@@ -300,7 +309,7 @@ p.write_text(json.dumps(c))
             guest.qmp("screendump", {"filename": str(area / "installed.png"), "format": "png"})
         except Exception:
             guest.qmp("screendump", {"filename": str(area / "installed-failure.png"), "format": "png"})
-            print(guest.command("journalctl -b -u display-manager --no-pager -n 120; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|xterm|system_agent.setup' || true")[-16000:], flush=True)
+            print(guest.command("journalctl -b -u display-manager -u controlstack-agent --no-pager -n 160; loginctl list-sessions; ps -eo user,comm,args | grep -E 'sddm|gdm|plasmashell|gnome-shell|xterm|system_agent.setup' || true")[-16000:], flush=True)
             raise
         finally:
             guest.close()

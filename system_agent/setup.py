@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from .facts import discover
 
@@ -73,6 +74,13 @@ class Setup:
     def chat(self):
         if not self.connect():
             return
+        print("\nConnecting to your assistant...", flush=True)
+        deadline = time.monotonic() + 120
+        while self.agent("health", capture=True).returncode:
+            if time.monotonic() >= deadline:
+                print("The assistant is not ready yet. Try again shortly, or open the troubleshooting shell.")
+                return
+            time.sleep(2)
         print("\nOpening your system assistant. Press Ctrl+D to return to this menu.\n"
               "A successful assistant reply confirms model access; a running service alone does not.")
         try:
