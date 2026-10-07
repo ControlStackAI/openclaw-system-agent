@@ -25,6 +25,7 @@ class Guest:
         self.socket_path = Path(self.control.name) / "qmp.sock"
         self.log = (area / ("installed.log" if installed else "live.log")).open("w")
         args = ["-machine", "q35", "-m", str(memory), "-smp", "2", "-display", "none", "-monitor", "none",
+                "-device", "qemu-xhci,id=xhci", "-device", "usb-tablet,bus=xhci.0",
                 "-chardev", "stdio,id=serial0,signal=off", "-serial", "chardev:serial0", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
                 "-nic", "none" if offline else "user,model=virtio-net-pci", "-no-reboot"]
         if os.access("/dev/kvm", os.R_OK | os.W_OK):
@@ -33,7 +34,7 @@ class Guest:
             args += ["-accel", "tcg", "-cpu", "max"]
         if not installed:
             args += ["-drive", f"if=none,id=live,format=raw,readonly=on,file={iso}",
-                     "-device", "qemu-xhci,id=xhci", "-device", "usb-storage,drive=live,bootindex=1"]
+                     "-device", "usb-storage,drive=live,bootindex=1"]
         if uefi:
             code = Path("/usr/share/OVMF/OVMF_CODE_4M.fd")
             variables = area / "OVMF_VARS.fd"
@@ -119,6 +120,20 @@ class Guest:
         self.qmp("screendump", {"filename": str(screen), "format": "png"})
         return subprocess.run(["tesseract", str(screen), "stdout", "--psm", "11"],
                               capture_output=True, text=True, check=True).stdout
+
+    def focus_assistant(self):
+        # The sole application occupies the screen center, both in GNOME's
+        # overview thumbnail and on the desktop. Select it as an owner would.
+        self.qmp("input-send-event", {"events": [
+            {"type": "abs", "data": {"axis": "x", "value": 16383}},
+            {"type": "abs", "data": {"axis": "y", "value": 13107}},
+            {"type": "btn", "data": {"down": True, "button": "left"}},
+        ]})
+        time.sleep(0.1)
+        self.qmp("input-send-event", {"events": [
+            {"type": "btn", "data": {"down": False, "button": "left"}},
+        ]})
+        time.sleep(1)
 
     def wait_screen_text(self, expected, timeout=120):
         deadline = time.monotonic() + timeout
@@ -297,12 +312,8 @@ p.write_text(json.dumps(c))
                 guest.command("sleep 3; grep -q \"What would you like to do?\" /dev/vcs1")
 
             if args.desktop != "none":
-                if args.desktop == "gnome":
-                    # GNOME starts in overview. Its faint search placeholder is
-                    # not reliable OCR; Escape closes overview before typing.
-                    guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
-                    time.sleep(1)
                 guest.wait_screen_text("Choose a number")
+                guest.focus_assistant()
                 guest.type_console("2")
                 guest.wait_screen_text("resident conversation works")
                 guest.qmp("screendump", {"filename": str(area / "conversation.png"), "format": "png"})
