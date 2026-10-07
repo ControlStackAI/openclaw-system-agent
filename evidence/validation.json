@@ -59,8 +59,8 @@
   "live_iso": true,
   "source_ci": {
     "status": "passed",
-    "source_commit": "b2534eba90c4c7035b7d170d5a702605e1e5350c",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588642970"
+    "source_commit": "45ca14e8daaeec33a0da42b97052615400bf5080",
+    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37642317132"
   },
   "production_ready": false,
   "not_qualified": [
@@ -449,5 +449,19 @@
     "authenticated_vendor_apps": false,
     "physical_audio": false,
     "wifi_association": false
+  },
+  "compact_status_islands": {
+    "source_commit": "45ca14e8daaeec33a0da42b97052615400bf5080",
+    "island_height_px": 32,
+    "previous_island_height_px": 36,
+    "reserved_height_px": 48,
+    "button_height_px": 28,
+    "text_sizes_unchanged": true,
+    "icon_size_px": 18,
+    "unit_tests_passed": 33,
+    "local_geometry_check": "passed: real ShellButton components in offscreen Quickshell; Applications, OpenClaw, clock and workspace text fit; 20 px content area accommodates 18 px icons",
+    "native_vm": "not rerun: GitHub workflow dispatch repeatedly returned HTTP 500",
+    "updated_iso": "not built: GitHub workflow dispatch repeatedly returned HTTP 500",
+    "note": "Existing desktop_vm and usb_vm evidence predates this height adjustment. Offscreen geometry does not qualify Wayland interaction or icon rendering."
   }
 }

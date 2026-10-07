@@ -67,6 +67,11 @@ apply desktop edits there. Installing this profile does not broaden those rights
 
 ## Qualification
 
+The newer 32-pixel island adjustment passed 33 unit tests, source CI, and a
+local Quickshell text-fit geometry check. The image and native VM results below
+predate that adjustment: attempts to dispatch fresh checks returned HTTP 500
+from GitHub. The downloadable image still has 36-pixel islands.
+
 The [current image check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780) passed on source `b2534eba90c4c7035b7d170d5a702605e1e5350c`.
 It installed onto a disposable 48 GiB disk, booted its ZFS root without the USB,
 logged in through SDDM, opened an application from the launcher and displayed an
