@@ -21,7 +21,36 @@ pkgs.testers.runNixOSTest {
     ];
   };
   testScript = ''
-    import time, json
+    import time, json, csv, io, struct, subprocess
+    def click_label(label, occurrence=None):
+        machine.screenshot("interaction")
+        shot = machine.out_dir / "interaction.png"
+        width, height = struct.unpack(">II", shot.read_bytes()[16:24])
+        tsv = subprocess.check_output(["${pkgs.tesseract}/bin/tesseract", str(shot), "stdout", "tsv"], text=True)
+        lines = {}
+        for word in csv.DictReader(io.StringIO(tsv), delimiter="\t"):
+            if word["text"].strip():
+                key = tuple(word[k] for k in ("page_num", "block_num", "par_num", "line_num"))
+                lines.setdefault(key, []).append(word)
+        matches = []
+        for line in lines.values():
+            for start in range(len(line)):
+                for end in range(start + 1, len(line) + 1):
+                    if " ".join(w["text"] for w in line[start:end]).lower() == label.lower():
+                        matches.append(line[start:end])
+        assert matches and (occurrence is not None or len(matches) == 1), (label, [" ".join(w["text"] for w in words) for words in lines.values()])
+        matches.sort(key=lambda words: int(words[0]["top"]))
+        words = matches[0 if occurrence is None else occurrence]
+        x = (min(int(w["left"]) for w in words) + max(int(w["left"]) + int(w["width"]) for w in words)) / 2
+        y = (min(int(w["top"]) for w in words) + max(int(w["top"]) + int(w["height"]) for w in words)) / 2
+        events = [{"type": "abs", "data": {"axis": "x", "value": int(x * 32767 / width)}},
+                  {"type": "abs", "data": {"axis": "y", "value": int(y * 32767 / height)}}]
+        assert machine.qmp_client is not None
+        machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": events})))
+        for down in (True, False):
+            machine.qmp_client.send("input-send-event", json.loads(json.dumps({"events": [{"type": "btn", "data": {"button": "left", "down": down}}]})))
+        time.sleep(1)
+
     machine.start()
     machine.wait_for_unit("display-manager.service")
     owner = "runuser -u owner -- env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus "
@@ -43,7 +72,16 @@ pkgs.testers.runNixOSTest {
     machine.succeed(gui + "quickshell -c controlstack ipc call shell controls")
     time.sleep(2)
     machine.screenshot("controls")
-    machine.succeed(gui + "wpctl status")
+    print(machine.succeed(gui + "wpctl status"))
+    click_label("USB headphones")
+    machine.wait_until_succeeds(gui + "wpctl inspect @DEFAULT_AUDIO_SINK@ | grep test-headphones")
+    click_label("Headset microphone")
+    machine.wait_until_succeeds(gui + "wpctl inspect @DEFAULT_AUDIO_SOURCE@ | grep test-headset")
+    machine.screenshot("audio-selected")
+    click_label("Mute", occurrence=1)
+    machine.wait_until_succeeds(gui + "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep MUTED")
+    click_label("Muted")
+    machine.succeed(gui + "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -v MUTED")
     machine.succeed(gui + "quickshell -c controlstack ipc call shell network")
     time.sleep(2)
     machine.screenshot("network")
@@ -54,7 +92,7 @@ pkgs.testers.runNixOSTest {
     machine.succeed("test -x $(dirname $(readlink -f $(command -v codex)))/logs_client")
     machine.succeed(owner + "nvim --headless '+lua assert(vim.o.number)' +qall")
     for app, match in [("chatgpt", "chatgpt"), ("claude-desktop", "claude")]:
-        machine.succeed(owner + "systemd-run --user --quiet --unit=app-test " + app)
+        machine.succeed(owner + "systemd-run --user --quiet --unit=app-test " + app + (" codex://" if app == "chatgpt" else ""))
         machine.wait_until_succeeds(gui + "hyprctl -j clients | grep -i " + match, timeout=120)
         time.sleep(6)
         machine.screenshot(app)
