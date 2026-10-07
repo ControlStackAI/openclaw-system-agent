@@ -1,7 +1,7 @@
 # NixOS USB setup (development image)
 
-[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400).
-SHA-256: `54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e`. See [qualification](qualification.md) for the exact test scope.
+[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541/artifacts/11463339348).
+SHA-256: `166f1792f4b26f11ae6f67981b4eb10f8d7e7bbd6487ab0fc065f2c5ea5c05c1`. See [qualification](qualification.md) for the exact test scope.
 
 ## What the owner does
 
@@ -31,7 +31,8 @@ provider sign-in have been qualified; the current test results are VM results.
    System Assistant opens automatically. The system checks that it really booted
    from the installed ZFS root. GNOME may offer a desktop tour; choose **Skip**
    to go straight to the assistant, then click the **System Assistant** window
-   in the overview to continue.
+   in the overview to continue. Hyprland may show a release-notes box; choose
+   **Thanks!**, then click the assistant window.
 6. Sign in to OpenClaw again on the installed computer. This creates persistent
    credentials there; USB credentials are deliberately not copied. The assistant
    retains the chosen OS settings and can continue helping with the computer.
@@ -86,8 +87,10 @@ The assistant can inspect and edit its own state but has no sudo grant. Privileg
 installation remains in the owner-operated local screen. Remote access and
 unattended updates are off. Backups still need an independent destination.
 
-The [full qualification run](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672) passed BIOS/UEFI live boot, offline gating,
-no-desktop installation, encrypted Plasma with a German keyboard, and GNOME.
+The [full qualification run](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) passed BIOS/UEFI live boot, offline gating,
+no-desktop installation, encrypted Plasma with a German keyboard, GNOME, and
+Hyprland + Quickshell. The Hyprland case additionally checked the launcher, lock
+and unlock, and retention of a QML customization after another reboot.
 Each installed case booted its ZFS root without the USB and displayed an OpenClaw
 fixture reply through the normal local interface. The endpoint was a non-secret
 local fixture; real provider sign-in, physical hardware, Secure Boot and

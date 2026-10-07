@@ -8,13 +8,11 @@ using plain language and explicit owner authorization.
 offers no desktop, KDE Plasma, GNOME or Hyprland + Quickshell, and installs a resident assistant on ZFS.
 The complete USB-to-installed-system journey passed isolated VM tests, including
 encrypted Plasma boot, ordinary owner login and visible fixture conversations.
+Hyprland + Quickshell also passed screen locking and customization persistence
+across another reboot. See the [desktop guide](docs/hyprland-quickshell.md).
 Real provider accounts and physical hardware remain unqualified.
 
-**Hyprland + Quickshell is newly implemented and awaiting image qualification.**
-See the [desktop guide](docs/hyprland-quickshell.md). The download below is the
-previous four-case image, which does not include it yet.
-
-[Download the previous tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400) and follow the
+[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541/artifacts/11463339348) and follow the
 [owner's USB guide](docs/usb-setup.md). Read the exact
 [qualification status](docs/qualification.md), including the ISO checksum, before
 trying it. Installation currently uses a whole internal disk in UEFI mode.

@@ -14,9 +14,11 @@ This is a development prototype. Validation recorded on 2026-10-07 UTC:
 | Owner profile loading, reboot persistence and native backup/restore | Passed in the OpenClaw fixture VM |
 | Guided OS choices | Typed-choice handoff and questionnaire implemented; real-model interview quality unqualified |
 | Real account login and model response | Not tested; no operator credentials used |
-| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672): direct USB boot, tty1 startup, offline gating |
+| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541): direct USB boot, tty1 startup, offline gating |
 | No-desktop UEFI installation and ZFS-root boot without USB | Passed on a disposable VM disk, with installed OpenClaw fixture response |
 | Plasma and GNOME owner login, automatic assistant window and visible TUI reply | Passed with the local provider fixture |
+| Hyprland + Quickshell login, panel, launcher and visible assistant reply | Passed with the local provider fixture |
+| Hyprland lock/unlock and customized QML retained after another reboot | Passed in VM |
 | Encrypted ZFS-root boot and German keyboard | Passed in the Plasma VM |
 | Physical hardware, Secure Boot and installed ZFS-root recovery | Not yet qualified |
 | Provider setup | Official interactive wizard wrapped by local menu; native synthetic custom-provider flow tested; real account login untested |
@@ -41,12 +43,13 @@ are not qualified. Snapshot execution is tested through the owner-run broker;
 service-restart and scrub-start branches still need dedicated native tests.
 
 The older lifecycle VM uses an ext4 root with ZFS file-backed vdevs. The
-[full ISO workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672) independently installed onto blank 48 GiB virtual
-disks and booted their ZFS roots with the USB detached. It passed all four cases:
+[full ISO workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) independently installed onto blank 48 GiB virtual
+disks and booted their ZFS roots with the USB detached. It passed all five cases:
 BIOS/offline live boot, a 4 GiB no-desktop installation, an 8 GiB encrypted Plasma
-installation with a German keyboard, and an 8 GiB GNOME installation. Each
+installation with a German keyboard, an 8 GiB GNOME installation, and an 8 GiB
+Hyprland + Quickshell installation. Each
 installed case used the shipped questionnaire, separate exact disk approval,
-guided shutdown, ordinary owner login and automatic setup entry point. Both
+guided shutdown, ordinary owner login and automatic setup entry point. All three
 desktops and the primary console displayed a native OpenClaw TUI fixture reply
 and returned to the menu with Ctrl+D. GNOME's first-login tour was dismissed and
 the assistant window selected through normal input events.
@@ -57,11 +60,11 @@ were absent and that the installed owner choices reached a new provider request.
 The model endpoint was a deterministic fixture throughout; this does not qualify
 real account sign-in, real-model interview quality, or physical hardware.
 
-The [tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37553931672/artifacts/11455361400) has SHA-256
-`54d684eb2e8964e7237932b7327e6eb0de15ba92f1aba871784ad52bab054e4e` and was built from source
-`cbacb60268ecc1f9cee5c39905592ea3afc6565e`. All four receipts identify those same ISO bytes.
+The [tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541/artifacts/11463339348) has SHA-256
+`166f1792f4b26f11ae6f67981b4eb10f8d7e7bbd6487ab0fc065f2c5ea5c05c1` and was built from source
+`982254d06685519c7377b6bd9d3586c3f2aca8f1`. All five receipts identify those same ISO bytes.
 Exact receipts and retained earlier lifecycle evidence are in
-[validation.json](../evidence/validation.json). No-desktop and GNOME used
+[validation.json](../evidence/validation.json). No-desktop, GNOME and Hyprland used
 unencrypted roots; encrypted root was tested with Plasma. Encrypted replication,
 installed-root rollback/recovery, real-provider interruption/reconnection, and a
 friendly privileged-maintenance approval UI remain separate work. The installer

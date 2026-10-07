@@ -7,7 +7,9 @@ closure alongside Plasma and GNOME. Kernel, OpenZFS and OpenClaw pins are unchan
 
 This profile uses pinned Hyprland 0.56.2 and Quickshell 0.3.1. SDDM starts an
 UWSM-managed session so the desktop, portals and user services share a proper
-session lifecycle. System Assistant opens automatically at login.
+session lifecycle. System Assistant opens automatically at login. Hyprland may
+show its first-use release-notes box; choose **Thanks!**, then click the assistant
+window to continue. This notice does not mean an automatic system update ran.
 
 ## The starting desktop
 
@@ -18,6 +20,8 @@ a confirmed sign-out. PipeWire supplies audio, NetworkManager supplies networkin
 and GTK/Hyprland portals provide application integration. Mako supplies basic
 notifications and Hyprlock supplies locking; these are not custom Quickshell UIs.
 Automatic locking starts after ten idle minutes, with locking before suspend.
+To unlock, type your account password and press Enter; the lock screen can
+initially appear as a plain dark background.
 
 - **Super + Space** opens Applications.
 - **Super + A** opens System Assistant.
@@ -57,7 +61,14 @@ apply desktop edits there. Installing this profile does not broaden those rights
 
 ## Qualification
 
-The new profile is awaiting its USB installation VM qualification. The earlier
-published four-case image did not contain this desktop; use the artifact and
-checksum recorded in the current qualification report once the new run passes.
+The [five-case USB workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37576857541) passed on source
+`982254d06685519c7377b6bd9d3586c3f2aca8f1`. The Hyprland case installed onto a disposable 48 GiB disk,
+booted without the USB, logged in through SDDM, displayed the Quickshell panel and
+launcher, opened Mousepad through it, and displayed a native OpenClaw TUI reply from a local provider fixture.
+It checked active graphical session services, no Hyprland configuration errors,
+owner write access to the shell, screen lock/password unlock, and preservation of
+an owner QML change across another reboot and graphical login.
+
+See [qualification](qualification.md) for the image download and SHA-256.
 Real GPU hardware, suspend/resume and a real AI provider remain unqualified.
+The fixture response proves the local interface path, not actual model access.
