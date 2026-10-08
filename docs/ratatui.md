@@ -1,0 +1,71 @@
+# OpenClaw console interface
+
+![Arch live console with the OpenClaw Ratatui interface](images/ratatui-live.png)
+
+The Arch and NixOS images include a Rust/Ratatui front end for their existing
+local setup operations. It uses an original block-art claw mascot, a navy/coral
+palette, a current-step panel and keyboard navigation. Linux virtual consoles
+receive a temporary 16-colour palette; modern terminals use the corresponding
+terminal palette. Leaving the interface restores terminal mode and colours.
+The layout collapses its large artwork on narrow terminals. No graphical session,
+image protocol, emoji font or internet download is needed to display it.
+
+Arrow keys select, number keys jump to an option, Enter continues and Esc returns
+from a prompt. F1 explains the controls. Page Up/Down scroll review details.
+Password fields mask text and do not add it to activity messages. The separate
+exact-disk confirmation and the existing installation executor are unchanged.
+Active disk installation is not advertised as safely cancellable.
+
+## Provider connection
+
+Connecting an account stays in Ratatui. A small version-gated Node bridge uses
+the pinned OpenClaw provider-auth orchestration with our own prompter. The official
+provider implementation owns OAuth, refresh credentials, auth-store persistence
+and model selection. OpenClaw's general onboarding wizard is not launched.
+
+ChatGPT displays the official short verification address and device code, waits
+for approval, and offers Esc to cancel. Retrying requests a fresh code. OpenAI API
+keys enter through a protected Ratatui field and private pipe; they are not command
+arguments or renderer logs. The other-provider choice uses OpenClaw's provider
+and method catalog. Additional provider methods remain individually unqualified;
+unsupported prompt types fail with a retryable explanation. QR codes are not part
+of this first implementation.
+
+Only the dedicated agent account runs the authentication helper. The gateway is
+stopped during configuration and restarted afterward, including on cancellation.
+Live state remains private RAM state. Installed authentication and conversations
+remain persistent, and live credentials are never transferred. Account storage
+success is not proof of working model access: the next conversation checks a reply.
+
+The integration deliberately pins OpenClaw 2026.9.5 on NixOS and 2026.9.8 on Arch.
+It uses a version-checked upstream module surface, not a promised stable public
+API. Updating a runtime requires rerunning the provider integration tests.
+
+## Installation and installed use
+
+The usual desktop, account, regional and encryption questions use Ratatui, and the
+full disk/storage/access review precedes exact disk confirmation. Choosing an
+assistant name updates its identity; the reviewed name carries into the installed
+system alongside the non-secret owner preferences. Existing identity role and
+instructions are preserved.
+
+The same setup interface starts after installed login. The native OpenClaw chat
+TUI, NetworkManager's nmtui and the advanced administrator shell currently run as
+full-screen child applications; Ratatui restores itself when they return. This
+first version does not implement a new chat client or a new Wi-Fi manager.
+An administrator can use `system-agent-setup --plain` for the text-only fallback.
+
+## Verification
+
+`checks.x86_64-linux.tui-vm` renders real console screenshots and checks device-code
+display, navigation/cancellation, password masking, disk review and terminal exit.
+Unit tests cover late replies after cancellation and assistant-name validation.
+`scripts/qualify-tui-auth.py` runs against both exact packaged runtimes inside an
+empty network namespace, using fresh state and synthetic credentials. Its device
+provider fixture leaves the official orchestration and credential storage intact.
+The upstream device-code transport has a separate synthetic URL/poll/exchange test.
+These do not qualify real account authentication.
+
+The full image test drives the shipped Ratatui interview and disk confirmation on
+the primary console, then checks the installed system with the ISO removed.
+See the exact artifact receipts in [qualification](qualification.md).

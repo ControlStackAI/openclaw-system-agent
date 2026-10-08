@@ -1,6 +1,47 @@
 # Qualification status
 
-## Arch installation and focused account connection — 2026-10-08 UTC
+## Ratatui Arch and NixOS images — 2026-10-08 UTC
+
+Both images now include the themed Ratatui setup and provider interface. NixOS
+keeps OpenClaw 2026.9.5; Arch uses 2026.9.8. All 65 Python tests and the Rust
+renderer test pass. The console VM verifies rendering, device-code display,
+protected input, cancellation, disk review and terminal exit. The actual pinned
+provider orchestration and private credential stores pass API-key and synthetic
+device-code tests for both runtimes in an empty network namespace. The upstream
+short-URL, polling and token-exchange tests also pass. Real accounts were not used.
+
+| Final image | SHA-256 | Bytes |
+| --- | --- | ---: |
+| Arch | `0e925ac4fb83f233a59a99bea764b5dfe61f2d8dc51ccbc9c8d59f4fde3bfed7` | 7,208,871,936 |
+| NixOS | `47473a8e729b23a2104a7f3105baf32204503c0e3f802fe2252ad983fe9b01b0` | 7,427,911,680 |
+
+Both exact images passed fresh UEFI installation through the shipped Ratatui
+interview and exact-disk approval, using disposable 48 GiB VM disks. Arch used
+4 GiB RAM and NixOS used 8 GiB. Both booted their ZFS roots without the ISO,
+accepted ordinary owner login, retained the chosen assistant name, opened the
+resident Ratatui interface, and displayed a native OpenClaw fixture conversation.
+The three desktop islands, launcher opening an application, monitor stop/start,
+audio/network panels, development CLIs, Neovim default, lock/unlock and saved
+customization after another reboot passed. Installed Hypruse was discovered;
+NixOS also retained mcp-nixos. Live credentials were excluded and independent
+installed-boot verification passed.
+
+Both images additionally passed BIOS live boot and the offline sign-in followed
+by missing-adapter network-setup path. Installation still requires UEFI.
+A development installation caught naming before identity creation; the ordering
+was fixed, regression-tested and both images rebuilt before these final tests.
+No guest patches were applied during the final runs.
+
+These final full-image profiles use unencrypted ZFS, Hyprland and a US keyboard.
+Other desktops and encryption retain only their earlier separate qualification.
+Physical hardware, real provider login/model access, YubiKey, Secure Boot,
+installed-root recovery and independent byte-identical rebuilding remain unqualified.
+Other provider methods are individually unqualified.
+[Exact receipts](../evidence/ratatui-images-2026-10-08.json) bind these checks to the
+artifact hashes and source manifests. Build receipts retain their initial
+unqualified fields; separate final test results establish the tested scope.
+
+## Earlier Arch installation and focused account connection — 2026-10-08 UTC
 
 The native Arch installer and Hyprland target payload are implemented, with
 OpenClaw 2026.9.8 and its matching Codex provider runtime preloaded. NixOS keeps

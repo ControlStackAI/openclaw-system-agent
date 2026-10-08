@@ -8,10 +8,14 @@ import time
 from pathlib import Path
 from .facts import discover
 
+from . import tui
+
 ACCOUNT = "controlstack-agent"
 
 
 def choose(question, options):
+    if tui.active:
+        return tui.active.choose(question, options)
     print("\n" + question, flush=True)
     for number, label in enumerate(options, 1):
         print(f"{number}) {label}")
@@ -72,7 +76,11 @@ class Setup:
         # Stop the gateway while the official wizard updates its private config.
         subprocess.run(["systemctl", "stop", "controlstack-agent.service"], check=True)
         try:
-            result = self.agent("connect-account", account)
+            if tui.active:
+                from runtimes.openclaw.tui_auth import connect
+                result = connect(self, account)
+            else:
+                result = self.agent("connect-account", account)
         finally:
             # Pin the local access policy independently of onboarding's tool suggestions.
             self.agent("local-policy")
@@ -96,7 +104,8 @@ class Setup:
         print("\nOpening your system assistant. Press Ctrl+D to return to this menu.\n"
               "A successful assistant reply confirms model access; a running service alone does not.")
         try:
-            self.agent("chat", "--welcome")
+            with tui.external():
+                self.agent("chat", "--welcome")
         except KeyboardInterrupt:
             print("\nBack at the setup menu.")
 
@@ -136,9 +145,14 @@ class Setup:
             labels = ["Connect your AI account or change provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
             if self.live:
                 labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Review choices and install Arch Linux"), "Forget this USB session", "Change keyboard layout"]
-            labels += ["Troubleshooting shell", "Leave setup"]
-            answer = choose("What would you like to do?", labels)
+            labels += ["Name your assistant", "Troubleshooting shell", "Leave setup"]
             try:
+                answer = choose("What would you like to do?", labels)
+            except tui.Cancelled:
+                return
+            try:
+                if tui.active:
+                    tui.active.context("AI account" if answer == 1 else "Your assistant" if answer == 2 else "Network" if answer == 3 else "System setup")
                 if answer == 1:
                     self.sign_in()
                 elif answer == 2:
@@ -158,16 +172,27 @@ class Setup:
                     self.forget()
                 elif self.live and answer == 6:
                     self.keyboard()
+                elif answer == len(labels) - 2:
+                    name = input("What would you like to call your assistant? [OpenClaw]: ").strip() or "OpenClaw"
+                    result = self.agent("name-agent", name, capture=True)
+                    if result.returncode:
+                        print("That name was not accepted. Use up to 48 letters, numbers, spaces or hyphens.")
+                    else:
+                        print("Your assistant name is saved: " + name)
                 elif answer == len(labels) - 1:
-                    subprocess.run(["bash", "-l"])
+                    with tui.external():
+                        subprocess.run(["bash", "-l"])
                 else:
                     return
+            except tui.Cancelled:
+                print("Back at setup. Previously saved choices are kept.")
             except (OSError, ValueError, subprocess.CalledProcessError) as error:
                 print(f"That step did not finish: {error}. Review the message before retrying.")
 
 
 def main():
-    if len(sys.argv) != 1 or os.geteuid() != 0 or not sys.stdin.isatty():
+    plain = sys.argv[1:] == ["--plain"]
+    if (len(sys.argv) != 1 and not plain) or os.geteuid() != 0 or not sys.stdin.isatty():
         print("Open System Assistant from the local console or desktop launcher.")
         return 1
     facts = discover()
@@ -175,8 +200,13 @@ def main():
         print("Setup needs a confirmed Arch or NixOS live or installed environment.")
         return 1
     try:
-        Setup(facts["phase"] == "live", facts["distro_id"]).run()
-    except (EOFError, KeyboardInterrupt):
+        setup = Setup(facts["phase"] == "live", facts["distro_id"])
+        if plain:
+            setup.run()
+        else:
+            with tui.Interface(setup.live, setup.distro):
+                setup.run()
+    except (EOFError, KeyboardInterrupt, tui.Cancelled):
         print("\nSetup closed. You can reopen System Assistant when ready.")
     return 0
 

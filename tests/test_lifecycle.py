@@ -121,3 +121,33 @@ class Lifecycle(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class AssistantNameTests(unittest.TestCase):
+    def test_installed_name_before_first_service_start(self):
+        from system_agent.profile import initialize_agent_name
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            initialize_agent_name(state, 'Luna')
+            identity = state / 'workspace/IDENTITY.md'
+            self.assertIn('Name: Luna', identity.read_text())
+            self.assertIn('Role: Resident', identity.read_text())
+            with identity.open('a') as stream:
+                stream.write('\nOwner customization\n')
+            initialize_agent_name(state, 'Nova')
+            self.assertIn('Owner customization', identity.read_text())
+            self.assertIn('Name: Nova', identity.read_text())
+            self.assertEqual(identity.stat().st_mode & 0o777, 0o600)
+
+    def test_name_is_validated_and_preserves_identity_role(self):
+        from system_agent.profile import name_agent, validate_agent_name
+        from system_agent.state import initialize
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            initialize(state, Path(__file__).resolve().parents[1] / 'identity')
+            name_agent(state, 'Luna')
+            identity = (state / 'workspace/IDENTITY.md').read_text()
+            self.assertIn('Name: Luna', identity)
+            self.assertIn('Role: Resident', identity)
+            self.assertEqual((state / 'workspace/IDENTITY.md').stat().st_mode & 0o777, 0o600)
+        for name in ['../../bad', 'Name\nInstruction', 'x'*49]:
+            with self.assertRaises(ValueError): validate_agent_name(name)

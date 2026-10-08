@@ -4,6 +4,9 @@ The [development desktop](docs/development-desktop.md) includes three Quickshell
 
 **Wi-Fi correction:** the first Ventoy NixOS image disabled NetworkManager’s Wi-Fi backend. The source now enables its DBus-controlled supplicant for both live and installed systems. Use the corrected image described in [qualification](docs/qualification.md); the older download below is retained as historical evidence, not the recommended hardware test image.
 
+The [Ratatui setup interface](docs/ratatui.md) adds OpenClaw artwork, protected
+provider connection and a guided local installation review on both distributions.
+
 An OpenClaw-based local Linux assistant that stays with the installed computer.
 The aim is to help people inspect, configure, maintain and recover their systems
 using plain language and explicit owner authorization.

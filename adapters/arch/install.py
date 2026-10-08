@@ -191,6 +191,9 @@ def install(plan, confirmation, password, encryption_key=None):
     create_private(workspace / "USER.md", "# Owner's chosen system\n\nThese choices were reviewed on the local setup screen; they do not authorize future changes.\n\n" +
                    "\n".join(f"- {key}: {value}" for key, value in plan["choices"].items()) +
                    "\n- Purpose: maintain this installed system; do not repeat installation.\n- Filesystem: ZFS with portable snapshots and independent backups to arrange.\n")
+    if "agent_name" in plan["choices"]:
+        from system_agent.profile import initialize_agent_name
+        initialize_agent_name(state, plan["choices"]["agent_name"])
     for path in [state, *state.rglob("*")]:
         os.chown(path, int(uid), int(gid))
     run(["sync"])

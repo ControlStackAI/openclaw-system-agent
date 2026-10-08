@@ -5,11 +5,13 @@ from .choices import validate_partial
 LABELS = {
     'purpose': 'What this computer is for', 'hostname': 'Computer name',
     'username': 'Your account', 'desktop': 'Desktop', 'locale': 'Language and region',
-    'keyboard': 'Keyboard', 'timezone': 'Time zone', 'encrypt': 'Disk encryption',
+    'agent_name': 'Assistant name', 'keyboard': 'Keyboard', 'timezone': 'Time zone', 'encrypt': 'Disk encryption',
 }
 
 
 def ask(field, choose, timezone, desktops=DESKTOPS):
+    if field == 'agent_name':
+        return input('Name for your assistant [OpenClaw]: ').strip() or 'OpenClaw'
     if field == 'purpose':
         return PURPOSES[choose('What will you mainly use this computer for?', [
             'Software development', 'Everyday browsing and documents', 'Gaming',
@@ -40,6 +42,7 @@ def ask(field, choose, timezone, desktops=DESKTOPS):
 
 def interview(suggestions, choose, timezone, describe, desktops=DESKTOPS):
     choices = dict(validate_partial(suggestions))
+    choices.setdefault("agent_name", "OpenClaw")
     if choices.get('desktop') not in (*desktops, None):
         print('That desktop is not available in this image yet. Please choose one below.')
         choices.pop('desktop')

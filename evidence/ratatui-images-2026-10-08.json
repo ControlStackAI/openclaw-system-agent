@@ -1,0 +1,251 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "unit_tests_passed": 65,
+  "source_manifest_sha256": "8f7e1f0aaaec4cfe92f1d83cadfa561600a4aa7c32ba06f9b18b3e24dc75bf66",
+  "runtime_versions": {
+    "arch": "2026.9.8",
+    "nixos": "2026.9.5"
+  },
+  "ratatui_console_vm": {
+    "passed": true,
+    "scope": "Console renderer, device-code screen, selection, cancellation, protected input, review and terminal exit",
+    "renderer_source_sha256": "4a3eaaad42a90b51e9e2bdd88f2e24cd0868e9c0d3417c1ce482c2b8fff37f75"
+  },
+  "provider_auth": {
+    "arch": {
+      "runtime": "2026.9.8",
+      "checks": [
+        {
+          "mode": "openai-api",
+          "passed": true,
+          "private_state": true,
+          "real_account": false
+        },
+        {
+          "mode": "chatgpt",
+          "passed": true,
+          "private_state": true,
+          "real_account": false
+        }
+      ]
+    },
+    "nixos": {
+      "runtime": "2026.9.5",
+      "checks": [
+        {
+          "mode": "openai-api",
+          "passed": true,
+          "private_state": true,
+          "real_account": false
+        },
+        {
+          "mode": "chatgpt",
+          "passed": true,
+          "private_state": true,
+          "real_account": false
+        }
+      ]
+    }
+  },
+  "upstream_device_code_transport": {
+    "passed": true,
+    "scope": "Actual shipped short verification URL, code, polling and token exchange with synthetic responses; both runtime versions"
+  },
+  "test_sources": {
+    "scripts/qualify-iso.py": "d8357aaa200de7fb96d6c931929258468965dc8db2223e5614abfab9f67e0e7e",
+    "scripts/qualify-tui-auth.py": "25017ea10834e80d0772576f28869c313e5a03bd13e13353ac6c4ae0b5eb3440",
+    "tests/tui-vm.nix": "3cdf9332e0add11cde2e2f0547454cf67e7a4b7f663b32a94262133df8903bbd",
+    "tests/tui-demo.py": "d76202468921141009ca2f74d503b58fdee79255e5c8f78b053581a44fa8d0b1",
+    "tests/device-code-hooks.mjs": "0bf16ace32a8ff09b328a817ed18f9c83b0776907212e13ca13923734b285820",
+    "tests/device-code-runtime.mjs": "2ced594cb15d872156625362fb12446aeaeadbe759a2561d6a7206d3badb0b36",
+    "tests/fixture_provider.py": "59444a67ff10994f662a2bd7b52b6e042d4efd48673d011c138d34501046d323"
+  },
+  "development_findings": [
+    "Full-image testing caught assistant naming before installed identity creation; fixed and covered by a fresh-state regression test before rebuilding both release images."
+  ],
+  "limits": [
+    "Real provider authentication and real model responses untested",
+    "Physical Wi-Fi, audio, GPU and YubiKey untested",
+    "Secure Boot and installed-root recovery unqualified",
+    "Independent byte-identical rebuilding unqualified",
+    "Final full-image profiles use unencrypted ZFS, US keyboard and Hyprland; other profiles retain only earlier separate evidence",
+    "Other provider methods individually unqualified"
+  ],
+  "arch": {
+    "build": {
+      "byte_identical_rebuild_verified": false,
+      "bytes": 7208871936,
+      "distro": "arch",
+      "image": "controlstack-openclaw-arch-2026.10.01-x86_64.iso",
+      "lock_sha256": "ac34c7709e5cec1aae678ab7b070f283803084e3bc35c6cc320a701e3697726b",
+      "qualification": {
+        "disk_install": false,
+        "physical_hardware": false,
+        "vm_boot": false
+      },
+      "schema": 1,
+      "sha256": "0e925ac4fb83f233a59a99bea764b5dfe61f2d8dc51ccbc9c8d59f4fde3bfed7",
+      "source_date_epoch": 1791470335,
+      "source_sha256": "8f7e1f0aaaec4cfe92f1d83cadfa561600a4aa7c32ba06f9b18b3e24dc75bf66"
+    },
+    "bios_offline": {
+      "distro": "arch",
+      "mode": "bios-offline",
+      "iso_sha256": "0e925ac4fb83f233a59a99bea764b5dfe61f2d8dc51ccbc9c8d59f4fde3bfed7",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": false,
+      "offline_signin_then_network_setup": true,
+      "live_nixos_mcp_discovery": false,
+      "live_hypruse_disabled": false,
+      "installed_nixos_mcp_discovery": false,
+      "installed_hypruse_mcp_discovery": false,
+      "installation": false,
+      "disk_boot_without_iso": false,
+      "ram_mib": 4096,
+      "desktop": "none",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": false,
+      "installed_setup_autostart": false,
+      "quickshell_panel_and_launcher": false,
+      "quickshell_launcher_opens_application": false,
+      "desktop_customization_survives_reboot": false,
+      "resident_monitor_tracks_service_stop_start": false,
+      "audio_and_network_panels": false,
+      "development_cli_and_default_editor": false,
+      "desktop_lock_unlock": false,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": false,
+      "interactive_install_review": false,
+      "ratatui_install_review": false,
+      "provider": "none",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    },
+    "hyprland_install": {
+      "distro": "arch",
+      "mode": "uefi-install",
+      "iso_sha256": "0e925ac4fb83f233a59a99bea764b5dfe61f2d8dc51ccbc9c8d59f4fde3bfed7",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": true,
+      "offline_signin_then_network_setup": false,
+      "live_nixos_mcp_discovery": false,
+      "live_hypruse_disabled": true,
+      "installed_nixos_mcp_discovery": false,
+      "installed_hypruse_mcp_discovery": true,
+      "installation": true,
+      "disk_boot_without_iso": true,
+      "ram_mib": 4096,
+      "desktop": "hyprland",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": true,
+      "installed_setup_autostart": true,
+      "quickshell_panel_and_launcher": true,
+      "quickshell_launcher_opens_application": true,
+      "desktop_customization_survives_reboot": true,
+      "resident_monitor_tracks_service_stop_start": true,
+      "audio_and_network_panels": true,
+      "development_cli_and_default_editor": true,
+      "desktop_lock_unlock": true,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": true,
+      "interactive_install_review": true,
+      "ratatui_install_review": true,
+      "provider": "local deterministic fixture",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    }
+  },
+  "nixos": {
+    "build": {
+      "byte_identical_rebuild_verified": false,
+      "bytes": 7427911680,
+      "distro": "nixos",
+      "image": "controlstack-openclaw-nixos-x86_64.iso",
+      "lock_sha256": "8e92828cafbc9461eb2f1cdd504f0f991ba898860e349ebc2be59d916d0f36e6",
+      "qualification": {
+        "disk_install": false,
+        "physical_hardware": false,
+        "vm_boot": false
+      },
+      "schema": 1,
+      "sha256": "47473a8e729b23a2104a7f3105baf32204503c0e3f802fe2252ad983fe9b01b0",
+      "source_date_epoch": 1791470335,
+      "source_sha256": "8f7e1f0aaaec4cfe92f1d83cadfa561600a4aa7c32ba06f9b18b3e24dc75bf66"
+    },
+    "bios_offline": {
+      "distro": "nixos",
+      "mode": "bios-offline",
+      "iso_sha256": "47473a8e729b23a2104a7f3105baf32204503c0e3f802fe2252ad983fe9b01b0",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": false,
+      "offline_signin_then_network_setup": true,
+      "live_nixos_mcp_discovery": false,
+      "live_hypruse_disabled": false,
+      "installed_nixos_mcp_discovery": false,
+      "installed_hypruse_mcp_discovery": false,
+      "installation": false,
+      "disk_boot_without_iso": false,
+      "ram_mib": 4096,
+      "desktop": "none",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": false,
+      "installed_setup_autostart": false,
+      "quickshell_panel_and_launcher": false,
+      "quickshell_launcher_opens_application": false,
+      "desktop_customization_survives_reboot": false,
+      "resident_monitor_tracks_service_stop_start": false,
+      "audio_and_network_panels": false,
+      "development_cli_and_default_editor": false,
+      "desktop_lock_unlock": false,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": false,
+      "interactive_install_review": false,
+      "ratatui_install_review": false,
+      "provider": "none",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    },
+    "hyprland_install": {
+      "distro": "nixos",
+      "mode": "uefi-install",
+      "iso_sha256": "47473a8e729b23a2104a7f3105baf32204503c0e3f802fe2252ad983fe9b01b0",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": true,
+      "offline_signin_then_network_setup": false,
+      "live_nixos_mcp_discovery": true,
+      "live_hypruse_disabled": true,
+      "installed_nixos_mcp_discovery": true,
+      "installed_hypruse_mcp_discovery": true,
+      "installation": true,
+      "disk_boot_without_iso": true,
+      "ram_mib": 8192,
+      "desktop": "hyprland",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": true,
+      "installed_setup_autostart": true,
+      "quickshell_panel_and_launcher": true,
+      "quickshell_launcher_opens_application": true,
+      "desktop_customization_survives_reboot": true,
+      "resident_monitor_tracks_service_stop_start": true,
+      "audio_and_network_panels": true,
+      "development_cli_and_default_editor": true,
+      "desktop_lock_unlock": true,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": true,
+      "interactive_install_review": true,
+      "ratatui_install_review": true,
+      "provider": "local deterministic fixture",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    }
+  }
+}

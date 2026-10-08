@@ -1,6 +1,8 @@
-{ lib, stdenvNoCC, python3, makeWrapper, installer-source ? null }:
+{ lib, stdenvNoCC, python3, nodejs, rustPlatform, makeWrapper, installer-source ? null }:
+let tui = import ../../runtimes/tui { inherit rustPlatform; }; in
 stdenvNoCC.mkDerivation {
   pname = "controlstack-system-agent";
+  passthru.tui = tui;
   version = "0.1.0";
   src = lib.fileset.toSource {
     root = ../..;
@@ -16,7 +18,8 @@ stdenvNoCC.mkDerivation {
     makeWrapper ${python3}/bin/python3 $out/bin/system-agent \
       --add-flags "-P -s -m system_agent" --set PYTHONPATH $out/lib/system-agent
     makeWrapper ${python3}/bin/python3 $out/bin/system-agent-setup \
-      --add-flags "-P -s -m system_agent.setup" --set PYTHONPATH $out/lib/system-agent
+      --add-flags "-P -s -m system_agent.setup" --set PYTHONPATH $out/lib/system-agent \
+      --set CONTROLSTACK_TUI ${tui}/bin/controlstack-tui --prefix PATH : ${nodejs}/bin
     makeWrapper ${python3}/bin/python3 $out/bin/system-agent-codex-login \
       --add-flags "-P -s -m system_agent.coding_login" --set PYTHONPATH $out/lib/system-agent
     makeWrapper ${python3}/bin/python3 $out/bin/system-agent-admin \

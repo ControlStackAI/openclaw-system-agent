@@ -157,11 +157,17 @@ class Guest:
 
     def type_console(self, text):
         for key in text:
+            shifted = key.isupper()
+            key = key.lower()
             if self.keyboard == "de" and key in "yz":
                 key = "z" if key == "y" else "y"
-            self.qmp("send-key", {"keys": [{"type": "qcode", "data": "minus" if key == "-" else key}], "hold-time": 50})
+            code = {"-": "minus", " ": "spc", "/": "slash", ".": "dot"}.get(key, key)
+            keys = ([{"type": "qcode", "data": "shift"}] if shifted else [])
+            keys.append({"type": "qcode", "data": code})
+            self.qmp("send-key", {"keys": keys, "hold-time": 50})
             time.sleep(0.08)
         self.qmp("human-monitor-command", {"command-line": "sendkey ret"})
+        time.sleep(0.5)
 
     def close(self):
         if self.process.isalive():
@@ -243,44 +249,41 @@ def main():
             else:
                 guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert not c.get('mcp', {}).get('servers', {})\"")
             guest.command(live_env + "system-agent setup-choice hostname vmresident")
+            guest.command(live_env + "system-agent name-agent Luna")
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
             # Drive the shipped local review screen, including separate disk approval.
-            guest.process.sendline("system-agent-setup")
+            # Drive the shipped Ratatui interface on the primary console.
             def answer(prompt, value, timeout=60):
-                found = guest.process.expect_exact([prompt, "That step did not finish:", "Those did not match.", "Please choose one of the numbers above."], timeout=timeout)
-                if found:
-                    if found == 1:
-                        guest.process.expect_exact("Choose a number:", timeout=30)
-                        guest.process.sendline("8")  # Leave the live setup menu cleanly.
-                    else:
-                        guest.process.sendcontrol("d")
-                    guest.process.expect_exact("CS_READY> ", timeout=30)
-                    details = guest.command("cat /run/controlstack-install/*.build.log 2>/dev/null; cat /etc/controlstack-agent/arch-target.json 2>/dev/null; findmnt /run/archiso/bootmnt; ls -l /run/archiso/bootmnt/arch/controlstack/ 2>/dev/null; journalctl -b -p err --no-pager -n 30; true")
-                    print(details[-12000:], flush=True)
-                    raise RuntimeError("The local setup screen rejected a test step: " + prompt)
-                guest.process.sendline(value)
-            answer("Choose a number:", "4")
-            answer("Choose a number:", "1")  # reuse the assistant's suggestions
-            answer("Choose a number:", "1")  # intended use: software development
-            answer("Name for your local account [owner]:", "owner")
-            answer("Choose a number:", str((["none", "plasma", "gnome", "hyprland"] if args.distro == "nixos" else ["hyprland", "none"]).index(args.desktop) + 1))
-            answer("Choose a number:", "1")
+                quoted=shlex.quote(prompt)
+                guest.command("timeout " + str(timeout) + " bash -c " + shlex.quote(
+                    "until grep -Fq -- " + quoted + " /dev/vcs1; do "
+                    "if grep -Fq 'That step did not finish:' /dev/vcs1; then cat /dev/vcs1; exit 1; fi; "
+                    "sleep 1; done"), timeout=timeout+10)
+                guest.type_console(value)
+                time.sleep(.5)
+            answer("What would you like to do?", "4")
+            answer("Use these choices", "1")
+            answer("What will you mainly", "1")
+            answer("Name for your local account", "owner")
+            answer("Which desktop", str((["none", "plasma", "gnome", "hyprland"] if args.distro == "nixos" else ["hyprland", "none"]).index(args.desktop) + 1))
+            answer("Which system language", "1")
             if args.keyboard != "de":
-                answer("Choose a number:", "1")
-            answer("[UTC]:", "UTC")
-            guest.process.expect_exact("Encrypt your files?")
-            answer("Choose a number:", "1" if args.encrypted else "2")
-            answer("Choose a number:", "1")  # keep the complete reviewed preference set
-            answer("Choose a number:", "2")  # a disposable disk may be replaced
-            answer("Choose a number:", "1")  # select only the fixture target
-            answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=900)
-            answer("Password for your local account (hidden):", "vmonlytestpassword")
+                answer("Which keyboard layout?", "1")
+            answer("Which city should", "UTC")
+            answer("Encrypt your files?", "1" if args.encrypted else "2")
+            answer("Would you like to change anything?", "1")
+            answer("Do you have a disk", "2")
+            answer("Which disk should hold", "1")
+            # Wait for the prepared target and separate exact disk approval.
+            guest.command("timeout 900 bash -c " + shlex.quote("until grep -Fq 'To approve this exact disk' /dev/vcs1; do sleep 2; done"),timeout=920)
+            guest.qmp("screendump", {"filename":str(area/"ratatui-disk-review.png"),"format":"png"})
+            answer("To approve this exact disk", "ERASE CONTROLSTACK-VM-ONLY")
+            answer("Password for your local account", "vmonlytestpassword")
             answer("Enter it again:", "vmonlytestpassword")
             if args.encrypted:
-                answer("Disk unlock passphrase (hidden; keep a safe copy elsewhere):", "vmencryptiontest")
+                answer("Disk unlock passphrase", "vmencryptiontest")
                 answer("Enter it again:", "vmencryptiontest")
-            guest.process.expect_exact("Installation files are ready.", timeout=900)
-            answer("Choose a number:", "1")
+            answer("Ready to shut down", "1", timeout=900)
             guest.process.expect(pexpect.EOF, timeout=60)
 
     finally:
@@ -298,6 +301,7 @@ def main():
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
             guest.command(f"grep 'desktop: {args.desktop}' /var/lib/controlstack-agent/workspace/USER.md")
             guest.command("grep 'purpose: development' /var/lib/controlstack-agent/workspace/USER.md")
+            guest.command("grep -x 'Name: Luna' /var/lib/controlstack-agent/workspace/IDENTITY.md")
             if args.desktop != "none":
                 guest.command("timeout 180 bash -c 'until systemctl is-active --quiet display-manager; do sleep 2; done'")
             if args.encrypted:
@@ -340,7 +344,7 @@ def main():
                 check_mousepad = "import json,sys; assert 'mousepad' in json.load(sys.stdin).get('class', '').lower()"
                 guest.command("timeout 60 bash -c " + shlex.quote("until " + focused_app + " | python3 -c " + shlex.quote(check_mousepad) + "; do sleep 1; done"))
                 guest.qmp("human-monitor-command", {"command-line": "sendkey meta_l-c"})
-                guest.wait_screen_text("Choose a number")
+                guest.wait_screen_text("What would you like to do?")
                 ui = owner_env + "systemd-run --user --quiet --wait --pipe quickshell -c controlstack ipc call shell "
                 guest.command(ui + "monitor")
                 guest.wait_screen_text("Resident system agent")
@@ -356,7 +360,7 @@ def main():
                 guest.wait_screen_text("Ethernet")
                 guest.qmp("screendump", {"filename": str(area / "network.png"), "format": "png"})
                 guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
-                guest.wait_screen_text("Choose a number")
+                guest.wait_screen_text("What would you like to do?")
                 guest.command("runuser -l owner -c 'set -e; test \"$EDITOR\" = nvim; codex --version; claude --version; nvim --headless +qall'")
                 guest.command("! journalctl -b _SYSTEMD_USER_UNIT=controlstack-shell.service --no-pager | grep -E 'Failed to load configuration|ReferenceError|TypeError'")
 
@@ -397,7 +401,7 @@ p.write_text(json.dumps(c))
                     # remain afterward, so select the assistant window below.
                     guest.qmp("human-monitor-command", {"command-line": "sendkey esc"})
                     time.sleep(1)
-                guest.wait_screen_text("Choose a number")
+                guest.wait_screen_text("What would you like to do?")
                 guest.focus_assistant()
                 guest.type_console("2")
                 guest.wait_screen_text("resident conversation works")
@@ -427,7 +431,7 @@ p.write_text(json.dumps(c))
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-a"})
                 guest.type_console("vmonlytestpassword")
                 guest.wait_screen_text("OpenClaw")
-                guest.wait_screen_text("Choose a number")
+                guest.wait_screen_text("What would you like to do?")
                 guest.command("grep -q 'owner customization survives reboot' /home/owner/.config/quickshell/controlstack/shell.qml")
                 guest.command(owner_env + "systemctl --user is-active controlstack-shell graphical-session.target")
                 guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
@@ -460,7 +464,7 @@ p.write_text(json.dumps(c))
                "desktop_lock_unlock": installing and args.desktop == "hyprland",
                "primary_console_tui_reply": installing and args.desktop == "none",
                "graphical_tui_reply": installing and args.desktop != "none",
-               "interactive_install_review": installing,
+               "interactive_install_review": installing, "ratatui_install_review": installing,
                "provider": "local deterministic fixture" if installing else "none",
                "real_account_login": False, "physical_disks_attached": False}
     (area / "result.json").write_text(json.dumps(receipt, indent=2) + "\n")

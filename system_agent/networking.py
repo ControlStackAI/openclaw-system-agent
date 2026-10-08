@@ -53,4 +53,6 @@ def connect():
     command(['nmcli', 'radio', 'wifi', 'on'])
     if not report['manager_ready'] or not report['devices']:
         return False
-    return subprocess.run(['nmtui']).returncode == 0
+    from .tui import external
+    with external():
+        return subprocess.run(['nmtui']).returncode == 0

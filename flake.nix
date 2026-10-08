@@ -89,6 +89,7 @@
       };
     };
     checks.${system} = {
+      tui-vm = import ./tests/tui-vm.nix { inherit pkgs core; };
       networking-vm = assert live.config.networking.wireless.enable;
         assert live.config.networking.wireless.dbusControlled;
         import ./tests/networking-vm.nix { inherit pkgs; };

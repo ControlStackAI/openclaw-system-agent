@@ -111,7 +111,7 @@ OpenClaw and its matching provider runtime are part of the image. Connecting an
 account does not install OpenClaw or run its general onboarding wizard. The normal
 flow is network readiness, one provider connection, then the installation
 conversation. ChatGPT uses the official short device-code flow; API-key entry is
-hidden. A future Ratatui interface can call the same focused operations.
+hidden. The Ratatui interface presents these operations with a dedicated provider prompter; see [the interface guide](ratatui.md).
 
 Keep packaged defaults separate from private session configuration in RAM. The
 normal setup screens change supported preferences, not package files or service

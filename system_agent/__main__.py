@@ -28,6 +28,7 @@ def main():
     choices.add_argument("key", nargs="?")
     choices.add_argument("value", nargs="?")
     sub.add_parser("onboard")
+    sub.add_parser("name-agent").add_argument("name")
     login = sub.add_parser("connect-account")
     login.add_argument("account", choices=("chatgpt", "openai-api", "other"))
     chat = sub.add_parser("chat")
@@ -62,6 +63,11 @@ def main():
                 result = choices.update(args.state, args.key, args.value)
             else:
                 raise ValueError("Supply both a choice and its value, or neither to read choices.")
+        elif args.command == "name-agent":
+            from .profile import name_agent
+            from .choices import update
+            result = name_agent(args.state, args.name)
+            update(args.state, "agent_name", args.name)
         elif args.command == "sync-mcp":
             result = runtime.sync_installed_mcp(args.state, args.config)
         elif args.command == "local-policy":

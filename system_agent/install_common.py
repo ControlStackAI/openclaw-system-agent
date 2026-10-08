@@ -81,7 +81,7 @@ def timezone_choice():
 
 
 def describe_choices(choices):
-    labels = {"purpose": "Main use", "hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
+    labels = {"agent_name": "Assistant name", "purpose": "Main use", "hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
               "locale": "Language and region", "keyboard": "Keyboard", "timezone": "Time zone",
               "encrypt": "Disk encryption"}
     names = {"none": "No desktop", "plasma": "KDE Plasma", "gnome": "GNOME", "hyprland": "Hyprland + Quickshell",
