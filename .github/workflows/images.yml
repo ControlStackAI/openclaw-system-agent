@@ -1,0 +1,64 @@
+name: Locked distribution image
+on:
+  workflow_dispatch:
+    inputs:
+      distro:
+        description: Distribution (Arch is currently a live preview)
+        type: choice
+        options: [nixos, arch]
+        default: nixos
+      nixpkgs:
+        description: Optional NixOS commit or branch; latest means nixos-unstable
+        type: string
+      arch_iso:
+        description: Optional Arch ISO YYYY.MM.DD or latest; also supply snapshot
+        type: string
+      arch_snapshot:
+        description: Optional Arch package snapshot YYYY/MM/DD; also supply ISO
+        type: string
+permissions:
+  contents: read
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: |
+            max-jobs = 2
+            cores = 2
+            extra-substituters = https://cache.numtide.com
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+      - name: Reserve space on the disposable hosted runner
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet
+          df -h /
+      - name: Resolve explicit sources
+        env:
+          IMAGE_DISTRO: ${{ inputs.distro }}
+          IMAGE_NIXPKGS: ${{ inputs.nixpkgs }}
+          IMAGE_ARCH_ISO: ${{ inputs.arch_iso }}
+          IMAGE_ARCH_SNAPSHOT: ${{ inputs.arch_snapshot }}
+        run: |
+          python3 - <<'PY'
+          import os, shutil, subprocess
+          args = ['python3', 'scripts/image.py', 'resolve', '--distro', os.environ['IMAGE_DISTRO'], '--output', 'resolved-image.lock.json']
+          for option, name in [('--nixpkgs', 'IMAGE_NIXPKGS'), ('--arch-iso-version', 'IMAGE_ARCH_ISO'), ('--snapshot', 'IMAGE_ARCH_SNAPSHOT')]:
+              if os.environ[name]:
+                  args.extend([option, os.environ[name]])
+          if len(args) == 7:
+              shutil.copyfile("images/" + os.environ["IMAGE_DISTRO"] + ".lock.json", "resolved-image.lock.json")
+          else:
+              subprocess.run(args, check=True)
+          PY
+      - name: Build exactly the resolved lock
+        run: python3 scripts/image.py build --lock resolved-image.lock.json --output dist/image --jobs 2
+      - name: Preserve image, source lock and unqualified build receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: openclaw-${{ inputs.distro }}-locked-image
+          path: dist/image/*
+          compression-level: 0

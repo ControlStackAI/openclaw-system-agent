@@ -24,11 +24,11 @@ pkgs.testers.runNixOSTest {
   };
   testScript = ''
     import time, json, csv, io, struct, subprocess
-    def click_label(label, occurrence=None):
+    def click_label(label, occurrence=None, psm=3):
         machine.screenshot("interaction")
         shot = machine.out_dir / "interaction.png"
         width, height = struct.unpack(">II", shot.read_bytes()[16:24])
-        tsv = subprocess.check_output(["${pkgs.tesseract}/bin/tesseract", str(shot), "stdout", "tsv"], text=True)
+        tsv = subprocess.check_output(["${pkgs.tesseract}/bin/tesseract", str(shot), "stdout", "--psm", str(psm), "tsv"], text=True)
         lines = {}
         for word in csv.DictReader(io.StringIO(tsv), delimiter="\t", quoting=csv.QUOTE_NONE):
             if word["text"].strip():
@@ -40,7 +40,7 @@ pkgs.testers.runNixOSTest {
                 for end in range(start + 1, len(line) + 1):
                     if " ".join(w["text"].strip(".,:;\"\'") for w in line[start:end]).lower() == label.lower():
                         matches.append(line[start:end])
-        assert matches and (occurrence is not None or len(matches) == 1), (label, [" ".join(w["text"] for w in words) for words in lines.values()])
+        assert matches and (len(matches) > occurrence if occurrence is not None else len(matches) == 1), (label, [" ".join(w["text"] for w in words) for words in lines.values()])
         matches.sort(key=lambda words: int(words[0]["top"]))
         words = matches[0 if occurrence is None else occurrence]
         x = (min(int(w["left"]) for w in words) + max(int(w["left"]) + int(w["width"]) for w in words)) / 2
@@ -120,7 +120,7 @@ pkgs.testers.runNixOSTest {
     click_label("Headset microphone")
     machine.wait_until_succeeds(gui + "wpctl inspect @DEFAULT_AUDIO_SOURCE@ | grep test-headset")
     machine.screenshot("audio-selected")
-    mute_position = click_label("Mute", occurrence=1)
+    mute_position = click_label("Mute", occurrence=1, psm=6)
     machine.wait_until_succeeds(gui + "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep MUTED")
     # Click the same visible toggle again; selected outlines confuse OCR segmentation.
     assert machine.qmp_client is not None
@@ -134,6 +134,11 @@ pkgs.testers.runNixOSTest {
     machine.screenshot("network")
     machine.send_key("esc")
     machine.succeed(owner + "codex --version")
+    machine.succeed(owner + "codex login --help | grep -- --device-auth")
+    machine.succeed("command -v system-agent-codex-login")
+    machine.fail("system-agent-codex-login")  # root never consumes the owner's login
+    machine.succeed("test -e /run/current-system/sw/share/applications/controlstack-codex-sign-in.desktop")
+    machine.succeed("test -e /etc/udev/rules.d/70-u2f.rules")
     machine.succeed(owner + "claude --version")
     machine.succeed("test -x $(dirname $(readlink -f $(command -v codex)))/codex-code-mode-host")
     machine.succeed("test -x $(dirname $(readlink -f $(command -v codex)))/logs_client")

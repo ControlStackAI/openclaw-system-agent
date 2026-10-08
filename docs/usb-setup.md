@@ -1,7 +1,7 @@
 # NixOS USB setup (development image)
 
-[Download the VM-tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654).
-SHA-256: `a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a`. See [qualification](qualification.md) for the exact test scope.
+[Historical ISO (known Wi-Fi defect)](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654).
+SHA-256: `a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a`. This first Ventoy image disabled NetworkManager’s Wi-Fi backend. Use a corrected build from `images/nixos.lock.json`; see [image builds](image-builds.md) and [qualification](qualification.md) for exact receipts and limits.
 
 ## What the owner does
 
@@ -41,6 +41,10 @@ provider sign-in have been qualified; the current test results are VM results.
 The installed agent can inspect the system and propose changes. Maintenance that
 needs elevated access uses the separate owner-operated approval mechanism;
 automatic privileged administration is not enabled by signing in.
+
+For missing adapters or airplane mode, see [network setup](networking.md).
+It is safe to choose sign-in before connecting: return to setup and connect,
+then retry sign-in.
 
 ## Implementation and limits
 

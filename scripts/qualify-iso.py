@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Guest:
-    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us", gpu="std"):
+    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us", gpu="std", live_login=False):
         self.keyboard = keyboard
         self.area = area
         self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
@@ -66,9 +66,15 @@ class Guest:
                 self.process.sendline("sudo -i")
                 self.process.expect("password for owner:")
                 self.process.sendline("vmonlytestpassword")
-            self.process.expect(r"root@[^\r\n]*#")
-            self.process.sendline("stty -echo; umask 077; export PS1='CS_READY> '")
-            self.process.expect("CS_READY> ")
+            if live_login and not installed:
+                self.process.expect("login:")
+                self.process.sendline("root")
+            self.process.expect(r"root[^\r\n]*@[^\r\n]*#")
+            if live_login:
+                self.process.sendline("exec bash --noprofile --norc")
+                self.process.expect(r"bash-[0-9.]+#")
+            self.process.sendline("bind 'set enable-bracketed-paste off'; stty -echo; umask 077; export PS1='CS_READY> '")
+            self.process.expect(r"[\r\n]CS_READY> ")
         except Exception:
             try:
                 if self.process.isalive():
@@ -188,6 +194,7 @@ def main():
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
         guest.command("timeout 180 bash -c 'until systemctl is-active --quiet NetworkManager && systemctl is-active --quiet controlstack-agent; do sleep 2; done'")
+        guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
         guest.command("openclaw --version")
@@ -204,6 +211,13 @@ def main():
             guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
             guest.command("sleep 20; cat /dev/vcs1 | grep 'Internet check failed'", timeout=90)
             guest.qmp("screendump", {"filename": str(area / "offline.png"), "format": "png"})
+            # Reproduce the hardware report: failed sign-in first, then networking.
+            # This VM intentionally has no NIC. Show a useful explanation, not an
+            # empty nmtui listing containing only loopback.
+            guest.type_console("3")  # back from readiness to the main menu
+            guest.type_console("3")  # connect
+            guest.command("sleep 2; cat /dev/vcs1 | grep -F 'No network adapter is available'")
+            guest.qmp("screendump", {"filename": str(area / "network-help.png"), "format": "png"})
         else:
             guest.put("/tmp/provider.py", (ROOT / "tests/fixture_provider.py").read_text())
             guest.command("python3 /tmp/provider.py >/tmp/provider.log 2>&1 &")
@@ -235,9 +249,8 @@ def main():
                     raise RuntimeError("The local setup screen rejected a test step: " + prompt)
                 guest.process.sendline(value)
             answer("Choose a number:", "4")
-            answer("Choose a number:", "2")
-            answer("Choose a number:", "1")
-            answer("Choose a number:", "1")
+            answer("Choose a number:", "1")  # reuse the assistant's suggestions
+            answer("Choose a number:", "1")  # intended use: software development
             answer("Name for your local account [owner]:", "owner")
             answer("Choose a number:", str(["none", "plasma", "gnome", "hyprland"].index(args.desktop) + 1))
             answer("Choose a number:", "1")
@@ -246,6 +259,9 @@ def main():
             answer("[UTC]:", "UTC")
             guest.process.expect_exact("Encrypt your files?")
             answer("Choose a number:", "1" if args.encrypted else "2")
+            answer("Choose a number:", "1")  # keep the complete reviewed preference set
+            answer("Choose a number:", "2")  # a disposable disk may be replaced
+            answer("Choose a number:", "1")  # select only the fixture target
             answer("anything else cancels:", "ERASE CONTROLSTACK-VM-ONLY", timeout=900)
             answer("Password for your local account (hidden):", "vmonlytestpassword")
             answer("Enter it again:", "vmonlytestpassword")
@@ -262,12 +278,14 @@ def main():
         guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std")
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
+            guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
             guest.command("test ! -e /etc/agent-installer/live-image")
             guest.command("test -r /run/current-system/sw/share/applications/controlstack-agent.desktop")
             guest.command("timeout 180 bash -c 'until systemctl is-active --quiet controlstack-agent; do sleep 2; done'; systemctl is-active controlstack-agent controlstack-agent-boot-check || { journalctl -b -u controlstack-agent -u controlstack-agent-boot-check --no-pager; exit 1; }")
             guest.command("test ! -e /var/lib/controlstack-agent/live-only-credential-fixture")
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
             guest.command(f"grep 'desktop: {args.desktop}' /var/lib/controlstack-agent/workspace/USER.md")
+            guest.command("grep 'purpose: development' /var/lib/controlstack-agent/workspace/USER.md")
             if args.desktop != "none":
                 guest.command("timeout 180 bash -c 'until systemctl is-active --quiet display-manager; do sleep 2; done'")
             if args.encrypted:
@@ -406,6 +424,9 @@ p.write_text(json.dumps(c))
     with iso.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
+               "live_wifi_backend_available": True,
+               "installed_wifi_backend_available": installing,
+               "offline_signin_then_network_setup": not installing,
                "live_nixos_mcp_discovery": installing, "live_hypruse_disabled": installing,
                "installed_nixos_mcp_discovery": installing,
                "installed_hypruse_mcp_discovery": installing and args.desktop == "hyprland",

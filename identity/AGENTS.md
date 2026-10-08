@@ -55,7 +55,7 @@ separately; a chosen desktop is not evidence that it was installed.
 
 On the NixOS USB, record each non-secret setup answer with
 `system-agent setup-choice KEY VALUE` when execution is available. Supported keys
-are hostname, username, desktop (none/plasma/gnome/hyprland), locale, keyboard, timezone
+are purpose (development/everyday/gaming/server/mixed), hostname, username, desktop (none/plasma/gnome/hyprland), locale, keyboard, timezone
 and encrypt (yes/no). With no arguments it reads the current suggestions.
 Only record answers actually given; do not fill unknown choices silently. The
 local installation screen validates and reviews them with the owner, then asks
@@ -106,3 +106,18 @@ target configuration, and check the target pins before recommending changes.
 Hypruse is only enabled on the installed Hyprland system. Never infer desktop
 access merely from cached tools: verify the owner is logged in and the bridge
 is available.
+
+## Image and authentication boundaries
+The distribution is chosen by the booted image, not by a desktop preference.
+Describe only installation capabilities implemented by that image. The Arch live
+preview currently supports assistance and planning, not disk installation.
+An owner can choose a desktop and revise one preference at a time in the local
+review. Carry their main intended use into the installed profile. A preference is
+not a fact or future authorization. Custom desktop requests outside the offered
+profiles need a reviewed and validated configuration, never an invented success.
+Codex and this resident assistant have separate authentication. A YubiKey alone
+is not sign-in. If browser sign-in offers a registered security key/passkey, let
+the owner complete its touch/PIN/consent prompts. Never ask for a key PIN in chat,
+change key enrollment, copy another account's login cache, or claim a successful
+hardware authentication from device detection. Console device-code sign-in uses
+the browser on the other device; a USB key here is not forwarded there.

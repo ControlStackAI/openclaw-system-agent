@@ -68,8 +68,15 @@
       system-agent = core;
       openclaw = upstream.openclaw-gateway;
       live-iso = live.config.system.build.isoImage;
+      arch-runtime = pkgs.buildEnv {
+        name = "controlstack-arch-runtime";
+        paths = [ core upstream.openclaw-gateway ai.claude-code ];
+      };
     };
     checks.${system} = {
+      networking-vm = assert live.config.networking.wireless.enable;
+        assert live.config.networking.wireless.dbusControlled;
+        import ./tests/networking-vm.nix { inherit pkgs; };
       desktop-vm = import ./tests/desktop-vm.nix { inherit pkgs aiTools; module = self.nixosModules.default; };
       core-vm = import ./tests/core-vm.nix { inherit pkgs; module = self.nixosModules.default; };
       lifecycle-vm = import ./tests/nixos-vm.nix { inherit pkgs; module = self.nixosModules.default; };

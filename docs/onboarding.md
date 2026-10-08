@@ -97,3 +97,10 @@ After installation the owner signs in again. Only validated OS choices and the
 boot handoff transfer; live credentials and conversation state remain in RAM.
 Installed conversations then persist across reboots. The boot verifier runs
 independently from the model and checks the mounted root and fresh machine boot.
+
+The local interview now records the owner's main use (development, everyday,
+gaming, server or mixed) and offers a review where one answer can be changed
+without discarding the rest. Main use is context for the resident agent, not a
+claim that a separate gaming/server software bundle has been deployed. Existing
+application defaults remain the tested development set. The saved main use is
+included in the narrow non-secret preferences and installed USER.md.

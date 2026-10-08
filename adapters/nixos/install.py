@@ -95,6 +95,7 @@ def render_target(plan, inputs):
   system = "x86_64-linux";
   configuration = {{ config, pkgs, lib, ... }}: {{
     imports = [ {q(inputs["source"] + "/adapters/nixos/module.nix")}
+      {q(inputs["source"] + "/adapters/nixos/networking.nix")}
       (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; aiTools = {"builtins.storePath " + q(inputs["ai_tools"]) if "ai_tools" in inputs else "null"}; }}) ];
     services.controlstackAgent = {{
       enable = true; mutableProviderSetup = true; workspaceExecution = true; zfs.enable = true;
@@ -114,12 +115,6 @@ def render_target(plan, inputs):
     boot.zfs.requestEncryptionCredentials = true;
     networking.hostName = {q(c["hostname"])};
     networking.hostId = {q(plan["host_id"])};
-    networking.networkmanager.enable = true;
-    networking.wireless.enable = lib.mkForce false;
-    networking.useNetworkd = lib.mkForce false;
-    networking.dhcpcd.enable = lib.mkForce false;
-    networking.wireless.iwd.enable = lib.mkForce false;
-    services.resolved.enable = lib.mkForce false;
     services.timesyncd.enable = true;
     services.openssh.enable = false;
     time.timeZone = {q(c["timezone"])};
@@ -336,7 +331,7 @@ def timezone_choice():
 
 
 def describe_choices(choices):
-    labels = {"hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
+    labels = {"purpose": "Main use", "hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
               "locale": "Language and region", "keyboard": "Keyboard", "timezone": "Time zone",
               "encrypt": "Disk encryption"}
     names = {"none": "No desktop", "plasma": "KDE Plasma", "gnome": "GNOME", "hyprland": "Hyprland + Quickshell",
@@ -354,7 +349,16 @@ def describe_choices(choices):
 def interactive(state, suggestions=None):
     from system_agent.setup import choose
     check_context()
-    print("\nThis version installs NixOS onto one entire disk. It does not preserve files on that disk or set up dual boot.")
+    print("\nFirst we will choose your setup, then review where to install it. This version installs NixOS onto one entire disk; it does not preserve that disk or set up dual boot.")
+    from system_agent.choices import validate_partial
+    choices = dict(validate_partial(suggestions or {}))
+    if choices:
+        print("\nSaved setup choices (still subject to your review):")
+        describe_choices(choices)
+        if choose("Use these choices and ask about anything missing?", ["Use these choices", "Choose again"]) == 2:
+            choices = {}
+    from system_agent.interview import interview
+    choices = interview(choices, choose, timezone_choice, describe_choices)
     if choose("Do you have a disk whose contents can all be replaced?", ["Go back and preserve my existing setup", "Yes, show eligible disks"]) != 2:
         return
     available = disks()
@@ -365,28 +369,6 @@ def interactive(state, suggestions=None):
     if index > len(available):
         return
     node = available[index - 1]
-    from system_agent.choices import validate_partial
-    choices = dict(validate_partial(suggestions or {}))
-    if choices:
-        print("\nSaved setup choices (still subject to your review):")
-        describe_choices(choices)
-        if choose("Use these choices and ask about anything missing?", ["Use these choices", "Choose again"]) == 2:
-            choices = {}
-    if "hostname" not in choices:
-        choices["hostname"] = input("Name for this computer [my-computer]: ").strip() or "my-computer"
-    if "username" not in choices:
-        choices["username"] = input("Name for your local account [owner]: ").strip() or "owner"
-    if "desktop" not in choices:
-        choices["desktop"] = DESKTOPS[choose("Which desktop would you like?", ["No desktop — use the local text console", "KDE Plasma — a desktop with panels and application menus", "GNOME — an activities-based desktop", "Hyprland + Quickshell — a customizable tiling desktop"]) - 1]
-    if "locale" not in choices:
-        choices["locale"] = LOCALES[choose("Which system language and regional format?", ["English (United States)", "English (United Kingdom)", "German (Germany)", "French (France)", "Spanish (Spain)"]) - 1]
-    if "keyboard" not in choices:
-        choices["keyboard"] = LAYOUTS[choose("Which keyboard layout?", ["US", "UK", "German", "French", "Spanish"]) - 1]
-    if "timezone" not in choices:
-        choices["timezone"] = timezone_choice()
-    if "encrypt" not in choices:
-        choices["encrypt"] = choose("Encrypt your files? You will need the unlock passphrase after each restart.", ["Yes", "No"]) == 1
-    validate_choices(choices)
     plan = prepare(node, choices)
     print("\nPlease review your installation:")
     if choices["desktop"] == "hyprland":

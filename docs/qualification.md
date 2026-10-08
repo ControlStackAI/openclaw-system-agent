@@ -1,8 +1,42 @@
 # Qualification status
 
-This is a development prototype. Validation recorded on 2026-10-07 UTC.
-The current download passed the Hyprland installation check. The broader USB
-matrix below refers to the preceding five-case image; exact revisions follow.
+## Locked builds and Wi-Fi correction — 2026-10-08 UTC
+
+The corrected NixOS ISO is **31073bdedfb8b7d4e1f3f1b1f6084ee5e30661688d17d389032fdd01b7171129**
+(SHA256, 7,427,911,680 bytes). Build with `images/nixos.lock.json`.
+The first Ventoy image (`a6d3dccf…449692a`) incorrectly disabled NetworkManager's
+Wi-Fi backend. Both live and installed configurations now enable the
+DBus-controlled supplicant. See [networking](networking.md).
+
+| Current check | Result |
+| --- | --- |
+| Unit tests | 55 passed |
+| NixOS BIOS live boot | Passed, including offline sign-in followed by network setup |
+| NixOS UEFI Hyprland installation | Passed on a blank 48 GiB VM disk with 8 GiB RAM |
+| Installed ZFS-root boot without USB | Passed; independent boot verification and saved intended use |
+| Live and installed Wi-Fi backend | Available and starts successfully |
+| Simulated WPA2 Wi-Fi | Discovery, authentication, radio-off and reconnection passed on Linux 7.2.9 |
+| Hyprland desktop, resident monitor, settings after another reboot | Passed |
+| Resident NixOS and Hypruse MCPs | Passed with the local provider fixture |
+| Arch preview BIOS and UEFI | Passed: console startup, RAM permissions, gateway health and offline gating |
+| Physical AX211 Wi-Fi correction | Awaiting hardware retest |
+| Real account/YubiKey sign-in | Not tested |
+| Independent byte-identical rebuilding | Not qualified |
+| Arch disk installation and desktop deployment | Not implemented |
+
+The Arch preview ISO SHA256 is
+`95500738daf6539486cc269080a35b33bad08c557d33b2cb4f015b7a96a82df8`.
+Build with `images/arch.lock.json`. Its UEFI layout now uses a non-overlapping
+GPT with an appended EFI System Partition. It is a live preview only.
+
+[Machine-readable receipts](../evidence/image-builds-2026-10-08.json) bind these
+checks to exact source manifests, locks and ISO hashes. Build receipts keep their
+initial unqualified fields; separate test results establish the scopes above.
+The current full install test used unencrypted Hyprland and a US keyboard.
+Other desktops and encryption retain only the historical qualification below.
+No host disks, homes, provider credentials or production services entered tests.
+
+## Historical qualification
 
 | Check | Result |
 | --- | --- |

@@ -31,22 +31,22 @@ jobs:
           test -c /dev/kvm
           sudo chmod a+rw /dev/kvm
       - name: Build pinned USB image
-        run: nix build .#live-iso --out-link result-iso -L
+        run: python3 scripts/image.py build --lock images/nixos.lock.json --output dist/image --jobs 2
       - name: Hyprland and Quickshell installation and disk boot
         if: inputs.case == 'all' || inputs.case == 'hyprland'
-        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop hyprland
+        run: /usr/bin/python3 scripts/qualify-iso.py dist/image/*.iso --mode uefi-install --desktop hyprland
       - name: Direct BIOS USB boot and offline gating
         if: inputs.case == 'all'
-        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode bios-offline
+        run: /usr/bin/python3 scripts/qualify-iso.py dist/image/*.iso --mode bios-offline
       - name: UEFI USB installation and disk boot without USB
         if: inputs.case == 'all'
-        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install
+        run: /usr/bin/python3 scripts/qualify-iso.py dist/image/*.iso --mode uefi-install
       - name: Encrypted Plasma installation and disk boot
         if: inputs.case == 'all' || inputs.case == 'plasma'
-        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop plasma --encrypted --keyboard de
+        run: /usr/bin/python3 scripts/qualify-iso.py dist/image/*.iso --mode uefi-install --desktop plasma --encrypted --keyboard de
       - name: GNOME installation and disk boot
         if: inputs.case == 'all' || inputs.case == 'gnome'
-        run: /usr/bin/python3 scripts/qualify-iso.py result-iso/iso/*.iso --mode uefi-install --desktop gnome
+        run: /usr/bin/python3 scripts/qualify-iso.py dist/image/*.iso --mode uefi-install --desktop gnome
       - name: Preserve qualification evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -77,6 +77,6 @@ jobs:
         with:
           name: openclaw-nixos-development-iso
           path: |
-            result-iso/iso/*.iso
+            dist/image/*
             qualification-scope.json
           compression-level: 0

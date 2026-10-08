@@ -1,0 +1,1 @@
+Image mechanics adapted from ControlStackAI/agent-installer commit 6d02675cd8ce3323589ec9d7f44e99fcf50487a2 (MIT). This reviewed source copy is owned by the resident-agent project; the shared installer checkout is never modified. The core readiness contract is still consumed through the pinned flake input.

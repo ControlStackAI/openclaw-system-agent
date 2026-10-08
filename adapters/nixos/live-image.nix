@@ -1,6 +1,6 @@
 { lib, pkgs, modulesPath, config, ... }:
 {
-  imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
+  imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ./networking.nix ];
   services.controlstackAgent = {
     enable = true;
     ephemeral = true;
@@ -12,13 +12,8 @@
   };
   networking.hostName = "openclaw-live";
   networking.hostId = "c05a0002";
-  networking.networkmanager.enable = true;
-  networking.wireless.enable = lib.mkForce false;
-  networking.useNetworkd = lib.mkForce false;
-  networking.dhcpcd.enable = lib.mkForce false;
-  networking.wireless.iwd.enable = lib.mkForce false;
-  services.resolved.enable = lib.mkForce false;
   services.timesyncd.enable = true;
+  services.udev.packages = [ pkgs.libfido2 pkgs.yubikey-personalization ];
   services.openssh.enable = lib.mkForce false;
   services.getty.autologinUser = lib.mkForce "root";
   services.getty.helpLine = lib.mkForce "OpenClaw setup opens on the primary console. Remote login is off.";

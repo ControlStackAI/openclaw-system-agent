@@ -17,6 +17,8 @@ stdenvNoCC.mkDerivation {
       --add-flags "-P -s -m system_agent" --set PYTHONPATH $out/lib/system-agent
     makeWrapper ${python3}/bin/python3 $out/bin/system-agent-setup \
       --add-flags "-P -s -m system_agent.setup" --set PYTHONPATH $out/lib/system-agent
+    makeWrapper ${python3}/bin/python3 $out/bin/system-agent-codex-login \
+      --add-flags "-P -s -m system_agent.coding_login" --set PYTHONPATH $out/lib/system-agent
     makeWrapper ${python3}/bin/python3 $out/bin/system-agent-admin \
       --add-flags "-P -s -m system_agent.admin" --set PYTHONPATH $out/lib/system-agent
   '';

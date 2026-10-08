@@ -23,8 +23,9 @@ def choose(question, options):
 
 
 class Setup:
-    def __init__(self, live):
+    def __init__(self, live, distro="nixos"):
         self.live = live
+        self.distro = distro
         self.state = Path("/run/controlstack-agent" if live else "/var/lib/controlstack-agent")
 
     def agent(self, *args, capture=False):
@@ -42,12 +43,13 @@ class Setup:
     def connect(self):
         # Consume the pinned installer readiness/networking implementation.
         from core.checks import Readiness
-        profile = json.loads((Path(__file__).resolve().parent.parent / "profiles/nixos.json").read_text())
+        profile = json.loads((Path(__file__).resolve().parent.parent / f"profiles/{self.distro}.json").read_text())
         checks = Readiness(profile, auth_endpoints=["https://docs.openclaw.ai/"])
         while not checks.ready():
             answer = choose("The connection is not ready yet.", ["Set up Wi-Fi or Ethernet", "Try again", "Back"])
             if answer == 1:
-                checks.connect()
+                from .networking import connect
+                connect()
             if answer == 3:
                 return False
         return True
@@ -91,7 +93,9 @@ class Setup:
     def keyboard(self):
         from .profile import LAYOUTS
         layout = LAYOUTS[choose("Which keyboard layout should this USB session use?", ["US", "UK", "German", "French", "Spanish"]) - 1]
-        subprocess.run(["loadkeys", "-C", "/dev/tty0", "--quiet", "/etc/controlstack-agent/keymaps/" + layout], check=True)
+        keymap = ("/etc/controlstack-agent/keymaps/" + layout if self.distro == "nixos" else
+                  {"us": "us", "gb": "uk", "de": "de-latin1", "fr": "fr", "es": "es"}[layout])
+        subprocess.run(["loadkeys", "-C", "/dev/tty0", "--quiet", keymap], check=True)
         subprocess.run(["systemctl", "start", "controlstack-agent.service"], check=True)
         saved = self.agent("setup-choice", "keyboard", layout, capture=True)
         if saved.returncode:
@@ -118,10 +122,12 @@ class Setup:
                  "OpenClaw will also be installed as your computer's resident assistant.\nThe USB starts with a US keyboard. Choose Change keyboard layout below if needed."
                  if self.live else "OpenClaw is installed on this computer. Your conversations stay here.\n"
                  "Please sign in again if this is your first installed boot; USB credentials were not copied."), flush=True)
+        if self.live and self.distro == "arch":
+            print("This is the Arch live preview. Installed-system deployment is not yet available.")
         while True:
             labels = ["Sign in or change AI provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
             if self.live:
-                labels += ["Review choices and install NixOS", "Forget this USB session", "Change keyboard layout"]
+                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Arch installation status"), "Forget this USB session", "Change keyboard layout"]
             labels += ["Troubleshooting shell", "Leave setup"]
             answer = choose("What would you like to do?", labels)
             try:
@@ -130,8 +136,12 @@ class Setup:
                 elif answer == 2:
                     self.chat()
                 elif answer == 3:
-                    subprocess.run(["nmtui"])
+                    from .networking import connect
+                    connect()
                 elif self.live and answer == 4:
+                    if self.distro != "nixos":
+                        print("Arch live assistance is available. Arch disk installation and desktop integration are still being built; no disk will be changed by this preview.")
+                        continue
                     from adapters.nixos.install import interactive
                     result = self.agent("setup-choice", capture=True)
                     suggestions = json.loads(result.stdout) if result.returncode == 0 else {}
@@ -153,11 +163,11 @@ def main():
         print("Open System Assistant from the local console or desktop launcher.")
         return 1
     facts = discover()
-    if facts["distro_id"] != "nixos" or facts["phase"] not in ("live", "installed-candidate"):
-        print("Setup needs a confirmed NixOS live or installed environment.")
+    if facts["distro_id"] not in ("nixos", "arch") or facts["phase"] not in ("live", "installed-candidate"):
+        print("Setup needs a confirmed Arch or NixOS live or installed environment.")
         return 1
     try:
-        Setup(facts["phase"] == "live").run()
+        Setup(facts["phase"] == "live", facts["distro_id"]).run()
     except (EOFError, KeyboardInterrupt):
         print("\nSetup closed. You can reopen System Assistant when ready.")
     return 0

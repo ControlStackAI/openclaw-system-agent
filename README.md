@@ -1,6 +1,8 @@
 # ControlStackAI System Agent
 
-The new [development desktop](docs/development-desktop.md) adds three Quickshell islands, native device controls and pinned coding tools. The current image passed the Hyprland USB-to-disk VM check; the other profiles passed on the preceding build. See the exact scopes below.
+The [development desktop](docs/development-desktop.md) includes three Quickshell islands, native device controls and pinned coding tools. See the exact image revisions and test scopes below.
+
+**Wi-Fi correction:** the first Ventoy NixOS image disabled NetworkManager’s Wi-Fi backend. The source now enables its DBus-controlled supplicant for both live and installed systems. Use the corrected image described in [qualification](docs/qualification.md); the older download below is retained as historical evidence, not the recommended hardware test image.
 
 An OpenClaw-based local Linux assistant that stays with the installed computer.
 The aim is to help people inspect, configure, maintain and recover their systems
@@ -15,13 +17,13 @@ Hyprland + Quickshell also passed screen locking and customization persistence
 across another reboot. See the [desktop guide](docs/hyprland-quickshell.md).
 Real provider accounts and physical hardware remain unqualified.
 
-[Download the tested development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) and follow the
+[Historical development ISO (known Wi-Fi defect)](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) and follow the
 [owner's USB guide](docs/usb-setup.md). Read the exact
 [qualification status](docs/qualification.md), including the ISO checksum, before
 trying it. Installation currently uses a whole internal disk in UEFI mode.
 
 The resident lifecycle also passed separate reboot and native backup/restore
-tests. Arch packaging is scaffolded and has no native runtime qualification.
+tests. The Arch live preview has a separate image builder; installed Arch deployment and desktop integration remain unfinished.
 An owner-run broker implements narrowly scoped ZFS snapshots, scrub requests and
 service restarts; its friendly approval UI remains future work. The daemon has
 no sudo grant, disk-erasure executor or boot-critical update executor.
@@ -41,13 +43,26 @@ agent state is included. All project history begins with generic source.
 - `contracts/`: pinned installer compatibility and the narrow installed-boot handoff.
 - `tests/`: unit tests and an isolated NixOS gateway/ZFS VM test.
 
+## Image source selection
+
+Use [locked image builds](docs/image-builds.md) to choose an Arch ISO/package
+snapshot or a NixOS nixpkgs revision. Resolve `latest` once, then build the saved
+lock without updates. The Arch adapter now has a live OpenClaw preview builder;
+its target installer and desktop deployment are not yet enabled. Byte-identical
+independent rebuilds remain unqualified.
+
+Installed desktops also offer [Coding Assistant Sign-in](docs/security-key-sign-in.md)
+with browser/device-code login and security-key device support. Physical YubiKey
+login is not yet tested, and key insertion alone is not authentication.
+
 ## Developer check
 
 ```sh
 python3 -m unittest discover -s tests -v
-nix build .#live-iso --out-link result-iso
+python3 scripts/image.py build --lock images/nixos.lock.json --output dist/nixos
 nix build .#system-agent
 nix build .#openclaw
+nix build .#checks.x86_64-linux.networking-vm --max-jobs 1 --cores 2
 nix build .#checks.x86_64-linux.core-vm --max-jobs 1 --cores 2
 nix build .#checks.x86_64-linux.lifecycle-vm --max-jobs 1 --cores 2
 ```

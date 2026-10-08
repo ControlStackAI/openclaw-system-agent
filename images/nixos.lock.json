@@ -1,0 +1,281 @@
+{
+  "architecture": "x86_64-linux",
+  "distro": "nixos",
+  "flake_lock": {
+    "nodes": {
+      "bun2nix": {
+        "inputs": {
+          "flake-parts": [
+            "llm-agents",
+            "flake-parts"
+          ],
+          "nixpkgs": [
+            "llm-agents",
+            "nixpkgs"
+          ],
+          "systems": [
+            "llm-agents",
+            "systems"
+          ],
+          "treefmt-nix": [
+            "llm-agents",
+            "treefmt-nix"
+          ]
+        },
+        "locked": {
+          "lastModified": 1790001035,
+          "narHash": "sha256-1/SLBjSYBzDdDhvLQ83wrzBakyS/xNGgtxHGNuveOEQ=",
+          "owner": "Mic92",
+          "repo": "bun2nix",
+          "rev": "07a5bfc8ac36c5370199343fa620b69f63186e33",
+          "type": "github"
+        },
+        "original": {
+          "owner": "Mic92",
+          "ref": "llm-agents",
+          "repo": "bun2nix",
+          "type": "github"
+        }
+      },
+      "flake-parts": {
+        "inputs": {
+          "nixpkgs-lib": [
+            "llm-agents",
+            "nixpkgs"
+          ]
+        },
+        "locked": {
+          "lastModified": 1790898470,
+          "narHash": "sha256-zTwuwezD0w3hpga6a6P8emidzAZFyWqlNeRBlpWOOl8=",
+          "owner": "hercules-ci",
+          "repo": "flake-parts",
+          "rev": "024633cd702b10285db5cb19b40ad48d2399ba60",
+          "type": "github"
+        },
+        "original": {
+          "owner": "hercules-ci",
+          "repo": "flake-parts",
+          "type": "github"
+        }
+      },
+      "installer-source": {
+        "flake": false,
+        "locked": {
+          "lastModified": 1791304783,
+          "narHash": "sha256-aZVu9+ySh91CORygHQSQvJnD2xV5+pHMBJn18h6/FYM=",
+          "owner": "ControlStackAI",
+          "repo": "agent-installer",
+          "rev": "6d02675cd8ce3323589ec9d7f44e99fcf50487a2",
+          "type": "github"
+        },
+        "original": {
+          "owner": "ControlStackAI",
+          "repo": "agent-installer",
+          "rev": "6d02675cd8ce3323589ec9d7f44e99fcf50487a2",
+          "type": "github"
+        }
+      },
+      "llm-agents": {
+        "inputs": {
+          "bun2nix": "bun2nix",
+          "flake-parts": "flake-parts",
+          "nixpkgs": "nixpkgs",
+          "systems": "systems",
+          "treefmt-nix": "treefmt-nix"
+        },
+        "locked": {
+          "lastModified": 1791149024,
+          "narHash": "sha256-ooUuzcRXYqecZCW5rC27uqdlGlCNdGkyaz5fetKHwJI=",
+          "owner": "numtide",
+          "repo": "llm-agents.nix",
+          "rev": "59d0417c2017794f8872b5556f133c8b0b413734",
+          "type": "github"
+        },
+        "original": {
+          "owner": "numtide",
+          "repo": "llm-agents.nix",
+          "rev": "59d0417c2017794f8872b5556f133c8b0b413734",
+          "type": "github"
+        }
+      },
+      "nixpkgs": {
+        "locked": {
+          "lastModified": 1790600678,
+          "narHash": "sha256-6k3n7X2UsZ6tAlWTz99RimiZab+17tMUrw9sRUcELiA=",
+          "owner": "NixOS",
+          "repo": "nixpkgs",
+          "rev": "f45c6f04c2f013f004bf94e284e95d72898d9393",
+          "type": "github"
+        },
+        "original": {
+          "owner": "NixOS",
+          "ref": "nixpkgs-unstable",
+          "repo": "nixpkgs",
+          "type": "github"
+        }
+      },
+      "nixpkgs_2": {
+        "locked": {
+          "lastModified": 1791260994,
+          "narHash": "sha256-Miqqk/ammqnTUxaoCyvtwoPeLbI1ksFyLxi/CazZpWY=",
+          "owner": "NixOS",
+          "repo": "nixpkgs",
+          "rev": "151fa4e8ddfdd8dd25d945ad94ed54a13de9f6e4",
+          "type": "github"
+        },
+        "original": {
+          "owner": "NixOS",
+          "repo": "nixpkgs",
+          "rev": "151fa4e8ddfdd8dd25d945ad94ed54a13de9f6e4",
+          "type": "github"
+        }
+      },
+      "openclaw-source": {
+        "flake": false,
+        "locked": {
+          "lastModified": 1790163937,
+          "narHash": "sha256-oSsWtQ8mAH9KZkJKHeS3RedhrfDaMs1Ktrqs8rTP8PU=",
+          "owner": "openclaw",
+          "repo": "nix-openclaw",
+          "rev": "f62d33f760bcbdbc6a52ac589eae22bf99201f90",
+          "type": "github"
+        },
+        "original": {
+          "owner": "openclaw",
+          "repo": "nix-openclaw",
+          "rev": "f62d33f760bcbdbc6a52ac589eae22bf99201f90",
+          "type": "github"
+        }
+      },
+      "root": {
+        "inputs": {
+          "installer-source": "installer-source",
+          "llm-agents": "llm-agents",
+          "nixpkgs": "nixpkgs_2",
+          "openclaw-source": "openclaw-source"
+        }
+      },
+      "systems": {
+        "locked": {
+          "lastModified": 1681028828,
+          "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+          "owner": "nix-systems",
+          "repo": "default",
+          "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+          "type": "github"
+        },
+        "original": {
+          "owner": "nix-systems",
+          "repo": "default",
+          "type": "github"
+        }
+      },
+      "treefmt-nix": {
+        "inputs": {
+          "nixpkgs": [
+            "llm-agents",
+            "nixpkgs"
+          ]
+        },
+        "locked": {
+          "lastModified": 1786901030,
+          "narHash": "sha256-WSFCsDSE5ffgD2MqzkM2CYjeFiKhRF/dJUN8uedb6YE=",
+          "owner": "numtide",
+          "repo": "treefmt-nix",
+          "rev": "27b3b12a8e6375f28ebe122f07d230ca5459bbfa",
+          "type": "github"
+        },
+        "original": {
+          "owner": "numtide",
+          "repo": "treefmt-nix",
+          "type": "github"
+        }
+      }
+    },
+    "root": "root",
+    "version": 7
+  },
+  "reproducibility": "locked-inputs; independent-output-comparison-required",
+  "schema": 1,
+  "selection": {
+    "nixpkgs": "repository-pin"
+  },
+  "source": {
+    "LICENSE": "880812566b564b380ef2ef2b3c9451ea4a6942cbfa0b7d4cb270e9ce521557ce",
+    "adapters/__init__.py": "9e34fcaee6734ee78927c9f0c0e3d9497dfd8332266a71c04fa5513799ddbbee",
+    "adapters/arch/PKGBUILD": "7bd9877eac110f733ea2a3169279d0b066104010b89dedcd08ee7d868761b864",
+    "adapters/arch/controlstack-agent.service": "1083414b36d5d296119f1e24ad77c3275ff7e3111aa342d0ff95d14cd0233332",
+    "adapters/arch/controlstack-agent.sysusers": "7b6e4c9fe1320b450d6232dd4905ccf8e123b436e94e8d4c3c847cb2a2f2e324",
+    "adapters/arch/image/PROVENANCE.md": "8ac423a879c4540f22f9260b40c6fb3264d7f61670e2bfbfb1ec03732de5fae4",
+    "adapters/arch/image/build/Dockerfile": "062facfd516297a65f1918fb2e33cb1f2641b1729aae3cd325b0fe2f1b657a2b",
+    "adapters/arch/image/config/arch-iso-signing-key.asc": "5da9f23abd8694a3ddfb1b26f1fcc96b379ff9c3cb72dddb020d1a7af7d41635",
+    "adapters/arch/image/config/archzfs-signing-key.asc": "01b3816048ff244919380b4bb630aebf8addb507f684acbdc6ca3d71d789e42b",
+    "adapters/arch/image/config/zfs-policy.json": "1a4f7f74bb450c84c0a446afebafe0249da68361d4a9322b3ccb1ad10fe8d173",
+    "adapters/arch/image/inputs.lock.json": "2c7be877486d9354528a6072d0e6413d1593eae1d73154d2ab39976ae5ddd842",
+    "adapters/arch/image/scripts/configure-root.sh": "21730e723bb8a640f6950f4ab27f3bd00fe75bce9b21bcc56a8807fa3c36bcbd",
+    "adapters/arch/image/scripts/inputs.py": "37ec27e875d6030a81b10e9c9d81a1236b2cbfbf28c0a52d9ee15ccf88627183",
+    "adapters/arch/image/scripts/openclaw-overlay.py": "9519042b8f607aa5c834c7d4b38d8ad53408628927153d04884743d7891c5fa2",
+    "adapters/arch/image/scripts/remaster.sh": "578ad03ae7d051d3d05cd30c66bfdf3aea7ad2aa324053fb806e6447bf8c82d8",
+    "adapters/arch/image/scripts/seal-image.sh": "c41ff77db197e9ea26175c73f68fe1ff25f1c52c32f24d9952bec0bcefac0831",
+    "adapters/nixos/__init__.py": "a37676696055efb2cab2295e4e8cda11d89fda7f468c920c738e31818fc8467f",
+    "adapters/nixos/desktop.nix": "1503c925ff7eb4d838723b2b8f15793d78f9623dcb1b22ca292c352b64bd63ef",
+    "adapters/nixos/development.nix": "8f0348da5af4f67da2823c19aba6553dc2c673f81a7c9d2b6e4cf45eed3482c0",
+    "adapters/nixos/hyprland/AudioDevices.qml": "e2555bba19fbf8f9e610c758063c3d28281681880ac7fa9a90031ac677260a60",
+    "adapters/nixos/hyprland/NetworkControls.qml": "2eeeaf1119d179ffd431261d40b116fe89ce92302e0d84ed73ee9ac26af4c73f",
+    "adapters/nixos/hyprland/ShellButton.qml": "1f4a9e74b5f7156308116c2c4579202214ad2f8a7853b0721248523420330036",
+    "adapters/nixos/hyprland/ShellIcon.qml": "0129bccd3d7165370f131790fa701d643c5c9895e4ed5322c9eed9dbea95fb4f",
+    "adapters/nixos/hyprland/ShellSlider.qml": "2c155829bba44b9c5c2407301377366d7e972ecb598c7caa9a0db2dd89d48bb7",
+    "adapters/nixos/hyprland/Theme.js": "9b1a01055c11b9241b54951bf67c0a5bdaf7aa342a8ea94412e0bd8654ffa3a5",
+    "adapters/nixos/hyprland/default.nix": "40a48a062f30028a462ae8a063cad873d8d369e452da71f5451a4e53f1a3ce27",
+    "adapters/nixos/hyprland/desktop-status.py": "50a0f01a2a3a44a48c460bf9585cd97c6b0233b735af63457ca082e848713bdd",
+    "adapters/nixos/hyprland/ghostty.conf": "dc7f6af51486d026f65580ebe6e38f35224dd42f648891bb1b37c2f45467ef83",
+    "adapters/nixos/hyprland/hypridle.conf": "9d0c014404b001fd49cc5a539da0b465a415a813edfc75375d3d5de009e02929",
+    "adapters/nixos/hyprland/hyprland.lua": "61fd13c7888cb0d4660bba7323baf9d4ad85d19578fd9d7f9a608acf452ffd0b",
+    "adapters/nixos/hyprland/hyprlock.conf": "83e4fc0e3697c87c4c706e8e5e2c82a50fcbbf9015601398ebd01f48aed5aa31",
+    "adapters/nixos/hyprland/rofi.rasi": "4330a82a32d25772e8b93e4df788a67fd1791dea3df0955367f2538642f7c6ef",
+    "adapters/nixos/hyprland/shell.qml": "528f168afb7c533d4b4a0a46da7dd62bc123f097ce3bc5acb9f476a89b6b4a9d",
+    "adapters/nixos/hyprland/shortcuts.txt": "f6021b3326473d2340995596ea7907ce45ad40820c50e91a3d5502112b44d3f9",
+    "adapters/nixos/hypruse/bridge.py": "e7d59766ee098804e05dabff30fbff9a3b96769a128deac4117b0d9481a1df36",
+    "adapters/nixos/hypruse/default.nix": "7eb8e373c5703aa4cf5f01c8945e87569add8e9a42a7f010e2c00ce2c6a20ccc",
+    "adapters/nixos/hypruse/package.nix": "bb52d1543170be3f5120f57330a12310877ed699f7a40459b472d509c08d1643",
+    "adapters/nixos/install.py": "f2dec84488c828101af11dfef6bce48cf35832b612576b2e2ae872a984c664b5",
+    "adapters/nixos/live-image.nix": "7364ec2bab5ccd0e9c70f79ca374c925b5331061a60a6cfa0c4d9bd8698d5d52",
+    "adapters/nixos/module.nix": "5de75d606b6852548fb396e9410c06078250dee0789e8b87c7ba08a158a5d320",
+    "adapters/nixos/networking.nix": "7f33383a1a93559e818d53012325eaf1250f0c7b7e9071b1a417fb1d07560f23",
+    "adapters/nixos/package.nix": "99ae3129121ece1b6a88edf246195da2138d140f0e3323b4466744627dcdb56f",
+    "build_support/__init__.py": "f0758fe08fd560ae8ccfbdb54ebc4d8a0beab4a70c26777cbc3770e122239ea6",
+    "build_support/arch.py": "da6373e261d52c130dc5e20a5acfd5e4c5ec4a15d8976de5ee50a8ac7a11f30f",
+    "build_support/images.py": "94c21277c65c3045e244ff10b28e58094af7fee75988b1e63b777ee282ab2023",
+    "contracts/README.md": "d7a40583c49e9f740e9412a1da2628c7293a09f7f959855dea5e4e2d023c7f58",
+    "contracts/handoff-v1.example.json": "63d21f7884a3d20470ee8d952da8c59a778b87ffdef766f1fe8c231e2491e1b6",
+    "contracts/installer.lock.json": "b018c0a05f272730b111bd7a742583ce8649e2a5057d840c6e459e30e4455749",
+    "flake.lock": "63ccbd62ce8a40d4f262e0f595bbb95a7114c51288e1c78ab875ecd81f0dab5e",
+    "flake.nix": "b4b4e92c56cf940a3b0008caa51c22c4a82d815963b94601323036d0719f9804",
+    "identity/AGENTS.md": "daee1b174730f4cae0c0abc6ec438ac38209f395d7cd5cc510ebb2fe0b52b74f",
+    "identity/BOOT.md": "dbad4fb626d8fe61c0b34790d1228ef530ce31e474f739dd281801e4a06eba07",
+    "identity/IDENTITY.md": "290b682162bb9a1704d8eac0d03f2187fe0a26e54ebf5e3bfe879a1a68ef08d0",
+    "identity/SOUL.md": "30d1fdf49a2521b7e104e5f290f04aa8ad763c64ff0cbf8cca516af99921a7a0",
+    "identity/USER.md": "f4e670e39be6fe264fe7606de7ccf889706211e6af7128f71e7c4b35500ec23a",
+    "runtimes/__init__.py": "0abc237f47f1ec15d8663372eab7cc6219c1203c2c95f2a8c1a473092950eb78",
+    "runtimes/openclaw/__init__.py": "0d34c217d77ca904038193740ca3fd46ea9a009f07af0c041064dd4c41145822",
+    "runtimes/openclaw/inputs.json": "5e62f2ff4d857dc6281d1adccbf3d1f9b145aa54fba5abb8ee54bbf07248116e",
+    "runtimes/openclaw/runtime.py": "7d89be5e10c2e885d3e2bcc9294c0074af6bf2624cc7ea29f3a97700608fc16f",
+    "scripts/image.py": "048ed818950804700cc368f2adb6e59ab30e66e528c6de96704ff1f6d32ae54c",
+    "system_agent/__init__.py": "76f554627b87b60cca0aa456d0ed06489b605b49bbead8470d8f77476cf84aeb",
+    "system_agent/__main__.py": "b7e29bb4a6c8e6dc7b5b5f671f7e585aaf923bdf1ab17f8db658c663bd2171c9",
+    "system_agent/admin.py": "0f33b8cceb75ac3ec773eb99e9242e4dd7ba1d67b6cf3a88fc64ed0f6e1ba845",
+    "system_agent/choices.py": "27db727c7cfb7bee732a9fea07c49d5159f5b2bc54d98914fc35de61008956e1",
+    "system_agent/coding_login.py": "838a2f88404a32dc68c43a074a5dde2f4d8d7407927d4fe07b54924afc85f6ae",
+    "system_agent/facts.py": "3cb9daff407a3473039aea61881fc0e294af9c7fdc7e8e1e14949ba14515ce18",
+    "system_agent/handoff.py": "898bd6369a60029bcd8a6ec2cbf3f9c8d5f769bef54163f8a915a2b8e331a1c7",
+    "system_agent/interview.py": "6765eec478f34a9e7ef6649664322449d046587e9577260a249012ebadce077f",
+    "system_agent/networking.py": "8f23ee19c1f3dc8ef042188e3571489317ea85354038fc6856b669f012ae2d46",
+    "system_agent/policy.py": "b24891b94251f06d05b10aed0a4c253e3c7e5e9657e6e338c46a2f41df8f5417",
+    "system_agent/profile.py": "8f1a9fd4f6edd8970fad07738f2e8fffba63cd5f314c46e63aecc3e462141e7f",
+    "system_agent/readiness.py": "1e1f88b68212546cd18b9d51474c5a2794fe665c61f0a7e67f0367919fd5c072",
+    "system_agent/setup.py": "82be9292b06f4d9fbe61f2c8bcf596289b9fa351f5b25ef36741a65754aaa7f5",
+    "system_agent/state.py": "568a6a69746f7117628f9f87db05eb970469d5bfb8debb95da28db494df11f93"
+  },
+  "source_date_epoch": 1791392279,
+  "source_sha256": "01953fa00b89ce5a17d3670703fe05a93db51960b32cfc98d9f8abc3c31b63e4"
+}

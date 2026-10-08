@@ -2,6 +2,7 @@
 import re
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+PURPOSES = ("development", "everyday", "gaming", "server", "mixed")
 DESKTOPS = ("none", "plasma", "gnome", "hyprland")
 LAYOUTS = ("us", "gb", "de", "fr", "es")
 LOCALES = ("en_US.UTF-8", "en_GB.UTF-8", "de_DE.UTF-8", "fr_FR.UTF-8", "es_ES.UTF-8")
@@ -9,8 +10,10 @@ LOCALES = ("en_US.UTF-8", "en_GB.UTF-8", "de_DE.UTF-8", "fr_FR.UTF-8", "es_ES.UT
 
 def validate_choices(choices):
     keys = {"hostname", "username", "desktop", "timezone", "keyboard", "locale", "encrypt"}
-    if not isinstance(choices, dict) or set(choices) != keys:
+    if not isinstance(choices, dict) or not keys <= set(choices) or set(choices) - keys - {"purpose"}:
         raise ValueError("Incomplete or unexpected system choices")
+    if "purpose" in choices and choices["purpose"] not in PURPOSES:
+        raise ValueError("Choose one of the supported uses for this computer.")
     for field in ("hostname", "username"):
         if not isinstance(choices[field], str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,30}", choices[field]):
             raise ValueError(f"Use a short name with lowercase letters, numbers and hyphens for {field}.")
