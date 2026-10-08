@@ -113,8 +113,11 @@ def build_image(source, work, lock, jobs, iso):
     subprocess.run(["docker", "build", "--build-arg", "BASE_IMAGE=" + inputs["builder_image"],
                     "--build-arg", "ARCH_SNAPSHOT=" + inputs["arch"]["snapshot"], "-t", tag,
                     str(staging / "build")], check=True)
+    package_cache = ROOT / ".build/arch-package-cache" / inputs["arch"]["snapshot"].replace("/", "-")
+    package_cache.mkdir(parents=True, exist_ok=True)
     args = ["docker", "run", "--rm", "--cap-add=SYS_ADMIN", "--security-opt=apparmor=unconfined",
             "--network=bridge", "--mount", f"type=bind,src={staging},dst=/repo",
+            "--mount", f"type=bind,src={package_cache},dst=/var/cache/pacman/pkg",
             "--mount", f"type=bind,src={downloaded},dst=/downloads,readonly",
             "--mount", f"type=bind,src={work / 'closure'},dst=/runtime,readonly",
             "-e", "BUILD_JOBS=" + str(jobs), "-e", "SOURCE_DATE_EPOCH=" + str(lock["source_date_epoch"]),

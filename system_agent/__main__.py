@@ -28,6 +28,8 @@ def main():
     choices.add_argument("key", nargs="?")
     choices.add_argument("value", nargs="?")
     sub.add_parser("onboard")
+    login = sub.add_parser("connect-account")
+    login.add_argument("account", choices=("chatgpt", "openai-api", "other"))
     chat = sub.add_parser("chat")
     chat.add_argument("--welcome", action="store_true")
     sub.add_parser("health")
@@ -64,6 +66,8 @@ def main():
             result = runtime.sync_installed_mcp(args.state, args.config)
         elif args.command == "local-policy":
             result = runtime.local_policy(args.state, args.config)
+        elif args.command == "connect-account":
+            return runtime.connect_account(args.state, args.account, args.config)
         elif args.command == "onboard":
             return runtime.onboard(args.state, args.config)
         elif args.command == "chat":

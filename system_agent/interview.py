@@ -9,7 +9,7 @@ LABELS = {
 }
 
 
-def ask(field, choose, timezone):
+def ask(field, choose, timezone, desktops=DESKTOPS):
     if field == 'purpose':
         return PURPOSES[choose('What will you mainly use this computer for?', [
             'Software development', 'Everyday browsing and documents', 'Gaming',
@@ -19,11 +19,12 @@ def ask(field, choose, timezone):
     if field == 'username':
         return input('Name for your local account [owner]: ').strip() or 'owner'
     if field == 'desktop':
-        return DESKTOPS[choose('Which desktop would you like?', [
+        labels = [
             'No desktop — use the local text console',
             'KDE Plasma — familiar panels, menus and many settings',
             'GNOME — a simple activities-based desktop',
-            'Hyprland + Quickshell — tiling windows, three small status islands and Ghostty']) - 1]
+            'Hyprland + Quickshell — tiling windows, three small status islands and Ghostty']
+        return desktops[choose('Which desktop would you like?', [labels[DESKTOPS.index(d)] for d in desktops]) - 1]
     if field == 'locale':
         return LOCALES[choose('Which system language and regional format?', [
             'English (United States)', 'English (United Kingdom)',
@@ -37,12 +38,15 @@ def ask(field, choose, timezone):
     raise ValueError('Unknown preference')
 
 
-def interview(suggestions, choose, timezone, describe):
+def interview(suggestions, choose, timezone, describe, desktops=DESKTOPS):
     choices = dict(validate_partial(suggestions))
+    if choices.get('desktop') not in (*desktops, None):
+        print('That desktop is not available in this image yet. Please choose one below.')
+        choices.pop('desktop')
     for field in LABELS:
         if field not in choices:
             while True:
-                value = ask(field, choose, timezone)
+                value = ask(field, choose, timezone, desktops)
                 try:
                     validate_partial({field: value})
                 except ValueError as error:
@@ -58,7 +62,7 @@ def interview(suggestions, choose, timezone, describe):
         if answer == 1:
             return validate_choices(choices)
         field = list(LABELS)[answer - 2]
-        value = ask(field, choose, timezone)
+        value = ask(field, choose, timezone, desktops)
         try:
             validate_partial({field: value})
             choices[field] = value

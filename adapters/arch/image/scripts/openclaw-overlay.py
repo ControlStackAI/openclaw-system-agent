@@ -16,8 +16,8 @@ conf.mkdir(parents=True, exist_ok=True)
 (conf / 'installed-mcp.json').write_text('{}\n')
 (conf / 'image-capabilities.json').write_text(json.dumps({
     'schema': 1, 'distro': 'arch', 'runtime': 'openclaw',
-    'installation': False, 'desktops': [],
-    'explanation': 'Arch live assistance is available. The Arch disk installer and desktop integration are not yet qualified; use the NixOS image for installation.'
+    'installation': True, 'desktops': ['hyprland', 'none'],
+    'explanation': 'Arch UEFI installation uses a verified native payload with ZFS and persistent OpenClaw.'
 }) + '\n')
 marker = Path('/etc/agent-installer')
 marker.mkdir(parents=True, exist_ok=True)
@@ -72,7 +72,7 @@ fi
 '''
 for name in ('.bash_profile', '.zlogin'):
     (Path('/root') / name).write_text(hook)
-Path('/etc/motd').write_text('OpenClaw Arch live preview. Setup opens on the first console.\nArch target installation is not yet enabled.\n')
+Path('/etc/motd').write_text('OpenClaw Arch installer. Setup opens on the first console.\nChoose Hyprland or no desktop during setup.\n')
 Path('/etc/modules-load.d/controlstack-zfs.conf').write_text('zfs\n')
 # Setup uses the same compiled console maps on both distro images.
 maps = conf / 'keymaps'

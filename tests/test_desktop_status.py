@@ -2,7 +2,7 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-spec = importlib.util.spec_from_file_location('desktop_status', Path(__file__).parents[1] / 'adapters/nixos/hyprland/desktop-status.py')
+spec = importlib.util.spec_from_file_location('desktop_status', Path(__file__).parents[1] / 'adapters/shared/hyprland/desktop-status.py')
 status = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(status)
 

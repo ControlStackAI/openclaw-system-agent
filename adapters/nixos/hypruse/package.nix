@@ -1,4 +1,4 @@
-{ lib, python3Packages, fetchFromGitHub, makeWrapper, hyprland, grim, wtype, systemd, imagemagick, wl-clipboard, libnotify }:
+{ lib, python3Packages, fetchFromGitHub, makeWrapper, hyprland, grim, wtype, systemd, imagemagick, wl-clipboard, libnotify, nativeTools ? false }:
 python3Packages.buildPythonApplication {
   pname = "hypruse";
   version = "0.11.0";
@@ -20,7 +20,7 @@ python3Packages.buildPythonApplication {
     test -s $out/${python3Packages.python.sitePackages}/hypruse/skill/SKILL.md
   '';
   pythonImportsCheck = [ "hypruse" ];
-  postFixup = ''
+  postFixup = lib.optionalString (!nativeTools) ''
     wrapProgram $out/bin/hypruse --prefix PATH : ${lib.makeBinPath [ hyprland grim wtype systemd imagemagick wl-clipboard libnotify ]}
   '';
   meta = { description = "Native Hyprland desktop control over MCP"; license = lib.licenses.mit; platforms = lib.platforms.linux; };

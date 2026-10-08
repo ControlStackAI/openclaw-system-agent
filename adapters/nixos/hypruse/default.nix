@@ -50,7 +50,7 @@ in {
         HYPRUSE_JOURNAL = "1";
       };
       serviceConfig = {
-        ExecStart = "${pkgs.python3}/bin/python3 ${./bridge.py} ${socket} ${cfg.package}/bin/hypruse controlstack-agent";
+        ExecStart = "${pkgs.python3}/bin/python3 ${../../shared/hypruse/bridge.py} ${socket} ${cfg.package}/bin/hypruse controlstack-agent";
         ExecStopPost = "${pkgs.coreutils}/bin/rm -f ${socket}";
         KillMode = "control-group";
         Restart = "on-failure";

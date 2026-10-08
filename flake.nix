@@ -39,6 +39,19 @@
       ];
     };
     upstream = import "${openclaw-source}/nix/packages" { inherit pkgs; };
+    # Include the matching official Codex harness so first sign-in does not
+    # need to install another agent runtime. The NixOS release stays 2026.9.5.
+    nixosCodexPlugin = (pkgs.callPackage "${openclaw-source}/nix/lib/openclaw-runtime-plugin.nix" {
+      linkOpenClawPeer = false;
+    }) (import "${openclaw-source}/nix/generated/openclaw-runtime-plugins/codex.nix");
+    nixosRuntime = upstream.openclaw-gateway.overrideAttrs (old: {
+      installPhase = old.installPhase + "\n" + ''
+        mkdir -p "$out/lib/openclaw/dist/extensions/codex" "$out/lib/openclaw/extensions/codex"
+        cp -R ${nixosCodexPlugin}/. "$out/lib/openclaw/dist/extensions/codex/"
+        cp ${nixosCodexPlugin}/openclaw.plugin.json "$out/lib/openclaw/extensions/codex/"
+      '';
+    });
+    runtime = import ./runtimes/openclaw/package.nix { upstream = upstream.openclaw-gateway; inherit (pkgs) lib fetchNpmDeps; };
     core = pkgs.callPackage ./adapters/nixos/package.nix { inherit installer-source; };
     # Keep optional desktop closures on read-only media. Unpacking them into the
     # live tmpfs exhausted its space before the owner could approve installation.
@@ -66,11 +79,13 @@
       default = core;
       ai-tools = aiTools;
       system-agent = core;
-      openclaw = upstream.openclaw-gateway;
+      openclaw = nixosRuntime;
+      arch-openclaw = runtime;
       live-iso = live.config.system.build.isoImage;
       arch-runtime = pkgs.buildEnv {
         name = "controlstack-arch-runtime";
-        paths = [ core upstream.openclaw-gateway ai.claude-code ];
+        paths = [ core runtime aiTools pkgs.mesa
+          (pkgs.callPackage ./adapters/nixos/hypruse/package.nix { nativeTools = true; }) ];
       };
     };
     checks.${system} = {
@@ -91,7 +106,7 @@
         nixpkgs = "${nixpkgs}";
         source = "${self}";
         core = "${core}";
-        runtime = "${upstream.openclaw-gateway}";
+        runtime = "${nixosRuntime}";
         ai_tools = "${aiTools}";
         zfs_compatibility = "${pkgs.zfs_2_4}/share/zfs/compatibility.d/openzfs-2.2";
         installer_revision = "6d02675cd8ce3323589ec9d7f44e99fcf50487a2";
@@ -99,7 +114,7 @@
     };
     nixosModules.default = { ... }: {
       imports = [ ./adapters/nixos/module.nix ];
-      services.controlstackAgent.package = pkgs.lib.mkDefault upstream.openclaw-gateway;
+      services.controlstackAgent.package = pkgs.lib.mkDefault nixosRuntime;
       services.controlstackAgent.corePackage = pkgs.lib.mkDefault core;
     };
   };

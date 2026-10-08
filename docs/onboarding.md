@@ -29,7 +29,7 @@ For example, after learning the intended use:
 > Would you like a graphical desktop, no desktop, or help choosing?
 
 If a desktop is wanted, explain a small set of choices verified against the
-pinned target adapter, then ask for one choice. The NixOS adapter offers GNOME and KDE Plasma. Xfce is not an implemented option. A
+pinned target adapter, then ask for one choice. The NixOS adapter offers GNOME, KDE Plasma and Hyprland + Quickshell. Arch offers Hyprland + Quickshell. Xfce is not an implemented option. A
 headless choice skips the desktop questions. It preserves a local console and
 does not silently enable SSH or any other remote service.
 
@@ -81,7 +81,7 @@ and credentials cannot be recorded through this command. The deterministic local
 screen asks for missing choices one at a time and builds the target before asking
 for irreversible disk approval. It is available without a model subscription.
 
-The live and installed NixOS profiles enable workspace execution as the dedicated
+The live and installed Arch and NixOS profiles enable workspace execution as the dedicated
 service account, so these typed choices can be saved. The general-purpose service
 module still defaults to read-only tools. Neither profile grants the agent root.
 The owner-operated setup screen is privileged and is available only to the local
@@ -91,7 +91,7 @@ The fixture tests establish real CLI integration, not the quality of a real
 model's interview. Real-model acceptance must cover setup, no desktop, changed
 preferences, maintenance without a setup interview and recovery without implicit
 installation. Real subscription/device authentication is not qualified by a
-fixture API key. The native interactive wizard owns protected credential input.
+fixture API key. The official provider authentication command owns protected credential input.
 
 After installation the owner signs in again. Only validated OS choices and the
 boot handoff transfer; live credentials and conversation state remain in RAM.
@@ -104,3 +104,19 @@ without discarding the rest. Main use is context for the resident agent, not a
 claim that a separate gaming/server software bundle has been deployed. Existing
 application defaults remain the tested development set. The saved main use is
 included in the narrow non-secret preferences and installed USER.md.
+
+## Preconfigured live assistant
+
+OpenClaw and its matching provider runtime are part of the image. Connecting an
+account does not install OpenClaw or run its general onboarding wizard. The normal
+flow is network readiness, one provider connection, then the installation
+conversation. ChatGPT uses the official short device-code flow; API-key entry is
+hidden. A future Ratatui interface can call the same focused operations.
+
+Keep packaged defaults separate from private session configuration in RAM. The
+normal setup screens change supported preferences, not package files or service
+policy. This reduces accidental changes while preserving an administrator shell
+for deliberate customization. It is a guided live system, not a locked appliance.
+Live changes disappear after shutdown; only reviewed non-secret installation
+choices are handed to the resident agent. Assistant naming belongs in identity
+preferences, separate from provider authentication and disk approval.

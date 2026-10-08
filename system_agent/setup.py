@@ -57,12 +57,22 @@ class Setup:
     def sign_in(self):
         if not self.connect():
             return
-        print("\nOpenClaw will help you choose an AI provider and sign in.\n"
-              "Use its protected sign-in prompts. API billing may be separate from a subscription.")
+        print("\nOpenClaw is already installed and ready. We just need to connect your AI account.")
+        choice = choose("Which account would you like to connect?", [
+            "ChatGPT subscription — short code on your phone or another computer",
+            "OpenAI API key — separate usage billing",
+            "Another provider",
+            "Back"])
+        if choice == 4:
+            return
+        account = ("chatgpt", "openai-api", "other")[choice - 1]
+        if account == "chatgpt":
+            print("Open the short website shown next on your phone or another computer, then enter its code.\n"
+                  "Keep this screen open while you approve. You do not need a browser on this USB.", flush=True)
         # Stop the gateway while the official wizard updates its private config.
         subprocess.run(["systemctl", "stop", "controlstack-agent.service"], check=True)
         try:
-            result = self.agent("onboard")
+            result = self.agent("connect-account", account)
         finally:
             # Pin the local access policy independently of onboarding's tool suggestions.
             self.agent("local-policy")
@@ -122,12 +132,10 @@ class Setup:
                  "OpenClaw will also be installed as your computer's resident assistant.\nThe USB starts with a US keyboard. Choose Change keyboard layout below if needed."
                  if self.live else "OpenClaw is installed on this computer. Your conversations stay here.\n"
                  "Please sign in again if this is your first installed boot; USB credentials were not copied."), flush=True)
-        if self.live and self.distro == "arch":
-            print("This is the Arch live preview. Installed-system deployment is not yet available.")
         while True:
-            labels = ["Sign in or change AI provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
+            labels = ["Connect your AI account or change provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
             if self.live:
-                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Arch installation status"), "Forget this USB session", "Change keyboard layout"]
+                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Review choices and install Arch Linux"), "Forget this USB session", "Change keyboard layout"]
             labels += ["Troubleshooting shell", "Leave setup"]
             answer = choose("What would you like to do?", labels)
             try:
@@ -139,10 +147,10 @@ class Setup:
                     from .networking import connect
                     connect()
                 elif self.live and answer == 4:
-                    if self.distro != "nixos":
-                        print("Arch live assistance is available. Arch disk installation and desktop integration are still being built; no disk will be changed by this preview.")
-                        continue
-                    from adapters.nixos.install import interactive
+                    if self.distro == "arch":
+                        from adapters.arch.install import interactive
+                    else:
+                        from adapters.nixos.install import interactive
                     result = self.agent("setup-choice", capture=True)
                     suggestions = json.loads(result.stdout) if result.returncode == 0 else {}
                     interactive(self.state, suggestions)

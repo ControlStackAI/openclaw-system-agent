@@ -168,7 +168,7 @@ def plan(lock):
     return {"distro": lock["distro"], "source_sha256": lock["source_sha256"],
             "nixpkgs": root_nixpkgs(lock["flake_lock"])["locked"]["rev"],
             "base": lock.get("arch", {}).get("arch", {}).get("iso"),
-            "desktop_selection": "after USB boot" if lock["distro"] == "nixos" else "not yet implemented in Arch live preview",
+            "desktop_selection": "after USB boot",
             "qualified": False, "note": "A new lock requires fresh VM qualification; a build alone is not qualification."}
 
 

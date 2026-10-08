@@ -150,7 +150,9 @@ pkgs.testers.runNixOSTest {
         machine.succeed(owner + "systemd-run --user --quiet --unit=app-test " + app + (" codex://" if app == "chatgpt" else ""))
         machine.wait_until_succeeds(gui + "hyprctl -j clients | grep -i " + match, timeout=120)
         try:
-            machine.wait_for_text("Sign in to ChatGPT" if app == "chatgpt" else "Claude for Linux", timeout=90)
+            # This isolated VM has no external DNS. Claude renders its offline
+            # page after loading; qualify that visible page, not an online login.
+            machine.wait_for_text("Sign in to ChatGPT" if app == "chatgpt" else "connect to Claude", timeout=90)
         finally:
             machine.screenshot(app)
             print(machine.succeed(owner + "journalctl --user -u app-test --no-pager -n 80"))

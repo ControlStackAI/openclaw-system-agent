@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       distro:
-        description: Distribution (Arch is currently a live preview)
+        description: Distribution (Arch or NixOS UEFI/ZFS installer)
         type: choice
         options: [nixos, arch]
         default: nixos

@@ -47,7 +47,12 @@ cp /repo/config/archzfs-signing-key.asc "$root/root/archzfs-signing-key.asc"
 cp /repo/scripts/configure-root.sh "$root/root/agent-build.sh"
 arch-chroot "$root" /bin/bash /root/agent-build.sh
 
+bash /repo/scripts/build-target.sh "$root" "$workspace/target" "$kernel"
+
 cp -a /runtime/nix "$root/nix"
+# Staging was copied by the builder user; installed runtime files belong to root.
+chown -Rh 0:0 "$root/nix"
+chmod 0755 "$root/nix" "$root/nix/store"
 cp /repo/runtime-path "$root/root/controlstack-runtime-path"
 cp /repo/scripts/openclaw-overlay.py "$root/root/openclaw-overlay.py"
 arch-chroot "$root" python /root/openclaw-overlay.py

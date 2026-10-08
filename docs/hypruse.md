@@ -10,7 +10,7 @@ Hypruse is registered only for an installed Hyprland owner.
 [mcp-nixos](installed-mcp.md) is enabled in the NixOS live installer and all
 installed NixOS profiles. The USB carries package closures for installation.
 
-The installed OpenClaw 2026.9.5 runtime uses its native `mcp.servers.hypruse`
+The installed OpenClaw runtime (2026.9.5 on NixOS, 2026.9.8 on Arch) uses its native `mcp.servers.hypruse`
 configuration, with `hypruse__*` in its tool policy. Official onboarding and service startup reapply
 this integration alongside the local system-agent policy. No mcporter shim or
 unversioned uvx download is required. Provider credentials are still entered by
@@ -65,3 +65,8 @@ without the ISO. Neither test uses an authenticated model.
 
 References: [OpenClaw 2026.9.5 MCP configuration](https://github.com/openclaw/openclaw/blob/v2026.9.5/docs/tools/mcp.md),
 [tool policy](https://github.com/openclaw/openclaw/blob/v2026.9.5/docs/gateway/config-tools/tool-policy.md).
+
+OpenClaw 2026.9.8 can expose Hypruse through its compact Tool Search catalog.
+The agent searches for the desktop capability, then calls the returned tool.
+A tool omitted from the initial prompt is not necessarily unavailable; checks
+should exercise discovery and the resulting desktop snapshot.

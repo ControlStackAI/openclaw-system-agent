@@ -70,7 +70,7 @@ class Guest:
                 self.process.expect("login:")
                 self.process.sendline("root")
             self.process.expect(r"root[^\r\n]*@[^\r\n]*#")
-            if live_login:
+            if live_login or installed:
                 self.process.sendline("exec bash --noprofile --norc")
                 self.process.expect(r"bash-[0-9.]+#")
             self.process.sendline("bind 'set enable-bracketed-paste off'; stty -echo; umask 077; export PS1='CS_READY> '")
@@ -89,7 +89,12 @@ class Guest:
         self.count += 1
         marker = f"CS_DONE_{self.count}"
         self.process.sendline(command + (" " if command.rstrip().endswith("&") else "; ") + f"printf '\\n{marker}:%s\\n' \"$?\"")
-        self.process.expect(marker + r":(\d+)", timeout=timeout)
+        try:
+            self.process.expect(marker + r":(\d+)", timeout=timeout)
+        except pexpect.TIMEOUT:
+            self.process.sendcontrol("c")
+            self.process.expect("CS_READY> ", timeout=30)
+            raise
         output = self.process.before
         if self.process.match.group(1) != "0":
             raise RuntimeError(f"Guest command failed: {command}\n{output[-4000:]}")
@@ -176,6 +181,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("iso", type=Path)
     parser.add_argument("--mode", choices=["bios-offline", "uefi-install"], required=True)
+    parser.add_argument("--distro", choices=["nixos", "arch"], default="nixos")
     parser.add_argument("--desktop", choices=["none", "plasma", "gnome", "hyprland"], default="none")
     parser.add_argument("--encrypted", action="store_true")
     parser.add_argument("--keyboard", choices=["us", "de"], default="us")
@@ -183,21 +189,23 @@ def main():
     iso = args.iso.resolve()
     if not iso.is_file():
         parser.error("ISO must be a regular file")
-    area = ROOT / ".build/iso-test" / (args.mode + "-" + args.desktop + ("-encrypted" if args.encrypted else "") + "-" + args.keyboard)
+    area = ROOT / ".build/iso-test" / (args.distro + "-" + args.mode + "-" + args.desktop + ("-encrypted" if args.encrypted else "") + "-" + args.keyboard)
     area.mkdir(parents=True, exist_ok=True)
     # Each invocation needs a genuinely blank target and firmware, never a resumed result.
     for name in ("target.qcow2", "OVMF_VARS.fd", "result.json", "qmp.sock"):
         (area / name).unlink(missing_ok=True)
     installing = args.mode == "uefi-install"
-    memory = 4096 if args.desktop == "none" else 8192
-    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std")
+    memory = 4096 if args.desktop == "none" or args.distro == "arch" else 8192
+    guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std", live_login=args.distro == "arch")
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
         guest.command("timeout 180 bash -c 'until systemctl is-active --quiet NetworkManager && systemctl is-active --quiet controlstack-agent; do sleep 2; done'")
         guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
-        guest.command("openclaw --version")
+        guest.command("openclaw --version | grep -F " + ("2026.9.8" if args.distro == "arch" else "2026.9.5"))
+        if args.distro == "arch":
+            guest.command("test $(stat -Lc %u /usr/local/bin/openclaw) = 0; test -x /opt/codex/bin/codex-code-mode-host")
         guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
         guest.command("cat /dev/vcs1 | grep 'Welcome to your OpenClaw'")
         guest.qmp("screendump", {"filename": str(area / "welcome.png"), "format": "png"})
@@ -229,8 +237,11 @@ def main():
             guest.command("systemctl restart controlstack-agent")
             guest.gateway_ready("/run/controlstack-agent")
             guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
-            guest.command(live_env + "timeout --foreground --kill-after=5s 60s openclaw mcp doctor nixos --probe --json </dev/null", timeout=90)
-            guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}; r=json.load(open('/tmp/fixture-request.json')); names={t['function']['name'] for t in r['tools']}; assert 'nixos__nix' in names; assert not any(n.startswith('hypruse__') for n in names)\"")
+            if args.distro == "nixos":
+                guest.command(live_env + "timeout --foreground --kill-after=5s 60s openclaw mcp doctor nixos --probe --json </dev/null", timeout=90)
+                guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}; r=json.load(open('/tmp/fixture-request.json')); names={t['function']['name'] for t in r['tools']}; assert 'nixos__nix' in names; assert not any(n.startswith('hypruse__') for n in names)\"")
+            else:
+                guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert not c.get('mcp', {}).get('servers', {})\"")
             guest.command(live_env + "system-agent setup-choice hostname vmresident")
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
             # Drive the shipped local review screen, including separate disk approval.
@@ -244,7 +255,7 @@ def main():
                     else:
                         guest.process.sendcontrol("d")
                     guest.process.expect_exact("CS_READY> ", timeout=30)
-                    details = guest.command("cat /run/controlstack-install/*.build.log 2>/dev/null || true")
+                    details = guest.command("cat /run/controlstack-install/*.build.log 2>/dev/null; cat /etc/controlstack-agent/arch-target.json 2>/dev/null; findmnt /run/archiso/bootmnt; ls -l /run/archiso/bootmnt/arch/controlstack/ 2>/dev/null; journalctl -b -p err --no-pager -n 30; true")
                     print(details[-12000:], flush=True)
                     raise RuntimeError("The local setup screen rejected a test step: " + prompt)
                 guest.process.sendline(value)
@@ -252,7 +263,7 @@ def main():
             answer("Choose a number:", "1")  # reuse the assistant's suggestions
             answer("Choose a number:", "1")  # intended use: software development
             answer("Name for your local account [owner]:", "owner")
-            answer("Choose a number:", str(["none", "plasma", "gnome", "hyprland"].index(args.desktop) + 1))
+            answer("Choose a number:", str((["none", "plasma", "gnome", "hyprland"] if args.distro == "nixos" else ["hyprland", "none"]).index(args.desktop) + 1))
             answer("Choose a number:", "1")
             if args.keyboard != "de":
                 answer("Choose a number:", "1")
@@ -280,7 +291,8 @@ def main():
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
             guest.command("test ! -e /etc/agent-installer/live-image")
-            guest.command("test -r /run/current-system/sw/share/applications/controlstack-agent.desktop")
+            if args.desktop != "none":
+                guest.command("test -r " + ("/run/current-system/sw" if args.distro == "nixos" else "/usr/local") + "/share/applications/controlstack-agent.desktop")
             guest.command("timeout 180 bash -c 'until systemctl is-active --quiet controlstack-agent; do sleep 2; done'; systemctl is-active controlstack-agent controlstack-agent-boot-check || { journalctl -b -u controlstack-agent -u controlstack-agent-boot-check --no-pager; exit 1; }")
             guest.command("test ! -e /var/lib/controlstack-agent/live-only-credential-fixture")
             guest.command("! grep -q non-secret-vm-fixture /var/lib/controlstack-agent/openclaw.json")
@@ -308,12 +320,12 @@ def main():
                 guest.command("cat /dev/vcs1 | grep 'OpenClaw is installed on this computer'")
             else:
                 shell_name = {"gnome": "gnome-shell", "plasma": "plasmashell", "hyprland": "Hyprland"}[args.desktop]
-                guest.command("timeout 120 bash -c " + shlex.quote(
-                    "until pgrep -u owner -f '/bin/[^ ]*" + shell_name + "'; do sleep 2; done"))
+                shell_probe = "pgrep -u owner -x Hyprland" if args.distro == "arch" else "pgrep -u owner -f '/bin/[^ ]*" + shell_name + "'"
+                guest.command("timeout 120 bash -c " + shlex.quote("until " + shell_probe + "; do sleep 2; done"))
 
             if args.desktop == "hyprland":
                 owner_env = "runuser -u owner -- env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus "
-                guest.command(owner_env + "systemctl --user is-active graphical-session.target controlstack-shell controlstack-polkit controlstack-notifications hypridle")
+                guest.command(owner_env + "systemctl --user is-active graphical-session.target controlstack-shell controlstack-polkit controlstack-notifications " + ("hypridle" if args.distro == "nixos" else "controlstack-idle"))
                 guest.command("runuser -u owner -- test -w /home/owner/.config/quickshell/controlstack/shell.qml")
                 guest.command("test -s /home/owner/.config/hypr/hyprland.lua")
                 guest.command(owner_env + "systemd-run --user --quiet --wait --pipe hyprctl -j configerrors > /tmp/hypr-errors.json")
@@ -362,9 +374,15 @@ p.write_text(json.dumps(c))
             guest.gateway_ready("/var/lib/controlstack-agent")
             guest.command("runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
             guest.command("grep -q 'Owner.s chosen system' /tmp/fixture-request.json")
-            guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'nixos__nix' in {t['function']['name'] for t in r['tools']}\"")
+            if args.distro == "nixos":
+                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'nixos__nix' in {t['function']['name'] for t in r['tools']}\"")
+            else:
+                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert not any(t['function']['name'].startswith('nixos__') for t in r['tools'])\"")
             if args.desktop == "hyprland":
-                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'hypruse__desktop' in {t['function']['name'] for t in r['tools']}\"")
+                if args.distro == "arch":
+                    guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); calls={c['id']:c['function']['name'] for m in r['messages'] for c in (m.get('tool_calls') or [])}; results=[m for m in r['messages'] if m.get('role') == 'tool']; search=[m for m in results if calls.get(m.get('tool_call_id')) == 'tool_search']; desktop=[m for m in results if calls.get(m.get('tool_call_id')) == 'tool_call']; assert 'hypruse__desktop' in json.dumps(search); assert desktop and 'monitors' in json.dumps(desktop) and 'windows' in json.dumps(desktop), desktop\"")
+                else:
+                    guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'hypruse__desktop' in {t['function']['name'] for t in r['tools']}\"")
 
             if args.desktop == "none":
                 guest.type_console("2")
@@ -423,12 +441,12 @@ p.write_text(json.dumps(c))
             guest.close()
     with iso.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
-    receipt = {"mode": args.mode, "iso_sha256": digest, "passed": True,
+    receipt = {"distro": args.distro, "mode": args.mode, "iso_sha256": digest, "passed": True,
                "live_wifi_backend_available": True,
                "installed_wifi_backend_available": installing,
                "offline_signin_then_network_setup": not installing,
-               "live_nixos_mcp_discovery": installing, "live_hypruse_disabled": installing,
-               "installed_nixos_mcp_discovery": installing,
+               "live_nixos_mcp_discovery": installing and args.distro == "nixos", "live_hypruse_disabled": installing,
+               "installed_nixos_mcp_discovery": installing and args.distro == "nixos",
                "installed_hypruse_mcp_discovery": installing and args.desktop == "hyprland",
                "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",

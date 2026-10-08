@@ -13,8 +13,9 @@ provider sign-in have been qualified; the current test results are VM results.
 1. Start the computer from the USB in UEFI mode. The setup screen opens
    automatically. Choose a keyboard layout, then connect to Wi-Fi if Ethernet
    has not already connected.
-2. Choose **Sign in or change AI provider**, select a supported provider in
-   OpenClaw's setup wizard, and use its protected sign-in prompts. Then choose
+2. Choose **Connect your AI account or change provider**. OpenClaw is already
+   installed. For ChatGPT, enter the short device code at the address shown on
+   another device; API keys use hidden input. Then choose
    **Talk to the assistant**.
 3. Explain what this computer is for. The assistant's profile asks for relevant
    choices one at a time, including KDE Plasma, GNOME, Hyprland + Quickshell or no desktop; language,
@@ -83,8 +84,8 @@ workspace and conversations are not transferred. Only validated OS choices and
 a narrow installed-boot record cross the boundary. The service checks the actual
 root dataset, machine identity and new boot ID independently of model health.
 
-This image opts into mutable private provider configuration for the official
-onboarding wizard; the Nix package and service remain declarative. The existing
+This image opts into mutable private provider configuration for official
+provider authentication; the Nix package and service remain declarative. The existing
 resident module defaults to declarative configuration unless this option is set.
 The assistant can inspect and edit its own state but has no sudo grant. Privileged
 installation remains in the owner-operated local screen. Remote access and

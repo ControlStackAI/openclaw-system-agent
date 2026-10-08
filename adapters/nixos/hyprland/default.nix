@@ -2,12 +2,12 @@
 let
   defaults = pkgs.runCommand "controlstack-desktop-defaults" { } ''
     mkdir -p $out/quickshell
-    cp ${./.}/*.qml ${./.}/Theme.js $out/quickshell/
-    substitute ${./hyprland.lua} $out/hyprland.lua \
+    cp ${../../shared/hyprland}/*.qml ${../../shared/hyprland}/Theme.js $out/quickshell/
+    substitute ${../../shared/hyprland/hyprland.lua} $out/hyprland.lua \
       --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
-    cp ${./hyprlock.conf} $out/hyprlock.conf
-    cp ${./ghostty.conf} $out/ghostty.conf
-    cp ${./hypridle.conf} $out/hypridle.conf
+    cp ${../../shared/hyprland/hyprlock.conf} $out/hyprlock.conf
+    cp ${../../shared/hyprland/ghostty.conf} $out/ghostty.conf
+    cp ${../../shared/hyprland/hypridle.conf} $out/hypridle.conf
   '';
   # The executable basename selects UWSM's Hyprland environment plugin.
   session = pkgs.writeShellScriptBin "start-hyprland" ''
@@ -19,7 +19,7 @@ let
       chmod u+w "$cfg/ghostty/config"
     fi
     if [ ! -e "$cfg/rofi/config.rasi" ]; then
-      cp --no-clobber ${./rofi.rasi} "$cfg/rofi/config.rasi"
+      cp --no-clobber ${../../shared/hyprland/rofi.rasi} "$cfg/rofi/config.rasi"
       chmod u+w "$cfg/rofi/config.rasi"
     fi
     # Seed only missing files. Never overwrite the owner's custom desktop.
@@ -113,8 +113,8 @@ in {
       runtimeInputs = [ ghostty rofi less systemd uwsm ];
       text = ''
         case "''${1:-}" in
-          shortcuts) exec ghostty -e less ${./shortcuts.txt} ;;
-          search) rofi -dmenu -i -p "Keyboard shortcuts" < ${./shortcuts.txt} >/dev/null || true ;;
+          shortcuts) exec ghostty -e less ${../../shared/hyprland/shortcuts.txt} ;;
+          search) rofi -dmenu -i -p "Keyboard shortcuts" < ${../../shared/hyprland/shortcuts.txt} >/dev/null || true ;;
           power)
             choice=$(printf '%s\n' 'Cancel' 'Lock' 'Suspend' 'Sign out' 'Restart' 'Power off' | rofi -dmenu -i -p 'Power') || exit 0
             case "$choice" in
@@ -130,7 +130,7 @@ in {
     (writeShellApplication {
       name = "controlstack-desktop-status";
       runtimeInputs = [ python3 systemd ];
-      text = "exec python3 ${./desktop-status.py}";
+      text = "exec python3 ${../../shared/hyprland/desktop-status.py}";
     })
   ];
   environment.etc."controlstack-agent/desktop-defaults".source = defaults;

@@ -10,7 +10,7 @@ from pathlib import Path
 from runtimes.openclaw.runtime import local_policy, sync_installed_mcp
 from system_agent.state import initialize
 
-spec = importlib.util.spec_from_file_location("desktop_bridge", Path(__file__).parents[1] / "adapters/nixos/hypruse/bridge.py")
+spec = importlib.util.spec_from_file_location("desktop_bridge", Path(__file__).parents[1] / "adapters/shared/hypruse/bridge.py")
 bridge = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bridge)
 

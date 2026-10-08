@@ -1,14 +1,62 @@
 # Qualification status
 
-## Locked builds and Wi-Fi correction — 2026-10-08 UTC
+## Arch installation and focused account connection — 2026-10-08 UTC
+
+The native Arch installer and Hyprland target payload are implemented, with
+OpenClaw 2026.9.8 and its matching Codex provider runtime preloaded. NixOS keeps
+OpenClaw 2026.9.5. The normal account menu invokes focused official provider
+authentication; ChatGPT uses device codes. Synthetic tests exercise the actual
+shipped device-code module in both releases, but do not qualify a real account.
+
+All 61 Python tests pass. The shared NixOS desktop VM regression passes after the
+asset extraction and runtime change. The final Arch ISO is
+`42d7119c6a88de0deb29199104dcdd111656df470a46430fabc69542c16cea23`
+(7,208,318,976 bytes), built from `images/arch.lock.json`.
+
+Its fresh UEFI Hyprland installation passed on a disposable 48 GiB disk with
+4 GiB RAM: ZFS-root boot without USB, ordinary owner login, automatic assistant
+window, launcher opening an application, three Quickshell islands, resident
+monitor stop/start, audio/network panels, development CLIs and Neovim default,
+Hypruse discovery through OpenClaw Tool Search and a real desktop snapshot,
+visible fixture conversation, lock/unlock, and customization after another boot.
+Live credentials were excluded and installed boot verification ran independently.
+
+The same Arch ISO also passed encrypted ZFS-root installation, boot unlock and
+console assistant conversation in a separate 4 GiB VM with a US keyboard.
+The desktop and encryption results belong to separate test profiles.
+
+The refreshed NixOS ISO is
+`e6217fb9858a62a62462a5d14597baf6978f357d605eab339688f51b9c7fc880`
+(7,427,911,680 bytes), built from `images/nixos.lock.json`. Its full UEFI Hyprland
+installation passed on a disposable 48 GiB disk with 8 GiB RAM, including
+disk boot without the ISO, owner login, automatic assistant, visible fixture
+conversation, both resident MCPs, desktop panels and launcher, lock/unlock,
+and customization after another reboot. Both live and installed systems have
+a working Wi-Fi backend; physical Wi-Fi association still needs a hardware test.
+
+These are VM results with a synthetic provider, not real provider authentication
+or physical-hardware qualification. Development failures are retained in local
+logs: an early Arch attempt stopped before erasure on a payload precheck during
+host memory pressure; later checks found and fixed SDDM profile startup and
+public-directory permissions. Final clean runs did not patch the guests.
+Independent byte-identical rebuilding and installed-root recovery remain unqualified.
+
+Both final ISOs also passed direct BIOS live boot and the offline sign-in followed
+by network-setup path with no NIC attached. The interface explains a missing
+adapter instead of presenting loopback as a connection. Installation requires UEFI.
+[Exact build and test receipts](../evidence/arch-installer-device-code-2026-10-08.json)
+bind all five VM runs to the hashes above. Build receipts retain their original
+unqualified fields; the separate test records establish each tested scope.
+
+## Historical locked builds and Wi-Fi correction — 2026-10-08 UTC
 
 The corrected NixOS ISO is **31073bdedfb8b7d4e1f3f1b1f6084ee5e30661688d17d389032fdd01b7171129**
-(SHA256, 7,427,911,680 bytes). Build with `images/nixos.lock.json`.
+(SHA256, 7,427,911,680 bytes). Its historical lock is identified by the evidence receipt below.
 The first Ventoy image (`a6d3dccf…449692a`) incorrectly disabled NetworkManager's
 Wi-Fi backend. Both live and installed configurations now enable the
 DBus-controlled supplicant. See [networking](networking.md).
 
-| Current check | Result |
+| Historical check | Result |
 | --- | --- |
 | Unit tests | 55 passed |
 | NixOS BIOS live boot | Passed, including offline sign-in followed by network setup |
@@ -26,13 +74,13 @@ DBus-controlled supplicant. See [networking](networking.md).
 
 The Arch preview ISO SHA256 is
 `95500738daf6539486cc269080a35b33bad08c557d33b2cb4f015b7a96a82df8`.
-Build with `images/arch.lock.json`. Its UEFI layout now uses a non-overlapping
+Its historical lock is identified by the evidence receipt below. Its UEFI layout now uses a non-overlapping
 GPT with an appended EFI System Partition. It is a live preview only.
 
 [Machine-readable receipts](../evidence/image-builds-2026-10-08.json) bind these
 checks to exact source manifests, locks and ISO hashes. Build receipts keep their
 initial unqualified fields; separate test results establish the scopes above.
-The current full install test used unencrypted Hyprland and a US keyboard.
+That full install test used unencrypted Hyprland and a US keyboard.
 Other desktops and encryption retain only the historical qualification below.
 No host disks, homes, provider credentials or production services entered tests.
 
@@ -96,12 +144,12 @@ were absent and that the installed owner choices reached a new provider request.
 The model endpoint was a deterministic fixture throughout; this does not qualify
 real account sign-in, real-model interview quality, or physical hardware.
 
-The [current development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) has SHA-256
+The [earlier development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) has SHA-256
 `a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a` and was built from `ff6e287e34070ff2ae581f1676e25a29b10f28f3`.
 Its [Hyprland USB check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) passed the complete installation, disk boot,
 resident fixture conversation, monitor, panels, launcher, lock and persistence path.
 The five-case results above belong to the preceding build `a4441724d56267eaf48d1bd568d672d4381dcf96`;
-those other desktop profiles have not been rerun against the current ISO bytes.
+those other desktop profiles were not rerun against those ISO bytes.
 
 The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421) passed on
 `6b5a5008d04426e67c6807f709a384305be097b2`. It switched synthetic speaker and microphone devices
@@ -110,7 +158,7 @@ unmute, checked Neovim and both CLIs with Codex helpers, and rendered the offici
 Codex sign-in and Claude for Linux welcome screens. It rejected QML/icon errors
 and C-library/graphics-driver version mismatches. This does not test authenticated
 vendor sessions, physical audio, Wi-Fi association, Bluetooth or Claude Cowork.
-The desktop VM and current image have identical runtime and desktop sources;
+That desktop VM and image had identical runtime and desktop sources;
 the later test revision corrects detection of the stopped Hypruse service.
 
 The image exposes mcp-nixos during live setup and retains it after installation.

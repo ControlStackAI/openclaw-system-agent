@@ -43,3 +43,21 @@ class OnboardingGateTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 onboard(state)
             invoke.assert_not_called()
+
+class FocusedAccountLoginTests(unittest.TestCase):
+    def test_chatgpt_uses_device_code_without_general_onboarding(self):
+        from unittest.mock import patch
+        from runtimes.openclaw.runtime import connect_account
+        with patch('system_agent.readiness.readiness', return_value=(True, 'Ready')), \
+             patch('runtimes.openclaw.runtime.invoke', return_value=0) as invoke:
+            self.assertEqual(connect_account('/run/fixture', 'chatgpt'), 0)
+            invoke.assert_called_once_with('/run/fixture', ['models', 'auth', 'login', '--provider', 'openai', '--method', 'device-code', '--set-default'], None)
+
+    def test_disconnection_blocks_focused_login(self):
+        from unittest.mock import patch
+        from runtimes.openclaw.runtime import connect_account
+        with patch('system_agent.readiness.readiness', return_value=(False, 'Disconnected')), \
+             patch('runtimes.openclaw.runtime.invoke') as invoke:
+            with self.assertRaises(ValueError):
+                connect_account('/run/fixture', 'chatgpt')
+            invoke.assert_not_called()

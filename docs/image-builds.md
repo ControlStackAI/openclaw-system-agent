@@ -2,10 +2,7 @@
 
 The image chooses the distribution. Installation chooses the desktop and owner
 preferences. NixOS currently implements no desktop, Plasma, GNOME and Hyprland +
-Quickshell. The new Arch image is a **live OpenClaw preview**, with installation
-explicitly disabled until its separate disk executor and desktop integration
-pass VM qualification. It is not a replacement for the tested NixOS installation
-image. Ubuntu and Debian adapters are not implemented.
+Quickshell. Arch implements Hyprland + Quickshell or a console session with a native UEFI/ZFS installer. See [Arch installation](arch-installation.md) and [qualification](qualification.md) for the tested artifact and limits. Ubuntu and Debian adapters are not implemented.
 
 ## Select once, build the lock
 
@@ -16,7 +13,7 @@ python3 scripts/image.py build --lock images/nixos.lock.json --output dist/nixos
 python3 scripts/image.py build --lock images/arch.lock.json --output dist/arch
 ```
 
-Both locks bind the exact reviewed build sources. Arch is a live preview.
+Both locks bind the exact reviewed build sources; neither build resolves mutable latest versions.
 
 Run from a clean checkout with Python 3.12+ and Nix on x86_64 Linux. New build
 source files must be tracked in Git before resolution; untracked files are excluded:
@@ -61,7 +58,7 @@ It never mounts operator homes, host block devices, the host Nix store or the
 Docker socket inside the container. SYS_ADMIN is needed for the extracted
 Arch root's temporary mounts; a dedicated build VM is recommended for builders.
 The OpenClaw runtime is a complete pinned Nix closure on the Arch filesystem.
-This is an Arch live system with a Nix-built application runtime, not a NixOS
+This is a native Arch live and installed system with a Nix-built application runtime, not a NixOS
 system. No Nix daemon or host OpenClaw state is imported.
 
 An existing local Arch ISO can be supplied with `build --iso /path/to/image.iso`;
@@ -119,7 +116,7 @@ sources are available and compatible with the adapter.
 
 A build receipt starts with VM boot, disk installation and physical hardware all
 false. Never promote these because compilation succeeded. NixOS images use
-`scripts/qualify-iso.py` and the existing desktop/lifecycle VM checks. Arch needs
-its own live boot qualification followed by a separate implemented and tested
-disk-install path. The previous NixOS ISO on Ventoy is unaffected by these source
-changes.
+`scripts/qualify-iso.py` and the existing desktop/lifecycle VM checks. Arch uses the same harness with `--distro arch --mode uefi-install --desktop
+hyprland`, plus `scripts/qualify-arch-iso.py` for independent live boot checks.
+Each artifact needs its own results; earlier NixOS evidence does not qualify an
+Arch installation.

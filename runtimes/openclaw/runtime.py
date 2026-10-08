@@ -36,6 +36,21 @@ def onboard(state, config=None):
                           "--skip-bootstrap", "--skip-hooks", "--skip-search", "--workspace", str(Path(state).absolute() / "workspace")], config)
 
 
+def connect_account(state, account, config=None):
+    from system_agent.readiness import readiness
+    ready, message = readiness()
+    if not ready:
+        raise ValueError(message)
+    methods = {
+        "chatgpt": ["--provider", "openai", "--method", "device-code"],
+        "openai-api": ["--provider", "openai", "--method", "api-key"],
+        "other": [],
+    }
+    if account not in methods:
+        raise ValueError("Choose one of the supported account options.")
+    return invoke(state, ["models", "auth", "login", *methods[account], "--set-default"], config)
+
+
 def local_policy(state, config_path=None, installed_mcp_path="/etc/controlstack-agent/installed-mcp.json"):
     """Reapply the installer access boundary as the unprivileged service account."""
     from system_agent.state import private_dir, create_private, default_config
