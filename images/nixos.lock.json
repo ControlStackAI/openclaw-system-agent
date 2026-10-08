@@ -270,10 +270,10 @@
     "runtimes/openclaw/runtime.py": "870b9eacd9870a14891d2544396daf188ff23773ea7577c445adc9b58e5d7c65",
     "runtimes/openclaw/tui-auth.mjs": "a3199b3dadb142cbdf55d7f9b2f0d30e50477c45e968d8a535aacbe7d46cd041",
     "runtimes/openclaw/tui_auth.py": "a00e0d2cd2a149bf7d64ffda0e90700fde1c87171c70a0f4d7e67d9586b37c7c",
-    "runtimes/tui/Cargo.lock": "f3a329d10c1840ee89863e6122c435273c85f3694cc39d3b31eee6214708f931",
-    "runtimes/tui/Cargo.toml": "671fc796c92756d4dec63fbf052cef8a8a8f09ed9b792db12d9a5c25a830e544",
+    "runtimes/tui/Cargo.lock": "0f211d9c450dff8bc36542775abe4eb799e2603192127a31402e6c01e76aa72d",
+    "runtimes/tui/Cargo.toml": "88ebb5d0d414de75b94a1a7aaaf04f499e76f466e4572ff18b6d5820868a2a07",
     "runtimes/tui/default.nix": "6bf1d1163236f83977035853ae70e4098ae77bc8f622bb97860cd8393a5c704f",
-    "runtimes/tui/src/main.rs": "4a3eaaad42a90b51e9e2bdd88f2e24cd0868e9c0d3417c1ce482c2b8fff37f75",
+    "runtimes/tui/src/main.rs": "1b07d625dce7040d856484a76777a8fafc3feb03734761f81f9b5a835a1422f7",
     "scripts/image.py": "048ed818950804700cc368f2adb6e59ab30e66e528c6de96704ff1f6d32ae54c",
     "system_agent/__init__.py": "76f554627b87b60cca0aa456d0ed06489b605b49bbead8470d8f77476cf84aeb",
     "system_agent/__main__.py": "fbbbbd7cda7459313170f2251d9bec88a7c9873f514b5ba615bd14db0678e068",
@@ -292,6 +292,6 @@
     "system_agent/state.py": "568a6a69746f7117628f9f87db05eb970469d5bfb8debb95da28db494df11f93",
     "system_agent/tui.py": "b928882029689564c7f3baf91d71b4761ad78dcb2aa04f78381307f1d8c5ab33"
   },
-  "source_date_epoch": 1791470335,
-  "source_sha256": "8f7e1f0aaaec4cfe92f1d83cadfa561600a4aa7c32ba06f9b18b3e24dc75bf66"
+  "source_date_epoch": 1791476828,
+  "source_sha256": "46f00df7826a5ecf7904543635f30aeb6f9b2c8ac329294dbdcde73746c3f3b5"
 }

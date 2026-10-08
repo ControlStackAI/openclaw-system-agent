@@ -1,5 +1,33 @@
 # Qualification status
 
+## Ratatui phone QR update — 2026-10-08 UTC
+
+The ChatGPT connection screen now shows a QR below the public verification URL,
+`https://auth.openai.com/codex/device`. The QR contains only that address; the
+owner still enters the displayed pairing code. Small consoles retain the address
+and code without displaying a cropped QR.
+
+All 65 Python tests and 3 Rust tests pass. The console VM independently decodes
+the rendered QR from its Linux-console screenshot to the exact verification URL,
+and checks navigation, cancellation, protected input, review and terminal exit.
+Both rebuilt images passed fresh BIOS live startup and offline-network checks.
+
+| QR image | SHA-256 | Bytes |
+| --- | --- | ---: |
+| arch | `0bf34c3a7a183109e190518ef672e272369bee6f54a4b3a1bfb2ee5f244b1eca` | 7,208,900,608 |
+| nixos | `05fe5215365a259f74362b67354c218fd3e64cc8256bd416e6f70c5199a1c9cc` | 7,427,911,680 |
+
+OpenClaw versions and kernel/ZFS pins are unchanged. Full disk installation was
+not repeated for this renderer-only update: the UEFI installation evidence below
+belongs to the previous image hashes. Physical phone-camera scanning and real
+provider/model access remain unqualified by these automated tests. Anthropic has
+no equivalent short device-code method in either pinned runtime; its other
+methods remain individually unqualified.
+
+[QR update receipts](../evidence/ratatui-qr-images-2026-10-08.json) record the exact
+artifacts and tested scope. These images are local; Ventoy was disconnected when
+the update completed, so they have not been copied to it.
+
 ## Ratatui Arch and NixOS images — 2026-10-08 UTC
 
 Both images now include the themed Ratatui setup and provider interface. NixOS

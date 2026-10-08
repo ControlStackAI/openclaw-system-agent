@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "source_manifest_sha256": "46f00df7826a5ecf7904543635f30aeb6f9b2c8ac329294dbdcde73746c3f3b5",
+  "python_tests_passed": 65,
+  "rust_tests_passed": 3,
+  "runtime_versions": {
+    "arch": "2026.9.8",
+    "nixos": "2026.9.5"
+  },
+  "ratatui_console_vm": {
+    "passed": true,
+    "scope": "Console rendering, independent QR decoding from screenshot, device-code display, navigation, cancellation, protected input, review and terminal exit",
+    "decoded_qr_url": "https://auth.openai.com/codex/device",
+    "pairing_code_in_qr": false
+  },
+  "sources": {
+    "runtimes/tui/src/main.rs": "1b07d625dce7040d856484a76777a8fafc3feb03734761f81f9b5a835a1422f7",
+    "tests/tui-vm.nix": "8379ab7ddf2f9dc6e7b3ad87c5fe635d0441f4c62770163e73782526778cbea0",
+    "scripts/qualify-iso.py": "d8357aaa200de7fb96d6c931929258468965dc8db2223e5614abfab9f67e0e7e",
+    "docs/images/ratatui-device-qr.png": "b204b61b037110a2bd6d7cba59d7e2c8ba3b071b16cae9380195b8f1fec94085"
+  },
+  "prior_installation_evidence": "ratatui-images-2026-10-08.json",
+  "limits": [
+    "These exact QR images passed BIOS live startup and offline-network checks; full disk installation was not repeated for this renderer-only update.",
+    "Earlier UEFI Hyprland installation evidence applies to the previous image hashes only.",
+    "QR independently decoded from a Linux console screenshot; physical phone-camera scanning remains unqualified.",
+    "No real provider account or model request was used in automated tests.",
+    "Anthropic methods remain individually unqualified and have no equivalent short device-code pairing in the pinned runtimes.",
+    "Physical hardware, YubiKey, Secure Boot, installed-root recovery and independent byte-identical rebuilding remain unqualified.",
+    "Ventoy was disconnected at completion; these QR images have not been delivered to USB."
+  ],
+  "arch": {
+    "build": {
+      "byte_identical_rebuild_verified": false,
+      "bytes": 7208900608,
+      "distro": "arch",
+      "image": "controlstack-openclaw-arch-2026.10.01-x86_64.iso",
+      "lock_sha256": "433a0b5ed705efb23b68137849dcfe67b72d4991562daec804ead8c2e0baef7d",
+      "qualification": {
+        "disk_install": false,
+        "physical_hardware": false,
+        "vm_boot": false
+      },
+      "schema": 1,
+      "sha256": "0bf34c3a7a183109e190518ef672e272369bee6f54a4b3a1bfb2ee5f244b1eca",
+      "source_date_epoch": 1791476828,
+      "source_sha256": "46f00df7826a5ecf7904543635f30aeb6f9b2c8ac329294dbdcde73746c3f3b5"
+    },
+    "bios_offline": {
+      "distro": "arch",
+      "mode": "bios-offline",
+      "iso_sha256": "0bf34c3a7a183109e190518ef672e272369bee6f54a4b3a1bfb2ee5f244b1eca",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": false,
+      "offline_signin_then_network_setup": true,
+      "live_nixos_mcp_discovery": false,
+      "live_hypruse_disabled": false,
+      "installed_nixos_mcp_discovery": false,
+      "installed_hypruse_mcp_discovery": false,
+      "installation": false,
+      "disk_boot_without_iso": false,
+      "ram_mib": 4096,
+      "desktop": "none",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": false,
+      "installed_setup_autostart": false,
+      "quickshell_panel_and_launcher": false,
+      "quickshell_launcher_opens_application": false,
+      "desktop_customization_survives_reboot": false,
+      "resident_monitor_tracks_service_stop_start": false,
+      "audio_and_network_panels": false,
+      "development_cli_and_default_editor": false,
+      "desktop_lock_unlock": false,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": false,
+      "interactive_install_review": false,
+      "ratatui_install_review": false,
+      "provider": "none",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    }
+  },
+  "nixos": {
+    "build": {
+      "byte_identical_rebuild_verified": false,
+      "bytes": 7427911680,
+      "distro": "nixos",
+      "image": "controlstack-openclaw-nixos-x86_64.iso",
+      "lock_sha256": "21f26f43e5d5b3aa5d49eabf5f5ee4d738d7f0efebbdaa90a29b81cbd7512a65",
+      "qualification": {
+        "disk_install": false,
+        "physical_hardware": false,
+        "vm_boot": false
+      },
+      "schema": 1,
+      "sha256": "05fe5215365a259f74362b67354c218fd3e64cc8256bd416e6f70c5199a1c9cc",
+      "source_date_epoch": 1791476828,
+      "source_sha256": "46f00df7826a5ecf7904543635f30aeb6f9b2c8ac329294dbdcde73746c3f3b5"
+    },
+    "bios_offline": {
+      "distro": "nixos",
+      "mode": "bios-offline",
+      "iso_sha256": "05fe5215365a259f74362b67354c218fd3e64cc8256bd416e6f70c5199a1c9cc",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": false,
+      "offline_signin_then_network_setup": true,
+      "live_nixos_mcp_discovery": false,
+      "live_hypruse_disabled": false,
+      "installed_nixos_mcp_discovery": false,
+      "installed_hypruse_mcp_discovery": false,
+      "installation": false,
+      "disk_boot_without_iso": false,
+      "ram_mib": 4096,
+      "desktop": "none",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": false,
+      "installed_setup_autostart": false,
+      "quickshell_panel_and_launcher": false,
+      "quickshell_launcher_opens_application": false,
+      "desktop_customization_survives_reboot": false,
+      "resident_monitor_tracks_service_stop_start": false,
+      "audio_and_network_panels": false,
+      "development_cli_and_default_editor": false,
+      "desktop_lock_unlock": false,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": false,
+      "interactive_install_review": false,
+      "ratatui_install_review": false,
+      "provider": "none",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    }
+  }
+}

@@ -70,6 +70,67 @@ fn send(s: &mut UnixStream, v: Value) -> io::Result<()> {
 fn strval<'a>(v: &'a Value, key: &str) -> &'a str {
     v[key].as_str().unwrap_or("")
 }
+// Encode only the public verification address, never the device code or tokens.
+fn login_qr(url: &str) -> Vec<Line<'static>> {
+    if url != "https://auth.openai.com/codex/device" {
+        return Vec::new();
+    }
+    let Ok(code) = qrcode::QrCode::new(url.as_bytes()) else {
+        return Vec::new();
+    };
+    let width = code.width();
+    let side = width + 8; // Four light modules on every side form the quiet zone.
+    let dark = |x: usize, y: usize| {
+        x >= 4
+            && y >= 4
+            && x < width + 4
+            && y < width + 4
+            && code[(x - 4, y - 4)] == qrcode::Color::Dark
+    };
+    (0..side)
+        .step_by(2)
+        .map(|y| {
+            let row: String = (0..side)
+                .map(|x| match (dark(x, y), dark(x, y + 1)) {
+                    (true, true) => '█',
+                    (true, false) => '▀',
+                    (false, true) => '▄',
+                    (false, false) => ' ',
+                })
+                .collect();
+            Line::styled(row, Style::default().fg(BG).bg(TEXT))
+        })
+        .collect()
+}
+
+fn device_lines(screen: &Value, width: u16, height: u16) -> Vec<Line<'static>> {
+    let url = strval(screen, "url");
+    let mut lines = vec![Line::styled(clean(url), Style::default().fg(MINT))];
+    let qr = login_qr(url);
+    // Never show a cropped code: keep the address and pairing code usable on
+    // small consoles. A resize restores the complete QR automatically.
+    let show_qr =
+        !qr.is_empty() && qr[0].width() <= width as usize && qr.len() + 8 <= height as usize;
+    if show_qr {
+        lines.extend(qr);
+        lines.push(Line::raw("Scan to open the page, then enter this code:"));
+    } else {
+        lines.push(Line::raw("Open the address above and enter this code:"));
+    }
+    lines.push(Line::styled(
+        format!("  {}  ", clean(strval(screen, "code"))),
+        Style::default().fg(BG).bg(CORAL).bold(),
+    ));
+    lines.push(Line::raw("Waiting for approval. Esc cancels."));
+    for line in clean(strval(screen, "text")).lines() {
+        lines.push(Line::raw(line.to_owned()));
+    }
+    if !show_qr && url == "https://auth.openai.com/codex/device" {
+        lines.push(Line::raw("Enlarge the terminal to show the QR code."));
+    }
+    lines
+}
+
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let fd: i32 = args
@@ -206,10 +267,10 @@ fn run(
    let mut lines=Vec::<Line>::new();
    if help {lines.push(Line::styled("You stay in control",Style::default().fg(MINT).bold()));for l in ["Arrow keys select, Enter continues, Esc goes back.","Page Up / Down scrolls details.","Passwords are hidden. Account approval happens with your provider.","Disk changes require a separate exact confirmation.","The troubleshooting shell is available from the main menu.","Press F1 to return."]{lines.push(Line::raw(l));}}
    else {
-    for l in clean(strval(&screen,"text")).lines(){lines.push(Line::raw(l.to_string()));}lines.push(Line::raw(""));
+    if kind!="device" {for l in clean(strval(&screen,"text")).lines(){lines.push(Line::raw(l.to_string()));}lines.push(Line::raw(""));}
     if kind=="choose" {let items:Vec<ListItem>=options.iter().enumerate().map(|(i,o)|ListItem::new(format!(" {}  {}",i+1,clean(o.as_str().unwrap_or(""))))).collect();let mut state=ListState::default().with_selected(Some(selected));f.render_stateful_widget(List::new(items).highlight_symbol("› ").highlight_style(Style::default().fg(BG).bg(CORAL).bold()),slots[2],&mut state);}
     if kind=="input" {let shown=if screen["secret"].as_bool().unwrap_or(false){"•".repeat(input.chars().count())}else{input.clone()};f.render_widget(Paragraph::new(format!(" › {shown}▏")).style(Style::default().fg(MINT).bold()),slots[2]);}
-    if kind=="device" {lines.push(Line::styled(strval(&screen,"url").to_string(),Style::default().fg(MINT)));lines.push(Line::raw(""));lines.push(Line::styled(format!("  {}  ",strval(&screen,"code")),Style::default().fg(BG).bg(CORAL).bold()));lines.push(Line::raw(""));lines.push(Line::raw("Waiting for approval on your phone or other computer…"));}
+    if kind=="device" {lines.extend(device_lines(&screen,inner.width,inner.height));}
     if kind=="busy" {let frames=["● ○ ○","○ ● ○","○ ○ ●"];lines.push(Line::styled(frames[(start.elapsed().as_millis()/400%3)as usize],Style::default().fg(MINT)));}
     if kind=="info" {lines.push(Line::styled(" Enter to continue",Style::default().fg(MINT)));}
     if !logs.is_empty() && kind=="busy" && !screen["secret"].as_bool().unwrap_or(false){lines.push(Line::raw(""));lines.push(Line::styled(" RECENT ACTIVITY / REVIEW DETAILS",Style::default().fg(MUTED)));for l in logs.iter().rev().take(40).collect::<Vec<_>>().into_iter().rev(){lines.push(Line::styled(l.clone(),Style::default().fg(MUTED)));}}
@@ -294,6 +355,28 @@ fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn small_console_keeps_address_and_code_without_cropped_qr() {
+        let lines = device_lines(
+            &json!({"url":"https://auth.openai.com/codex/device","code":"TEST-CODE"}),
+            58,
+            12,
+        );
+        let text = lines
+            .iter()
+            .map(|line| line.to_string())
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(text.contains("https://auth.openai.com/codex/device"));
+        assert!(text.contains("TEST-CODE"));
+        assert!(text.contains("Enlarge"));
+        assert!(!text.contains(['█', '▀', '▄']));
+    }
+    #[test]
+    fn qr_never_encodes_a_token_bearing_or_unrecognized_url() {
+        assert!(login_qr("https://auth.openai.com/codex/device?code=SECRET").is_empty());
+        assert!(login_qr("https://example.com/").is_empty());
+    }
     #[test]
     fn terminal_controls_are_removed() {
         assert_eq!(clean("a\u{1b}\u{07}b\n"), "ab\n");

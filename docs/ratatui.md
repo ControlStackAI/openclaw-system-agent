@@ -18,18 +18,23 @@ Active disk installation is not advertised as safely cancellable.
 
 ## Provider connection
 
+![ChatGPT pairing QR on a Linux console, with a synthetic sample code](images/ratatui-device-qr.png)
+
 Connecting an account stays in Ratatui. A small version-gated Node bridge uses
 the pinned OpenClaw provider-auth orchestration with our own prompter. The official
 provider implementation owns OAuth, refresh credentials, auth-store persistence
 and model selection. OpenClaw's general onboarding wizard is not launched.
 
-ChatGPT displays the official short verification address and device code, waits
+ChatGPT displays the official short verification address, a QR code immediately
+below it, and the device code. The QR opens `https://auth.openai.com/codex/device`
+on a phone; the owner still enters the displayed pairing code. It contains only
+the public address, never credentials or the pairing code. The interface waits
 for approval, and offers Esc to cancel. Retrying requests a fresh code. OpenAI API
 keys enter through a protected Ratatui field and private pipe; they are not command
 arguments or renderer logs. The other-provider choice uses OpenClaw's provider
 and method catalog. Additional provider methods remain individually unqualified;
-unsupported prompt types fail with a retryable explanation. QR codes are not part
-of this first implementation.
+unsupported prompt types fail with a retryable explanation. Small terminals retain
+the address and code and explain how to enlarge the terminal to show a complete QR; a cropped QR is never deliberately displayed.
 
 Only the dedicated agent account runs the authentication helper. The gateway is
 stopped during configuration and restarted afterward, including on cancellation.
@@ -58,7 +63,7 @@ An administrator can use `system-agent-setup --plain` for the text-only fallback
 ## Verification
 
 `checks.x86_64-linux.tui-vm` renders real console screenshots and checks device-code
-display, navigation/cancellation, password masking, disk review and terminal exit.
+display and independent QR decoding from the console screenshot, navigation/cancellation, password masking, disk review and terminal exit.
 Unit tests cover late replies after cancellation and assistant-name validation.
 `scripts/qualify-tui-auth.py` runs against both exact packaged runtimes inside an
 empty network namespace, using fresh state and synthetic credentials. Its device
@@ -69,3 +74,13 @@ These do not qualify real account authentication.
 The full image test drives the shipped Ratatui interview and disk confirmation on
 the primary console, then checks the installed system with the ISO removed.
 See the exact artifact receipts in [qualification](qualification.md).
+
+## Anthropic authentication
+
+Both pinned OpenClaw versions expose Anthropic Claude CLI (`cli`),
+`setup-token` and `api-key` methods through **Another provider**. Neither exposes
+the OpenAI-style short device-code pairing method. These Anthropic routes have
+not been qualified through this interface; a QR graphic alone cannot supply a
+missing provider pairing protocol. The resident account also does not import the
+desktop owner's Claude credentials. See the current
+[OpenClaw Anthropic documentation](https://docs.openclaw.ai/providers/anthropic).

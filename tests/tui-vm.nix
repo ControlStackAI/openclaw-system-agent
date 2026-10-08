@@ -14,6 +14,7 @@ pkgs.testers.runNixOSTest {
   '';
  };
  testScript = ''
+  import os, subprocess
   machine.start()
   machine.wait_for_unit("getty@tty1.service")
   machine.wait_until_succeeds("pgrep -f '[c]ontrolstack-tui'")
@@ -23,6 +24,8 @@ pkgs.testers.runNixOSTest {
   machine.sleep(2)
   machine.succeed("cat /dev/vcs1 | grep TEST-CODE")
   machine.screenshot("provider-device-code")
+  decoded = subprocess.check_output(["${pkgs.zbar}/bin/zbarimg", "--quiet", "--raw", os.path.join(os.environ["out"], "provider-device-code.png")], text=True)
+  assert decoded.strip() == "https://auth.openai.com/codex/device", decoded
   machine.send_key("esc"); machine.sleep(1)
   machine.send_key("2"); machine.send_key("ret"); machine.sleep(1)
   machine.screenshot("desktop-choice")
