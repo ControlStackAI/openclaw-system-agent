@@ -25,7 +25,11 @@ class Handler(BaseHTTPRequestHandler):
         probe = probe and any('desktop: hyprland' in str(m.get('content', '')) for m in messages)
         calls = {c.get('function', {}).get('name') for m in messages for c in (m.get('tool_calls') or [])}
         tool_call = None
-        if probe and 'tool_search' in tools and 'tool_search' not in calls:
+        usb_probe = any(m.get('role') == 'user' and 'live-usb-access-fixture' in str(m.get('content', '')) for m in messages)
+        if usb_probe and 'exec' in tools and 'exec' not in calls:
+            tool_call = {'id': 'fixture-mount', 'type': 'function', 'function': {
+                'name': 'exec', 'arguments': json.dumps({'command': 'sudo -n mkdir -p /mnt/controlstack-usb-fixture && sudo -n mount -o ro /dev/disk/by-label/CS_FIXTURE_USB /mnt/controlstack-usb-fixture && sudo -n cat /mnt/controlstack-usb-fixture/sentinel'})}}
+        elif probe and 'tool_search' in tools and 'tool_search' not in calls:
             tool_call = {'id': 'fixture-search', 'type': 'function', 'function': {
                 'name': 'tool_search', 'arguments': json.dumps({'query': 'hypruse desktop', 'limit': 3})}}
         elif probe and 'tool_call' in tools and 'tool_search' in calls and 'tool_call' not in calls:

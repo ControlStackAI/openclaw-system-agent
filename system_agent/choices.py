@@ -5,7 +5,8 @@ from .profile import validate_choices
 from .state import write_observation
 
 DEFAULTS = dict(hostname="my-computer", username="owner", desktop="none", timezone="UTC",
-                keyboard="us", locale="en_US.UTF-8", encrypt=False, purpose="mixed", agent_name="OpenClaw")
+                keyboard="us", locale="en_US.UTF-8", encrypt=False, purpose="mixed", agent_name="OpenClaw",
+                power_policy="standard", login_policy="password", openclaw_release="default")
 
 
 def validate_partial(value):

@@ -6,10 +6,24 @@ LABELS = {
     'purpose': 'What this computer is for', 'hostname': 'Computer name',
     'username': 'Your account', 'desktop': 'Desktop', 'locale': 'Language and region',
     'agent_name': 'Assistant name', 'keyboard': 'Keyboard', 'timezone': 'Time zone', 'encrypt': 'Disk encryption',
+    'openclaw_release': 'OpenClaw version policy',
+    'power_policy': 'Power and lid behavior', 'login_policy': 'Sign-in and screen lock',
 }
 
 
 def ask(field, choose, timezone, desktops=DESKTOPS):
+    if field == 'openclaw_release':
+        return ('default', 'image-pinned')[choose('Which OpenClaw release should the installed system use?', [
+            'Recommended — latest stable on Arch, pinned release on NixOS',
+            'Explicitly use the version bundled in this image']) - 1]
+    if field == 'power_policy':
+        return ('always-on', 'standard')[choose('How should power and the laptop lid behave?', [
+            'Always on — performance, no sleep or screen blanking, ignore the lid',
+            'Distribution defaults']) - 1]
+    if field == 'login_policy':
+        return ('yubikey', 'password')[choose('How should sign-in and screen locking work?', [
+            'YubiKey sign-in, lock on removal, optional password screen unlock',
+            'Account password']) - 1]
     if field == 'agent_name':
         return input('Name for your assistant [OpenClaw]: ').strip() or 'OpenClaw'
     if field == 'purpose':
@@ -41,8 +55,12 @@ def ask(field, choose, timezone, desktops=DESKTOPS):
 
 
 def interview(suggestions, choose, timezone, describe, desktops=DESKTOPS):
-    choices = dict(validate_partial(suggestions))
+    import json
+    from pathlib import Path
+    defaults = json.loads((Path(__file__).resolve().parent.parent / 'identity/install-preferences.json').read_text())
+    choices = {**validate_partial(defaults), **validate_partial(suggestions)}
     choices.setdefault("agent_name", "OpenClaw")
+    choices.setdefault("openclaw_release", "default")
     if choices.get('desktop') not in (*desktops, None):
         print('That desktop is not available in this image yet. Please choose one below.')
         choices.pop('desktop')
@@ -63,7 +81,11 @@ def interview(suggestions, choose, timezone, describe, desktops=DESKTOPS):
         print('These preferences are not permission to erase a disk. You will review the disk separately.')
         answer = choose('Would you like to change anything?', ['Keep these choices', *LABELS.values()])
         if answer == 1:
-            return validate_choices(choices)
+            try:
+                return validate_choices(choices)
+            except ValueError as error:
+                print(str(error))
+                continue
         field = list(LABELS)[answer - 2]
         value = ask(field, choose, timezone, desktops)
         try:

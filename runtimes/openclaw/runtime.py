@@ -64,6 +64,8 @@ def local_policy(state, config_path=None, installed_mcp_path="/etc/controlstack-
     config.setdefault("secrets", {}).setdefault("providers", {})["gateway"] = defaults["secrets"]["providers"]["gateway"]
     config.setdefault("agents", {}).setdefault("defaults", {}).update(workspace=str(state / "workspace"), skipBootstrap=True)
     config["tools"] = {"profile": "full", "allow": ["read", "session_status", "exec", "process", "write", "edit"], "elevated": {"enabled": False}}
+    from system_agent.access import configure_live_tools
+    configure_live_tools(config)
     merge_installed_mcp(config, installed_mcp_path)
     config["channels"] = {}
     temporary = state / ("config-" + secrets.token_hex(8))

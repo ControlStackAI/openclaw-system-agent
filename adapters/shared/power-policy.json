@@ -1,0 +1,12 @@
+{
+  "kernelParams": ["consoleblank=0", "usbcore.autosuspend=-1", "pcie_aspm=off", "nvme_core.default_ps_max_latency_us=0", "snd_hda_intel.power_save=0"],
+  "logind": {
+    "HandleLidSwitch": "ignore",
+    "HandleLidSwitchExternalPower": "ignore",
+    "HandleLidSwitchDocked": "ignore",
+    "HandleSuspendKey": "ignore",
+    "HandleHibernateKey": "ignore",
+    "IdleAction": "ignore"
+  },
+  "sleep": {"AllowSuspend": false, "AllowHibernation": false, "AllowHybridSleep": false, "AllowSuspendThenHibernate": false}
+}

@@ -55,7 +55,11 @@ def discover(root=Path("/"), run=command):
     phase = classify(chroot=None if cr not in (0, 1) else cr == 0,
                      container=None if co not in (0, 1) else co == 0,
                      live=live, root_type=fs.get("fstype", ""))
-    return {"schema": 1, "distro_id": release.get("ID", "unknown"),
+    from .access import live_system_access
+    host_access = live_system_access(root)
+    sudo_rc, sudo_uid = run(["sudo", "-n", "id", "-u"]) if host_access else (1, "")
+    return {"schema": 1, "system_access": {"configured": "sudo-full" if host_access else "resident-policy",
+            "root_command_verified": host_access and sudo_rc == 0 and sudo_uid == "0"}, "distro_id": release.get("ID", "unknown"),
             "distro_name": release.get("PRETTY_NAME", "Unknown Linux"),
             "kernel": platform.release(), "uid": os.geteuid(), "phase": phase,
             "boot_id": read("proc/sys/kernel/random/boot_id"),

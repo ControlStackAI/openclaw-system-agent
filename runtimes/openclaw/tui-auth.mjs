@@ -26,7 +26,7 @@ const prompter={
 const controller=new AbortController();process.on('SIGTERM',()=>controller.abort());
 try {
  const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json')));
- if(!['2026.9.5','2026.9.8'].includes(pkg.version))throw new Error('Unqualified authentication runtime');
+ if(!['2026.9.5','2026.9.9'].includes(pkg.version))throw new Error('Unqualified authentication runtime');
  const dist=path.join(root,'dist');
  const candidates=fs.readdirSync(dist).filter(n=>/^auth-[\w-]+\.mjs$/.test(n)&&/export \{ modelsAuthAddCommand,.*runModelsAuthLoginFlowForGateway/.test(fs.readFileSync(path.join(dist,n),'utf8')));
  if(candidates.length!==1)throw new Error('Pinned authentication integration is unavailable');

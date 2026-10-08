@@ -5,7 +5,9 @@ let
     cp ${../../shared/hyprland}/*.qml ${../../shared/hyprland}/Theme.js $out/quickshell/
     substitute ${../../shared/hyprland/hyprland.lua} $out/hyprland.lua \
       --replace-fail '@keyboard@' '${config.services.xserver.xkb.layout}'
-    cp ${../../shared/hyprland/hyprlock.conf} $out/hyprlock.conf
+    substitute ${../../shared/hyprland/hyprlock.conf} $out/hyprlock.conf \
+      --replace-fail '@unlock-hint@' '${if config.security.pam.services.hyprlock.rules.auth ? password-policy then "Enter to touch YubiKey, or type password if enabled" else "Enter your account password"}'
+    sed -i 's/size = 300, 60/size = 560, 60/' $out/hyprlock.conf
     cp ${../../shared/hyprland/ghostty.conf} $out/ghostty.conf
     cp ${../../shared/hyprland/hypridle.conf} $out/hypridle.conf
   '';
@@ -116,10 +118,9 @@ in {
           shortcuts) exec ghostty -e less ${../../shared/hyprland/shortcuts.txt} ;;
           search) rofi -dmenu -i -p "Keyboard shortcuts" < ${../../shared/hyprland/shortcuts.txt} >/dev/null || true ;;
           power)
-            choice=$(printf '%s\n' 'Cancel' 'Lock' 'Suspend' 'Sign out' 'Restart' 'Power off' | rofi -dmenu -i -p 'Power') || exit 0
+            choice=$(printf '%s\n' 'Cancel' 'Lock' 'Sign out' 'Restart' 'Power off' | rofi -dmenu -i -p 'Power') || exit 0
             case "$choice" in
               Lock) exec ${pkgs.hyprlock}/bin/hyprlock ;;
-              Suspend) exec systemctl suspend ;;
               'Sign out') exec uwsm stop ;;
               Restart) exec systemctl reboot ;;
               'Power off') exec systemctl poweroff ;;

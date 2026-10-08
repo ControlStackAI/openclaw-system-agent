@@ -39,7 +39,7 @@ def check_context():
     return facts
 
 
-def prepare(node, choices):
+def prepare(node, choices, enrollment=None):
     facts = check_context()
     choices = validate_choices(choices)
     if choices['desktop'] not in ('none', 'hyprland'):
@@ -59,14 +59,25 @@ def prepare(node, choices):
         raise ValueError('The portable ZFS profile is missing.')
     if output(['modinfo', '-F', 'vermagic', 'zfs']).split()[0] != inputs['kernel_release']:
         raise ValueError('The live ZFS module does not match the target kernel.')
+    from runtimes.openclaw.release_policy import resolve
+    release = resolve("arch", choices.get("openclaw_release", "default"))
+    actual_release = output([inputs["runtime"] + "/bin/openclaw", "--version"])
+    if not re.search(r"(?<![0-9.])" + re.escape(release["version"]) + r"(?![0-9.-])", actual_release):
+        raise ValueError("The prepared OpenClaw runtime differs from the selected release. No disk was changed.")
+    print("Installed OpenClaw release: " + release["version"] + " (" + release["policy"] + ")", flush=True)
     area = private_dir(AREA)
+    if choices.get('login_policy') == 'yubikey':
+        from system_agent.security_key import validate_enrollment
+        validate_enrollment(enrollment, choices['username'])
     plan = {'schema': 1, 'id': secrets.token_hex(8), 'boot_id': facts['boot_id'],
             'disk': disk_identity(node), 'choices': choices,
             'pool': 'csa' + secrets.token_hex(4), 'host_id': secrets.token_hex(4),
             'efi_uuid': str(uuid.uuid4()), 'zfs_uuid': str(uuid.uuid4()),
             'machine_id': uuid.uuid4().hex, 'installer_revision': inputs['installer_revision'],
             'payload': str(payload), 'sha256': actual, 'runtime': inputs['runtime'],
-            'kernel_release': inputs['kernel_release']}
+            'kernel_release': inputs['kernel_release'], 'openclaw_release': release}
+    if enrollment is not None:
+        plan['key_enrollment'] = enrollment
     create_private(area / (plan['id'] + '.json'), json.dumps(plan, indent=2))
     return plan
 
@@ -99,6 +110,9 @@ def install(plan, confirmation, password, encryption_key=None):
     if TARGET.is_symlink() or (TARGET.exists() and any(TARGET.iterdir())) or os.path.ismount(TARGET):
         raise ValueError("The installation mount point is already occupied.")
     TARGET.mkdir(parents=True, exist_ok=True)
+    if plan['choices'].get('login_policy') == 'yubikey':
+        from system_agent.security_key import validate_enrollment
+        validate_enrollment(plan.get('key_enrollment'), plan['choices']['username'])
     # Consume approval before the first destructive operation, even if it fails.
     create_private(AREA / (plan["id"] + ".started"), "approved locally\n")
     password_hash = run(["mkpasswd", "--method=yescrypt", "--stdin"], input=password + "\n", capture_output=True).stdout.strip()
@@ -136,6 +150,7 @@ def install(plan, confirmation, password, encryption_key=None):
     (TARGET / 'opt').mkdir(exist_ok=True)
     run(['cp', '-a', '/opt/codex', str(TARGET / 'opt')])
     from adapters.arch.target import configure, write
+    from adapters.arch.owner_policy import POWER
     configure(TARGET, plan['runtime'], plan['choices'])
     write(TARGET, 'etc/machine-id', plan['machine_id'] + '\n')
     write(TARGET, 'etc/fstab',
@@ -160,6 +175,12 @@ def install(plan, confirmation, password, encryption_key=None):
             chroot('usermod', '-aG', 'controlstack-desktop', account)
         services += ['sddm', 'bluetooth']
         chroot('systemctl', '--global', 'enable', 'pipewire.socket', 'pipewire-pulse.socket', 'wireplumber.service')
+    if plan['choices'].get('power_policy') == 'always-on':
+        services.append('controlstack-performance')
+    if plan['choices'].get('login_policy') == 'yubikey':
+        services.append('controlstack-key-watch')
+        from system_agent.security_key import install_enrollment
+        install_enrollment(TARGET, plan['key_enrollment'], plan['choices']['username'])
     chroot('systemctl', 'enable', *services)
     # Native busybox ZFS hook reads fstab for a legacy root and loads its key.
     write(TARGET, 'etc/mkinitcpio.conf',
@@ -174,9 +195,9 @@ def install(plan, confirmation, password, encryption_key=None):
     write(TARGET, 'boot/loader/loader.conf', 'default controlstack.conf\ntimeout 4\neditor no\n')
     write(TARGET, 'boot/loader/entries/controlstack.conf',
           'title ControlStack Arch Linux\nlinux /vmlinuz-linux\ninitrd /initramfs-linux.img\n'
-          'options zfs=' + pool + '/ROOT/system rw zfs_boot_only=1 console=ttyS0,115200 console=tty0\n')
+          'options zfs=' + pool + '/ROOT/system rw zfs_boot_only=1 console=ttyS0,115200 console=tty0' + (' ' + ' '.join(POWER['kernelParams']) if plan['choices'].get('power_policy') == 'always-on' else '') + '\n')
     # Preserve public provenance and a clean shutdown export; no forced imports.
-    write(TARGET, 'etc/controlstack-agent/installed-image.json', json.dumps({k: plan[k] for k in ('sha256', 'runtime', 'kernel_release', 'installer_revision')}, indent=2) + '\n')
+    write(TARGET, 'etc/controlstack-agent/installed-image.json', json.dumps({k: plan[k] for k in ('sha256', 'runtime', 'kernel_release', 'installer_revision', 'openclaw_release')}, indent=2) + '\n')
     # Create fresh resident state. No live workspace, transcript, config or token is copied.
     account_line = next(line for line in (TARGET / "etc/passwd").read_text().splitlines() if line.startswith("controlstack-agent:"))
     _, _, uid, gid, *_ = account_line.split(":")
@@ -229,7 +250,15 @@ def interactive(state, suggestions=None):
     if index > len(available):
         return
     node = available[index - 1]
-    plan = prepare(node, choices)
+    enrollment = None
+    if choices.get('login_policy') == 'yubikey':
+        print('Your YubiKey will be required at sign-in, and removing it will lock the desktop.\n'
+              'Password screen unlock starts enabled; the unlocked desktop can change it with a key touch.\n'
+              'Disk encryption keeps its separate passphrase. Keep the enrolled key available after reboot.')
+    if choices.get('login_policy') == 'yubikey':
+        from system_agent.security_key import enroll
+        enrollment = enroll(choices['username'])
+    plan = prepare(node, choices, enrollment)
     print("\nPlease review your installation:")
     if choices["desktop"] == "hyprland":
         print("OpenClaw will have full control of your logged-in Hyprland desktop: apps, windows, screenshots, mouse, keyboard and clipboard. The center island can stop desktop access.")
@@ -259,3 +288,5 @@ def interactive(state, suggestions=None):
         password = encryption_key = None
     if choose("Ready to shut down and start your installed system?", ["Shut down, then remove the USB", "Stay in this USB session"]) == 1:
         run(["systemctl", "poweroff"])
+    return {"state": "installed-awaiting-reboot", "disk_erasure_approved": True,
+            "message": "Installation completed. An independent boot with the USB removed is still required."}

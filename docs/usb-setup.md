@@ -103,3 +103,42 @@ installed-root recovery remain unqualified.
 The current image additionally passed the [Hyprland installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487)
 with the final development tools and desktop polish. Other profiles were tested
 on the preceding five-case image; see [qualification](qualification.md).
+
+## Installation started from the conversation
+
+On newly built images, the live agent can call `system-agent install-status` to
+read the root console's payload/capability check, then `system-agent request-install`
+after saving the agreed supported choices. Ratatui opens installation review
+automatically; the user does not have to navigate back through the menu. The local
+screen still owns disk selection, exact erasure approval, key enrollment and
+protected password input. Cancellation/failure/success is returned to the same
+conversation, without restarting the gateway or copying credentials.
+
+The bridge exists only while root live setup is running. Its socket is root-owned,
+group-accessible only to the service account, and checks peer credentials. It
+accepts typed choices, not disk paths, scripts, passwords or erasure approvals.
+Requests are idempotent; an intentional retry uses `request-install --retry`.
+Arbitrary workspace drafts are not an executable installation configuration.
+Unsupported requirements must be explained before the owner approves the supported
+plan. Older ISOs do not contain this bridge.
+
+### Live system access and conversation-driven installation
+
+The live service account has passwordless `sudo` and shares the host's devices
+and mount namespace. OpenClaw can inspect disks, mount an additional USB, and
+prepare an authorized recovery or installation without sending the owner to a
+shell. `system-agent inspect` reports the image's access profile and a real
+noninteractive root-command check. This broad access is intentional on the live
+media; it is not copied into the installed resident service.
+
+The gateway remains loopback/token authenticated, external chat channels are off,
+and live credentials remain in private RAM. Full sudo grants actual root powers;
+the exact-disk review is a required installer workflow, not a security boundary
+against an agent choosing arbitrary root commands. The identity directs the agent
+to use read-only mounts for inspection, preserve unrelated disks, and obtain a
+concrete storage approval before destructive changes.
+
+The agent calls `system-agent request-install` after saving your supported choices.
+The primary console opens installation review automatically and returns to the
+same conversation after cancellation, failure, or completion. The agent checks
+`system-agent install-status` for the root installer's own payload/readiness view.

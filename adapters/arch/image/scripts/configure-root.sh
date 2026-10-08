@@ -27,7 +27,7 @@ for repo in core extra; do
     cp "/root/agent-downloads/$repo.db" "/var/lib/pacman/sync/$repo.db"
 done
 for attempt in 1 2 3; do
-    if pacman -Suu --noconfirm --needed networkmanager wpa_supplicant curl ca-certificates git ripgrep tmux python openssh libfido2 yubikey-personalization neovim whois squashfs-tools; then
+    if pacman -Suu --noconfirm --needed networkmanager wpa_supplicant curl ca-certificates git ripgrep tmux python openssh libfido2 yubikey-personalization neovim whois squashfs-tools sudo; then
         break
     fi
     if [[ "$attempt" == 3 ]]; then exit 1; fi

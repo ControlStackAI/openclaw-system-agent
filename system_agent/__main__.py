@@ -27,12 +27,15 @@ def main():
     choices = sub.add_parser("setup-choice")
     choices.add_argument("key", nargs="?")
     choices.add_argument("value", nargs="?")
+    sub.add_parser("install-status")
+    sub.add_parser("request-install").add_argument("--retry", action="store_true")
     sub.add_parser("onboard")
     sub.add_parser("name-agent").add_argument("name")
     login = sub.add_parser("connect-account")
     login.add_argument("account", choices=("chatgpt", "openai-api", "other"))
     chat = sub.add_parser("chat")
     chat.add_argument("--welcome", action="store_true")
+    chat.add_argument("--resume-install", action="store_true")
     sub.add_parser("health")
     backup = sub.add_parser("backup")
     backup.add_argument("--destination", required=True, type=Path)
@@ -63,6 +66,10 @@ def main():
                 result = choices.update(args.state, args.key, args.value)
             else:
                 raise ValueError("Supply both a choice and its value, or neither to read choices.")
+        elif args.command in ("install-status", "request-install"):
+            from .install_bridge import request
+            from .choices import read
+            result = request("status") if args.command == "install-status" else request("request", read(args.state), retry=args.retry)
         elif args.command == "name-agent":
             from .profile import name_agent
             from .choices import update
@@ -80,6 +87,8 @@ def main():
             command = ["tui"]
             if args.welcome:
                 command += ["--message", "Help me with this computer. Check where you are running and my saved intentions, then ask just the next useful question. Do not assume that live media means I want to erase or install."]
+            if args.resume_install:
+                command += ["--message", "The local installation review returned. Read system-agent install-status and explain the actual result. Do not equate copied installation files with a verified installed boot."]
             return runtime.invoke(args.state, command, args.config)
         elif args.command == "health":
             return runtime.invoke(args.state, ["health", "--json"], args.config)

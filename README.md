@@ -31,8 +31,11 @@ is retained only as historical evidence.
 The resident lifecycle also passed separate reboot and native backup/restore
 tests. The [Arch image](docs/arch-installation.md) now has a native UEFI/ZFS installer with the shared Hyprland desktop. See the qualification matrix for tested artifacts.
 An owner-run broker implements narrowly scoped ZFS snapshots, scrub requests and
-service restarts; its friendly approval UI remains future work. The daemon has
-no sudo grant, disk-erasure executor or boot-critical update executor.
+service restarts; its friendly approval UI remains future work. The installed daemon has
+no sudo grant, disk-erasure executor or boot-critical update executor. Live images
+explicitly grant host administration through sudo so OpenClaw can mount USBs and
+prepare installations. Conversation-driven installation opens the local exact-disk
+review automatically; see [live access](docs/usb-setup.md#live-system-access-and-conversation-driven-installation).
 
 This repository is separate from [agent-installer](https://github.com/ControlStackAI/agent-installer),
 whose pinned network/clock/ZFS readiness code is consumed by this image. No private host configuration or prior
@@ -75,7 +78,8 @@ nix build .#checks.x86_64-linux.lifecycle-vm --max-jobs 1 --cores 2
 
 Only x86_64 Linux is evaluated in this first implementation. Builds use the exact
 `flake.lock`; updates must be reviewed. The official Nix packaging currently pins
-OpenClaw 2026.9.5 for NixOS. Arch separately locks the published OpenClaw 2026.9.8 release and its dependency tree. Both include their matching Codex agent runtime.
+OpenClaw 2026.9.5 for NixOS. Arch separately locks the published OpenClaw 2026.9.9 release and its dependency tree. Both include their matching Codex agent runtime. Arch checks the stable tag before installation; if the USB runtime is stale, it stops rather than silently installing an older release.
+See [owner preferences](docs/owner-preferences.md) for the reusable YubiKey/power profile and release-policy limitations.
 
 For a disposable NixOS VM, add this flake as an input, import
 `inputs.system-agent.nixosModules.default`, and enable
@@ -100,3 +104,5 @@ qualification matrix before treating any offered path as validated.
 
 Read the [state/recovery model](docs/state-and-recovery.md),
 [live ISO decision](docs/live-iso.md), and [upstream evidence](docs/upstream.md).
+
+The live agent can now open installation review directly from the conversation through a root-owned request bridge. See [the USB flow](docs/usb-setup.md#installation-started-from-the-conversation); disk approval remains a local screen action.

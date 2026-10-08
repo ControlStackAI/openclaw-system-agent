@@ -31,6 +31,8 @@ def _configure(root, runtime, choices):
     root = Path(root)
     owner = choices['username']
     desktop = choices['desktop'] == 'hyprland'
+    from .owner_policy import configure as configure_owner_policy
+    configure_owner_policy(root, runtime, choices)
     assets = Path(__file__).resolve().parents[1] / 'shared/hyprland'
     write(root, 'etc/hostname', choices['hostname'] + '\n')
     write(root, 'etc/locale.gen', choices['locale'] + ' UTF-8\n')
@@ -46,7 +48,7 @@ def _configure(root, runtime, choices):
     write(root, 'etc/xdg/nvim/controlstack.lua', "vim.opt.number = true\nvim.opt.relativenumber = true\nvim.opt.mouse = 'a'\nvim.opt.clipboard = 'unnamedplus'\nvim.opt.expandtab = true\nvim.opt.shiftwidth = 2\nvim.opt.tabstop = 2\n")
     write(root, 'etc/environment', 'EDITOR=nvim\nVISUAL=nvim\nTERMINAL=ghostty\nQT_QUICK_CONTROLS_STYLE=Basic\n')
     write(root, 'etc/sudoers.d/controlstack', '%wheel ALL=(ALL:ALL) ALL\n' + owner + ' ALL=(root) NOPASSWD: /usr/local/bin/system-agent-setup ""\n', 0o440)
-    for name in ('openclaw', 'system-agent', 'system-agent-setup', 'system-agent-admin', 'system-agent-codex-login', 'claude'):
+    for name in ('openclaw', 'system-agent', 'system-agent-setup', 'system-agent-admin', 'system-agent-codex-login', 'system-agent-key', 'claude'):
         link = root / 'usr/local/bin' / name
         link.parent.mkdir(parents=True, exist_ok=True)
         link.unlink(missing_ok=True)
@@ -135,6 +137,8 @@ fi
     defaults = root / 'usr/share/controlstack/hyprland'
     shutil.copytree(assets, defaults, dirs_exist_ok=True)
     write(root, 'usr/share/controlstack/hyprland/hyprland.lua', (assets / 'hyprland.lua').read_text().replace('@keyboard@', choices['keyboard']))
+    hint = 'Enter to touch YubiKey, or type password if enabled' if choices.get('login_policy') == 'yubikey' else 'Enter your account password'
+    write(root, 'usr/share/controlstack/hyprland/hyprlock.conf', (assets / 'hyprlock.conf').read_text().replace('@unlock-hint@', hint).replace('size = 300, 60', 'size = 560, 60'))
     script(root, 'start-hyprland', '''cfg="${XDG_CONFIG_HOME:-$HOME/.config}"
 mkdir -p "$cfg/hypr" "$cfg/quickshell/controlstack" "$cfg/ghostty" "$cfg/rofi"
 seed() { if [ ! -e "$2" ]; then cp --no-clobber "$1" "$2"; chmod u+w "$2"; fi; }
@@ -183,9 +187,9 @@ Terminal=false
 shortcuts) exec ghostty -e less /usr/share/controlstack/hyprland/shortcuts.txt ;;
 search) rofi -dmenu -i -p 'Keyboard shortcuts' < /usr/share/controlstack/hyprland/shortcuts.txt >/dev/null || true ;;
 power)
-choice=$(printf '%s\\n' 'Cancel' 'Lock' 'Suspend' 'Sign out' 'Restart' 'Power off' | rofi -dmenu -i -p Power) || exit 0
+choice=$(printf '%s\\n' 'Cancel' 'Lock' 'Sign out' 'Restart' 'Power off' | rofi -dmenu -i -p Power) || exit 0
 case "$choice" in
-Lock) exec hyprlock ;; Suspend) exec systemctl suspend ;; 'Sign out') exec uwsm stop ;;
+Lock) exec hyprlock ;; 'Sign out') exec uwsm stop ;;
 Restart) exec systemctl reboot ;; 'Power off') exec systemctl poweroff ;; esac ;;
 esac
 ''')

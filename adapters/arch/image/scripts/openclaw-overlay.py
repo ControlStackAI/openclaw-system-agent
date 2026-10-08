@@ -14,6 +14,11 @@ for name in ('openclaw', 'system-agent', 'system-agent-setup', 'system-agent-adm
 conf = Path('/etc/controlstack-agent')
 conf.mkdir(parents=True, exist_ok=True)
 (conf / 'installed-mcp.json').write_text('{}\n')
+(conf / 'live-system-access.json').write_text('{"schema":1,"access":"sudo-full"}\n')
+sudo = Path('/etc/sudoers.d/controlstack-live-agent')
+sudo.write_text('controlstack-agent ALL=(ALL:ALL) NOPASSWD: ALL\n')
+sudo.chmod(0o440)
+subprocess.run(['visudo', '-cf', str(sudo)], check=True)
 (conf / 'image-capabilities.json').write_text(json.dumps({
     'schema': 1, 'distro': 'arch', 'runtime': 'openclaw',
     'installation': True, 'desktops': ['hyprland', 'none'],
@@ -49,17 +54,8 @@ ExecStartPre=/usr/local/bin/system-agent refresh
 ExecStart=/usr/local/bin/openclaw gateway run
 Restart=on-failure
 RestartSec=5
-NoNewPrivileges=true
-CapabilityBoundingSet=
-ProtectSystem=strict
-ProtectHome=true
-PrivateTmp=true
-PrivateDevices=true
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadWritePaths=/run/controlstack-agent
+# Live installation/recovery commands use sudo in the host mount namespace.
+# Credentials still belong to the private RAM-only service account.
 [Install]
 WantedBy=multi-user.target
 '''

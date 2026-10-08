@@ -19,11 +19,19 @@ ExecStartPre refreshes runtime facts independently of model availability. BOOT.m
 is guidance only; this project does not enable the upstream boot-md hook or
 outbound messages. Session-start identity asks for refreshed observations.
 
-Capabilities begin with reading files as a restricted system account. Optional
+Installed-system capabilities begin with reading files as a restricted system account. Optional
 workspace execution enables shell, process, write and edit tools under the same
 systemd boundary. It is powerful over the agent's own state; it is not read-only.
 NoNewPrivileges, an empty capability set, private devices, protected homes and a
 read-only system prevent granting a general root shell through the daemon.
+
+Live images explicitly use a different profile: passwordless sudo for the agent,
+host devices and the host mount namespace, with gateway exec in full mode. This
+allows authorized inspection, removable-media mounts and recovery. Loopback token
+authentication and private RAM credentials remain. The live grant is not copied
+to the target. Full sudo is actual root capability; local disk review is the
+required installation workflow, not an OS security barrier against root. See
+[USB setup](usb-setup.md) for the conversation-to-console installation bridge.
 
 The resident plan-only capability API uses allowlisted service/dataset/pool names and binds
 the plan digest to observed boot/root facts. It has **no apply method**. A separate owner-run `system-agent-admin` broker accepts only root-owned policy

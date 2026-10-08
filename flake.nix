@@ -89,11 +89,14 @@
       };
     };
     checks.${system} = {
+      live-access-vm = import ./tests/live-access-vm.nix { inherit pkgs; module = self.nixosModules.default; };
+      install-bridge-vm = import ./tests/install-bridge-vm.nix { inherit pkgs core; };
+      owner-policy-vm = import ./tests/owner-policy-vm.nix { inherit pkgs core; };
       tui-vm = import ./tests/tui-vm.nix { inherit pkgs core; };
       networking-vm = assert live.config.networking.wireless.enable;
         assert live.config.networking.wireless.dbusControlled;
         import ./tests/networking-vm.nix { inherit pkgs; };
-      desktop-vm = import ./tests/desktop-vm.nix { inherit pkgs aiTools; module = self.nixosModules.default; };
+      desktop-vm = import ./tests/desktop-vm.nix { inherit pkgs aiTools core; module = self.nixosModules.default; };
       core-vm = import ./tests/core-vm.nix { inherit pkgs; module = self.nixosModules.default; };
       lifecycle-vm = import ./tests/nixos-vm.nix { inherit pkgs; module = self.nixosModules.default; };
     };

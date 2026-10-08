@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 const root = process.env.OPENCLAW_PACKAGE_ROOT;
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-if (metadata.name !== 'openclaw' || metadata.version !== '2026.9.8') {
+if (metadata.name !== 'openclaw' || metadata.version !== '2026.9.9') {
   throw new Error('Unexpected OpenClaw release artifact');
 }
 for (const file of ['dist/index.js', 'dist/extensions/openai/openclaw.plugin.json',

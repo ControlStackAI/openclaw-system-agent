@@ -83,8 +83,13 @@ def timezone_choice():
 def describe_choices(choices):
     labels = {"agent_name": "Assistant name", "purpose": "Main use", "hostname": "Computer name", "username": "Your account", "desktop": "Desktop",
               "locale": "Language and region", "keyboard": "Keyboard", "timezone": "Time zone",
-              "encrypt": "Disk encryption"}
+              "encrypt": "Disk encryption", "power_policy": "Power and lid behavior",
+              "login_policy": "Sign-in and screen lock", "openclaw_release": "OpenClaw version policy"}
     names = {"none": "No desktop", "plasma": "KDE Plasma", "gnome": "GNOME", "hyprland": "Hyprland + Quickshell",
+             "always-on": "Always on: performance, no sleep, no display blanking, lid ignored",
+             "yubikey": "YubiKey required at sign-in; removal locks; password unlock can be toggled",
+             "default": "Latest stable on Arch; pinned release on NixOS", "image-pinned": "Explicit image-pinned release",
+             "standard": "Distribution defaults", "password": "Account password",
              "us": "US", "gb": "UK", "de": "German", "fr": "French", "es": "Spanish",
              "en_US.UTF-8": "English (United States)", "en_GB.UTF-8": "English (United Kingdom)",
              "de_DE.UTF-8": "German (Germany)", "fr_FR.UTF-8": "French (France)", "es_ES.UTF-8": "Spanish (Spain)"}
@@ -92,5 +97,5 @@ def describe_choices(choices):
         if key in choices:
             value = choices[key]
             display = (("On" if value else "Off") if key == "encrypt" else
-                       names.get(value, value) if key in ("desktop", "locale", "keyboard") else value)
+                       names.get(value, value) if key in ("desktop", "locale", "keyboard", "power_policy", "login_policy", "openclaw_release") else value)
             print(f"  {label}: {display}")

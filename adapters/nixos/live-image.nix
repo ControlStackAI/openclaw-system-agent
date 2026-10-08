@@ -1,6 +1,6 @@
 { lib, pkgs, modulesPath, config, ... }:
 {
-  imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ./networking.nix ];
+  imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ./networking.nix ./live-access.nix ];
   services.controlstackAgent = {
     enable = true;
     ephemeral = true;

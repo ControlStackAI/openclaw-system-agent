@@ -1,5 +1,5 @@
 # Desktop-only iteration, with synthetic audio devices and no account credentials.
-{ pkgs, aiTools, module }:
+{ pkgs, aiTools, module, core }:
 pkgs.testers.runNixOSTest {
   name = "controlstack-desktop";
   enableOCR = true;
@@ -7,6 +7,16 @@ pkgs.testers.runNixOSTest {
     imports = [ module (import ../adapters/nixos/desktop.nix { desktop = "hyprland"; inherit aiTools; }) ];
     services.controlstackAgent = { enable = true; workspaceExecution = true; desktopOwner = "owner"; };
     networking.networkmanager.enable = true;
+    # UI fixture only. Authentication policy has its own owner-policy VM; this
+    # desktop VM deliberately autologins and uses its disposable password.
+    environment.etc."controlstack-agent/owner-policy.json".text = builtins.toJSON {
+      owner = "owner"; login_policy = "yubikey"; power_policy = "always-on";
+    };
+    systemd.tmpfiles.rules = [
+      "d /var/lib/controlstack-security 0755 root root -"
+      "f /var/lib/controlstack-security/password-unlock.json 0644 root root - {\"enabled\":true}"
+      "f /var/lib/controlstack-security/key-device.json 0644 root root - {\"serial\":\"fixture\"}"
+    ];
     users.users.owner = { isNormalUser = true; extraGroups = [ "wheel" "networkmanager" ]; password = "vm-only"; };
     services.displayManager.autoLogin = { enable = true; user = "owner"; };
     virtualisation = { memorySize = 4096; cores = 2; qemu.options = [ "-vga virtio" ]; };
@@ -132,7 +142,21 @@ pkgs.testers.runNixOSTest {
     machine.succeed(gui + "quickshell -c controlstack ipc call shell network")
     time.sleep(2)
     machine.screenshot("network")
+    click_label("System")
+    print(machine.succeed(gui + "system-agent-key status"))
+    print(machine.succeed(gui + "controlstack-desktop-status"))
+    machine.screenshot("security-controls-key-absent")
     machine.send_key("esc")
+    # Same logind signal as key removal: prove the compositor really locks.
+    machine.succeed(owner + "systemctl --user start hypridle")
+    machine.succeed("PYTHONPATH=${core}/lib/system-agent ${pkgs.python3}/bin/python3 -c 'from system_agent.security_key import lock_owner; lock_owner(\"owner\")'")
+    machine.wait_until_succeeds("pgrep -u owner -x hyprlock", timeout=30)
+    machine.wait_until_succeeds("journalctl -b _SYSTEMD_USER_UNIT=hypridle.service --no-pager | grep 'Wayland session got locked'", timeout=30)
+    machine.screenshot("key-removal-lock-signal")
+    machine.send_chars("vm-only")
+    machine.send_key("ret")
+    machine.wait_until_succeeds("! pgrep -u owner -x hyprlock", timeout=30)
+    machine.succeed(owner + "systemctl --user stop hypridle")
     machine.succeed(owner + "codex --version")
     machine.succeed(owner + "codex login --help | grep -- --device-auth")
     machine.succeed("command -v system-agent-codex-login")

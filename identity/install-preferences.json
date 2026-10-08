@@ -1,0 +1,4 @@
+{
+  "power_policy": "always-on",
+  "login_policy": "yubikey"
+}

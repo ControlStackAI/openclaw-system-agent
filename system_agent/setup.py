@@ -1,5 +1,7 @@
-"""Local console setup. Privileged steps are never exposed as agent tools."""
+"""Local console setup. Agent requests share the owner-approved installation path."""
+import contextlib
 import json
+import signal
 import os
 import shutil
 import subprocess
@@ -28,11 +30,12 @@ def choose(question, options):
 
 class Setup:
     def __init__(self, live, distro="nixos"):
+        self.bridge = None
         self.live = live
         self.distro = distro
         self.state = Path("/run/controlstack-agent" if live else "/var/lib/controlstack-agent")
 
-    def agent(self, *args, capture=False):
+    def agent(self, *args, capture=False, watch_install=False):
         # A fresh allowlisted environment is built by system-agent's runtime adapter.
         env = {"PATH": os.environ["PATH"], "TERM": os.environ.get("TERM", "linux"),
                "LANG": os.environ.get("LANG", "en_US.UTF-8"), "HOME": str(self.state),
@@ -41,6 +44,27 @@ class Setup:
         for key in ("SSL_CERT_FILE", "NIX_SSL_CERT_FILE"):
             if key in os.environ:
                 env[key] = os.environ[key]
+        if watch_install and self.bridge:
+            command = ["runuser", "-u", ACCOUNT, "--", "system-agent", *args]
+            process = subprocess.Popen(command, env=env, text=True, umask=0o077, start_new_session=True)
+            try:
+                while process.poll() is None:
+                    record = self.bridge.take()
+                    if record:
+                        self.pending_install = record
+                        os.killpg(process.pid, signal.SIGTERM)
+                        try:
+                            process.wait(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            os.killpg(process.pid, signal.SIGKILL)
+                            process.wait()
+                        break
+                    time.sleep(.2)
+            finally:
+                if process.poll() is None:
+                    os.killpg(process.pid, signal.SIGTERM)
+                    process.wait(timeout=5)
+            return subprocess.CompletedProcess(command, process.returncode)
         return subprocess.run(["runuser", "-u", ACCOUNT, "--", "system-agent", *args],
                               env=env, capture_output=capture, text=True, umask=0o077)
 
@@ -104,10 +128,38 @@ class Setup:
         print("\nOpening your system assistant. Press Ctrl+D to return to this menu.\n"
               "A successful assistant reply confirms model access; a running service alone does not.")
         try:
-            with tui.external():
-                self.agent("chat", "--welcome")
+            resume = False
+            while True:
+                self.pending_install = None
+                with tui.external():
+                    self.agent("chat", "--resume-install" if resume else "--welcome", watch_install=True)
+                if not self.pending_install:
+                    break
+                self.install_requested(self.pending_install)
+                resume = True
         except KeyboardInterrupt:
             print("\nBack at the setup menu.")
+
+    def install_requested(self, record):
+        if tui.active:
+            tui.active.context("Agent-requested installation")
+        print("Your assistant has requested installation using your saved choices.\n"
+              "Review them below. The disk is changed only after your separate, exact approval.")
+        try:
+            result = self.install_choices(record['choices'])
+            self.bridge.finish(result or {'state': 'cancelled', 'message': 'Local review was cancelled; no installation was approved.'})
+        except (OSError, ValueError, subprocess.SubprocessError, tui.Cancelled) as error:
+            self.bridge.finish({'state': 'failed', 'message': str(error), 'disk_erasure_approved': None,
+                                'disk_changes': 'unknown; check installer progress before retrying'})
+            print("Installation needs attention: " + str(error))
+        print("Returning to your assistant. It can read the installation result with install-status.")
+
+    def install_choices(self, suggestions):
+        if self.distro == "arch":
+            from adapters.arch.install import interactive
+        else:
+            from adapters.nixos.install import interactive
+        return interactive(self.state, suggestions)
 
     def keyboard(self):
         from .profile import LAYOUTS
@@ -161,13 +213,9 @@ class Setup:
                     from .networking import connect
                     connect()
                 elif self.live and answer == 4:
-                    if self.distro == "arch":
-                        from adapters.arch.install import interactive
-                    else:
-                        from adapters.nixos.install import interactive
                     result = self.agent("setup-choice", capture=True)
                     suggestions = json.loads(result.stdout) if result.returncode == 0 else {}
-                    interactive(self.state, suggestions)
+                    self.install_choices(suggestions)
                 elif self.live and answer == 5:
                     self.forget()
                 elif self.live and answer == 6:
@@ -213,11 +261,14 @@ def main():
                 initialize()
             except (OSError, subprocess.CalledProcessError):
                 print("Keeping the current console font; text-size support is unavailable.")
-        if plain:
-            setup.run()
-        else:
-            with tui.Interface(setup.live, setup.distro):
+        from .install_bridge import Bridge
+        with Bridge(setup.distro) if setup.live else contextlib.nullcontext() as bridge:
+            setup.bridge = bridge
+            if plain:
                 setup.run()
+            else:
+                with tui.Interface(setup.live, setup.distro):
+                    setup.run()
     except (EOFError, KeyboardInterrupt, tui.Cancelled):
         print("\nSetup closed. You can reopen System Assistant when ready.")
     return 0

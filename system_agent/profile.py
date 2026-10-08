@@ -10,8 +10,13 @@ LOCALES = ("en_US.UTF-8", "en_GB.UTF-8", "de_DE.UTF-8", "fr_FR.UTF-8", "es_ES.UT
 
 def validate_choices(choices):
     keys = {"hostname", "username", "desktop", "timezone", "keyboard", "locale", "encrypt"}
-    if not isinstance(choices, dict) or not keys <= set(choices) or set(choices) - keys - {"purpose", "agent_name"}:
+    if not isinstance(choices, dict) or not keys <= set(choices) or set(choices) - keys - {"purpose", "agent_name", "power_policy", "login_policy", "openclaw_release"}:
         raise ValueError("Incomplete or unexpected system choices")
+    for field, allowed in {"openclaw_release": ("default", "image-pinned"), "power_policy": ("standard", "always-on"), "login_policy": ("password", "yubikey")}.items():
+        if field in choices and choices[field] not in allowed:
+            raise ValueError("Unsupported " + field)
+    if choices.get("login_policy") == "yubikey" and choices["desktop"] not in ("hyprland", "none"):
+        raise ValueError("The YubiKey island policy currently needs Hyprland or no desktop.")
     if "purpose" in choices and choices["purpose"] not in PURPOSES:
         raise ValueError("Choose one of the supported uses for this computer.")
     if "agent_name" in choices:

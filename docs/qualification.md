@@ -1,5 +1,27 @@
 # Qualification status
 
+## Current system-access images — 2026-10-08
+
+Both images passed direct BIOS/offline boot, live text-size preview/rollback,
+real gateway sudo/mount access to a separate emulated USB, conversation-requested
+Ratatui installation, return to the same conversation, UEFI ZFS disk boot with the
+ISO detached, installed Hyprland controls and fixture conversation, lock/unlock,
+and desktop customization persistence after a second boot. The broad live sudo
+grant was verified absent from the installed system. All provider replies were
+fixtures; physical key authentication and physical installation remain unqualified.
+
+| Image | OpenClaw | SHA-256 |
+| --- | --- | --- |
+| Arch SYSTEM-ACCESS | 2026.9.9 | `4dd93380bd809a94c9d29b28dcb53a85f84ca7edaad06702d390ac3f5095da12` |
+| NixOS SYSTEM-ACCESS | 2026.9.5 (pinned) | `0f831af383be319b76666b538fe3a40f1fa5fc3b9973fef241f6448f87eeb174` |
+
+[Exact artifact receipts](../evidence/system-access-isos.json) and
+[hardware test plan](system-access-hardware-test.md). The reusable owner policies
+and live system-administration access are described in [owner preferences](owner-preferences.md)
+and [USB setup](usb-setup.md). GNOME, Plasma, encryption and other keyboard layouts
+were not rerun on these exact image bytes. The evidence below belongs to earlier builds.
+
+
 ## Live-console text size — 2026-10-08 UTC
 
 The live-image configuration for both distributions includes Small (14),
@@ -275,3 +297,18 @@ dual boot and BIOS installation are not implemented.
 
 A build, service template or health endpoint is not completed model authentication
 or installed-system qualification.
+
+## Live administration and reusable owner policies
+
+The 2026-10-08 source checks in [this receipt](../evidence/system-access-owner-policy.json)
+passed 91 Python tests and separate live-access, installation-bridge, owner-policy
+and desktop VMs. The real OpenClaw exec tool mounted/read/unmounted a disposable
+VM disk through sudo, and the host observed the same mount. The bridge test
+proved local review/cancellation/retry/conversation resumption with a disk-free
+installer fixture. Desktop checks exercised the removal lock signal and password
+unlock; actual physical YubiKey authentication is still unqualified.
+
+Arch runtime 2026.9.9 passed synthetic device-code and API-key setup checks in an
+empty network namespace. NixOS remains pinned to 2026.9.5. These checks do not
+qualify real account login or a new ISO's full installation; those require
+separate artifact receipts.

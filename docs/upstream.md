@@ -1,5 +1,9 @@
 # Reviewed upstream inputs (2026-10-06)
 
+Current Arch source selection (2026-10-08): official npm stable release 2026.9.9,
+with matching ACPX/Codex packages. NixOS remains pinned at 2026.9.5. Older
+qualification records below describe their original artifacts, not rebuilt ISOs.
+
 - [OpenClaw latest release](https://github.com/openclaw/openclaw/releases/tag/v2026.9.8):
   latest observed GitHub release, published 2026-10-03. Its version differs from
   the official Nix package pin. Do not substitute it without new dependency locks.

@@ -35,6 +35,12 @@ class Guest:
         if not installed:
             args += ["-drive", f"if=none,id=live,format=raw,readonly=on,file={iso}",
                      "-device", "usb-storage,drive=live,bootindex=1"]
+        if uefi and not installed:
+            extra_usb = area / "extra-usb.raw"
+            with extra_usb.open("wb") as stream:
+                stream.truncate(128 * 1024 * 1024)
+            args += ["-drive", f"if=none,id=extrausb,format=raw,file={extra_usb}",
+                     "-device", "usb-storage,drive=extrausb,serial=CS_FIXTURE_USB,bootindex=3"]
         if uefi:
             firmware = Path(os.environ.get("CONTROLSTACK_OVMF_DIR", "/usr/share/OVMF"))
             code = firmware / "OVMF_CODE_4M.fd"
@@ -209,7 +215,7 @@ def main():
         guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
-        guest.command("openclaw --version | grep -F " + ("2026.9.8" if args.distro == "arch" else "2026.9.5"))
+        guest.command("openclaw --version | grep -F " + ("2026.9.9" if args.distro == "arch" else "2026.9.5"))
         if args.distro == "arch":
             guest.command("test $(stat -Lc %u /usr/local/bin/openclaw) = 0; test -x /opt/codex/bin/codex-code-mode-host")
         guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
@@ -263,8 +269,18 @@ def main():
                 guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}; r=json.load(open('/tmp/fixture-request.json')); names={t['function']['name'] for t in r['tools']}; assert 'nixos__nix' in names; assert not any(n.startswith('hypruse__') for n in names)\"")
             else:
                 guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert not c.get('mcp', {}).get('servers', {})\"")
+            # Exercise the actual gateway tool against a separate emulated USB.
+            # The serial belongs only to the blank regular-file drive attached above.
+            guest.command("set -- /dev/disk/by-id/usb-*CS_FIXTURE_USB*; test $# = 1 && usb=$(readlink -f \"$1\"); test -b \"$usb\" && test $(blockdev --getsize64 \"$usb\") = 134217728 && mkfs.ext4 -L CS_FIXTURE_USB \"$usb\" && mkdir -p /mnt/seed && mount \"$usb\" /mnt/seed && echo usb-readable > /mnt/seed/sentinel && umount /mnt/seed")
+            guest.command(live_env + "system-agent inspect | grep '\"root_command_verified\": true'")
+            guest.command(live_env + "openclaw agent --agent main --session-key agent:main:usb-fixture --message live-usb-access-fixture --json", timeout=180)
+            guest.command("findmnt -n /mnt/controlstack-usb-fixture; grep -x usb-readable /mnt/controlstack-usb-fixture/sentinel")
+            guest.command(live_env + "sudo -n umount /mnt/controlstack-usb-fixture")
             guest.command(live_env + "system-agent setup-choice hostname vmresident")
             guest.command(live_env + "system-agent name-agent Luna")
+            # Isolated tests have no real FIDO key or external release registry.
+            guest.command(live_env + "system-agent setup-choice login_policy password")
+            guest.command(live_env + "system-agent setup-choice openclaw_release image-pinned")
             guest.command("install -m 600 /dev/null /run/controlstack-agent/live-only-credential-fixture")
             # Drive the shipped local review screen, including separate disk approval.
             # Drive the shipped Ratatui interface on the primary console.
@@ -276,7 +292,10 @@ def main():
                     "sleep 1; done"), timeout=timeout+10)
                 guest.type_console(value)
                 time.sleep(.5)
-            answer("What would you like to do?", "4")
+            answer("What would you like to do?", "2")
+            guest.command("timeout 120 bash -c " + shlex.quote("until pgrep -u controlstack-agent -f '[s]ystem_agent chat'; do sleep 1; done"), timeout=130)
+            guest.command(live_env + "system-agent install-status | grep root-local-console")
+            guest.command(live_env + "system-agent request-install")
             answer("Use these choices", "1")
             answer("What will you mainly", "1")
             answer("Name for your local account", "owner")
@@ -298,7 +317,10 @@ def main():
             if args.encrypted:
                 answer("Disk unlock passphrase", "vmencryptiontest")
                 answer("Enter it again:", "vmencryptiontest")
-            answer("Ready to shut down", "1", timeout=900)
+            answer("Ready to shut down", "2", timeout=900)
+            guest.command("timeout 120 bash -c " + shlex.quote("until " + live_env + "system-agent install-status | grep installed-awaiting-reboot; do sleep 1; done"), timeout=130)
+            guest.command("timeout 120 bash -c " + shlex.quote("until pgrep -u controlstack-agent -f '[s]ystem_agent chat --resume-install'; do sleep 1; done"), timeout=130)
+            guest.process.sendline("poweroff")
             guest.process.expect(pexpect.EOF, timeout=60)
 
     finally:
@@ -308,7 +330,7 @@ def main():
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
             guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
-            guest.command("test ! -e /etc/agent-installer/live-image")
+            guest.command("test ! -e /etc/agent-installer/live-image; test ! -e /etc/controlstack-agent/live-system-access.json; ! runuser -u controlstack-agent -- sudo -n id -u")
             if args.desktop != "none":
                 guest.command("test -r " + ("/run/current-system/sw" if args.distro == "nixos" else "/usr/local") + "/share/applications/controlstack-agent.desktop")
             guest.command("timeout 180 bash -c 'until systemctl is-active --quiet controlstack-agent; do sleep 2; done'; systemctl is-active controlstack-agent controlstack-agent-boot-check || { journalctl -b -u controlstack-agent -u controlstack-agent-boot-check --no-pager; exit 1; }")
@@ -468,6 +490,9 @@ p.write_text(json.dumps(c))
                "live_nixos_mcp_discovery": installing and args.distro == "nixos", "live_hypruse_disabled": installing,
                "installed_nixos_mcp_discovery": installing and args.distro == "nixos",
                "installed_hypruse_mcp_discovery": installing and args.desktop == "hyprland",
+               "live_gateway_usb_mount": installing, "agent_requested_installation": installing,
+               "same_conversation_resumed_after_install": installing,
+               "live_sudo_absent_from_installed_system": installing,
                "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
                "installed_setup_autostart": installing,
@@ -487,6 +512,7 @@ p.write_text(json.dumps(c))
     print(json.dumps(receipt))
     # Retain receipts/screenshots/logs, not large disposable disks between cases.
     (area / "target.qcow2").unlink(missing_ok=True)
+    (area / "extra-usb.raw").unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

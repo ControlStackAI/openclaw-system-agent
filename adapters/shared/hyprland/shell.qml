@@ -325,7 +325,20 @@ Scope {
                             ShellButton { visible: shell.settingsTab === "system"; text: "Dim"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "5%-"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Brighten"; iconName: "display-brightness-symbolic"; onClicked: Quickshell.execDetached(["brightnessctl", "set", "+5%"]) }
                             ShellButton { visible: shell.settingsTab === "system"; text: "Customize"; iconName: "preferences-desktop-theme"; onClicked: Quickshell.execDetached(["ghostty", "-e", "nvim", (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/quickshell/controlstack/shell.qml"]) }
-                            ShellButton { visible: shell.settingsTab === "system"; text: shell.keepAwake ? "Keeping awake" : "Keep awake"; selected: shell.keepAwake; iconName: "weather-clear-night"; onClicked: shell.keepAwake = !shell.keepAwake }
+                            ShellButton {
+                                visible: shell.settingsTab === "system" && (shell.stats.security?.enabled ?? false)
+                                enabled: shell.fresh && (shell.stats.security?.key_present ?? false) && (shell.stats.security?.unlocked ?? false)
+                                text: (shell.stats.security?.password_unlock ?? false) ? "Password unlock: on" : "Password unlock: off"
+                                iconName: "security-high-symbolic"
+                                onClicked: Quickshell.execDetached(["ghostty", "--title=Screen unlock", "-e", "sudo", "-n", "system-agent-key", "password", shell.stats.security.password_unlock ? "off" : "on"])
+                            }
+                            Text {
+                                visible: shell.settingsTab === "system" && (shell.stats.security?.enabled ?? false)
+                                text: shell.stats.security?.key_present ? "Touch your key to change password unlock." : "Connect your YubiKey to change screen unlock."
+                                color: Theme.muted; font.pixelSize: 11
+                            }
+                            ShellButton { visible: shell.settingsTab === "system" && (shell.stats.security?.always_on ?? false); text: "Always on · performance"; enabled: false; iconName: "weather-clear-night" }
+                            ShellButton { visible: shell.settingsTab === "system" && !(shell.stats.security?.always_on ?? false); text: shell.keepAwake ? "Keeping awake" : "Keep awake"; selected: shell.keepAwake; iconName: "weather-clear-night"; onClicked: shell.keepAwake = !shell.keepAwake }
                             ShellButton { text: "Lock"; iconName: "system-lock-screen"; onClicked: shell.lockScreen() }
                             ShellButton { text: "Sign out"; iconName: "system-log-out"; onClicked: shell.panel = "logout" }
                         }

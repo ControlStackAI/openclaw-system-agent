@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "openclaw": "2026.9.8",
-    "@openclaw/acpx": "2026.9.8",
-    "@openclaw/codex": "2026.9.8"
+    "openclaw": "2026.9.9",
+    "@openclaw/acpx": "2026.9.9",
+    "@openclaw/codex": "2026.9.9"
   }
 }

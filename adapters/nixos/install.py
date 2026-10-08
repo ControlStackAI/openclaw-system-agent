@@ -54,6 +54,9 @@ def render_target(plan, inputs):
   configuration = {{ config, pkgs, lib, ... }}: {{
     imports = [ {q(inputs["source"] + "/adapters/nixos/module.nix")}
       {q(inputs["source"] + "/adapters/nixos/networking.nix")}
+      (import {q(inputs["source"] + "/adapters/nixos/owner-policy.nix")} {{
+        owner = {q(c["username"])}; core = builtins.storePath {q(inputs["core"])};
+        powerPolicy = {q(c.get("power_policy", "standard"))}; loginPolicy = {q(c.get("login_policy", "password"))}; }})
       (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; aiTools = {"builtins.storePath " + q(inputs["ai_tools"]) if "ai_tools" in inputs else "null"}; }}) ];
     services.controlstackAgent = {{
       enable = true; mutableProviderSetup = true; workspaceExecution = true; zfs.enable = true;
@@ -119,7 +122,7 @@ def render_target(plan, inputs):
 '''
 
 
-def prepare(node, choices):
+def prepare(node, choices, enrollment=None):
     facts = check_context()
     choices = validate_choices(choices)
     memory_kib = int(next(line.split()[1] for line in Path("/proc/meminfo").read_text().splitlines() if line.startswith("MemTotal:")))
@@ -128,12 +131,21 @@ def prepare(node, choices):
     inputs = json.loads(INPUTS.read_text())
     if not Path(inputs["zfs_compatibility"]).is_file():
         raise ValueError("The pinned portable ZFS feature profile is missing from this image.")
+    if choices.get('login_policy') == 'yubikey':
+        from system_agent.security_key import validate_enrollment
+        validate_enrollment(enrollment, choices['username'])
+    from runtimes.openclaw.release_policy import resolve
+    release = resolve("nixos", choices.get("openclaw_release", "default"))
+    print("Installed OpenClaw release: " + release["version"] + " (image-pinned)", flush=True)
     area = private_dir(AREA)
     plan = {"schema": 1, "id": secrets.token_hex(8), "boot_id": facts["boot_id"],
             "disk": disk_identity(node), "choices": validate_choices(choices),
             "pool": "csa" + secrets.token_hex(4), "host_id": secrets.token_hex(4),
             "efi_uuid": str(uuid.uuid4()), "zfs_uuid": str(uuid.uuid4()),
-            "machine_id": uuid.uuid4().hex, "installer_revision": inputs["installer_revision"]}
+            "machine_id": uuid.uuid4().hex, "installer_revision": inputs["installer_revision"],
+            "openclaw_release": release}
+    if enrollment is not None:
+        plan['key_enrollment'] = enrollment
     expression = area / (plan["id"] + ".nix")
     create_private(expression, render_target(plan, inputs))
     print("\nPreparing your chosen system before changing any disk. This may take a while.", flush=True)
@@ -194,6 +206,9 @@ def install(plan, confirmation, password, encryption_key=None):
     if TARGET.is_symlink() or (TARGET.exists() and any(TARGET.iterdir())) or os.path.ismount(TARGET):
         raise ValueError("The installation mount point is already occupied.")
     TARGET.mkdir(parents=True, exist_ok=True)
+    if plan['choices'].get('login_policy') == 'yubikey':
+        from system_agent.security_key import validate_enrollment
+        validate_enrollment(plan.get('key_enrollment'), plan['choices']['username'])
     # Consume approval before the first destructive operation, even if it fails.
     create_private(AREA / (plan["id"] + ".started"), "approved locally\n")
     password_hash = run(["mkpasswd", "--method=yescrypt", "--stdin"], input=password + "\n", capture_output=True).stdout.strip()
@@ -238,6 +253,10 @@ def install(plan, confirmation, password, encryption_key=None):
     _, _, uid, gid, *_ = account_line.split(":")
     state = private_dir(TARGET / "var/lib/controlstack-agent")
     lifecycle = private_dir(state / "lifecycle")
+    create_private(lifecycle / "openclaw-release.json", json.dumps(plan["openclaw_release"], indent=2))
+    if plan['choices'].get('login_policy') == 'yubikey':
+        from system_agent.security_key import install_enrollment
+        install_enrollment(TARGET, plan['key_enrollment'], plan['choices']['username'])
     handoff = validate_handoff({"schema": 1, "target_distro": "nixos", "installation_boot_id": plan["boot_id"],
         "target_machine_id": plan["machine_id"], "root_fstype": "zfs", "root_identity": pool + "/ROOT/system",
         "installer_revision": plan["installer_revision"]})
@@ -286,7 +305,15 @@ def interactive(state, suggestions=None):
     if index > len(available):
         return
     node = available[index - 1]
-    plan = prepare(node, choices)
+    enrollment = None
+    if choices.get('login_policy') == 'yubikey':
+        print('Your YubiKey will be required at sign-in, and removing it will lock the desktop.\n'
+              'Password screen unlock starts enabled; the unlocked desktop can change it with a key touch.\n'
+              'Disk encryption keeps its separate passphrase. Keep the enrolled key available after reboot.')
+    if choices.get('login_policy') == 'yubikey':
+        from system_agent.security_key import enroll
+        enrollment = enroll(choices['username'])
+    plan = prepare(node, choices, enrollment)
     print("\nPlease review your installation:")
     if choices["desktop"] == "hyprland":
         print("OpenClaw will have full control of your logged-in Hyprland desktop: apps, windows, screenshots, mouse, keyboard and clipboard. The center island can stop desktop access.")
@@ -319,3 +346,5 @@ def interactive(state, suggestions=None):
         password = encryption_key = None
     if choose("Ready to shut down and start your installed system?", ["Shut down, then remove the USB", "Stay in this USB session"]) == 1:
         run(["systemctl", "poweroff"])
+    return {"state": "installed-awaiting-reboot", "disk_erasure_approved": True,
+            "message": "Installation completed. An independent boot with the USB removed is still required."}

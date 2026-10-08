@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "official_nix_revision": "f62d33f760bcbdbc6a52ac589eae22bf99201f90",
-  "latest_observed_release": "2026.9.8",
-  "checked_at": "2026-10-07",
+  "latest_observed_release": "2026.9.9",
+  "checked_at": "2026-10-08",
   "mode": "complete gateway and matching official Codex runtime plugin; focused provider authentication",
   "nixos_openclaw_version": "2026.9.5",
-  "arch_openclaw_version": "2026.9.8"
+  "arch_openclaw_version": "2026.9.9"
 }
