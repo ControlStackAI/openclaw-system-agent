@@ -84,3 +84,24 @@ not been qualified through this interface; a QR graphic alone cannot supply a
 missing provider pairing protocol. The resident account also does not import the
 desktop owner's Claude credentials. See the current
 [OpenClaw Anthropic documentation](https://docs.openclaw.ai/providers/anthropic).
+
+## Live-console text size
+
+![Large text preview on the live Linux console](images/ratatui-text-size.png)
+
+On either live ISO, choose **Text size** from the opening setup menu. Small (14),
+Standard (16), Large (20), and Extra large (24) use packaged Unicode Terminus
+console fonts. Standard is the initial default. This changes the actual local
+Linux console, including troubleshooting text; it does not configure Ghostty or
+desktop scaling. Serial terminals and graphical terminal windows are excluded.
+
+A selection immediately previews sample text and asks **Keep this text size?**.
+Confirm within 15 seconds, or the previous font and Unicode map are restored.
+Escape and closing the interface also restore the previous font. An independent
+watchdog owns restoration, so losing the setup process cannot keep an unconfirmed
+preview. Sizes leaving fewer than 60 columns or 18 rows are rejected immediately.
+
+Confirmed choices are stored per console under `/run/controlstack-console`, so
+reopening setup keeps the size for this live boot. They disappear after reboot
+and are not copied into the installed system. The QR code remains conditional on
+having enough screen space to display it completely.

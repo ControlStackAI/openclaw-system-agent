@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "source_manifest_sha256": "f8ffe07530c663f9d818ef8c2e4dd228afbd04728af564dd3d493c3798ff5c33",
+  "python_tests_passed": 69,
+  "rust_tests_passed": 3,
+  "runtime_versions": {
+    "arch": "2026.9.8",
+    "nixos": "2026.9.5"
+  },
+  "console_vm": {
+    "passed": true,
+    "sizes_pixels": [
+      14,
+      16,
+      20,
+      24
+    ],
+    "default_pixels": 16,
+    "timeout_seconds": 15,
+    "checks": [
+      "Real Linux virtual-console font changes for every offered size",
+      "QR independently decoded from console screenshots when it fits; address/code fallback when it does not",
+      "Confirmation saves preference in RAM",
+      "Unanswered preview restores the prior font",
+      "Escape restores the prior font",
+      "Abruptly closing the frontend restores the prior font",
+      "Reinitializing setup restores the confirmed preference"
+    ]
+  },
+  "sources": {
+    "system_agent/console_font.py": "696fb4045b193ab651103ed8bf2aae9c053b0473e36f85cfb3d1cf069c5ae9e5",
+    "system_agent/setup.py": "cb23f4370755012389fa7c5f26815767fd11a55171c5b54c34fb6680d03a8b3c",
+    "adapters/nixos/package.nix": "e00200f0df14a2e3008f8486e966daaa462d99ff956679ba2351df7017d1cc1e",
+    "runtimes/tui/src/main.rs": "80f6457751e1444795468cd42b88ed8408124e9b2d76701e9afab05a8f6b4729",
+    "tests/tui-vm.nix": "c37aaefd192ae7bf6e69af30702c4e1c978f89186ead9018a6985c6320851765",
+    "tests/test_console_font.py": "5a01c6f9edfc66bd71efa858abffb4b1339cbda3d0f4903060b559be6febe301",
+    "scripts/qualify-iso.py": "6b29a6b92732b8910aeff63ce6fd04e915a8ea0634670dc87eb17c58c553d768",
+    "docs/images/ratatui-text-size.png": "8d161db8e1cfdb0255c0184e894dd43b9fb81b8bd8f0a5c742e1e4cfe029fef0"
+  },
+  "limits": [
+    "The exact NixOS image passed BIOS live boot, real setup-menu font changes and offline-network checks; full disk installation was not repeated for this live-console change.",
+    "Prior UEFI Hyprland installation evidence remains bound to previous image hashes.",
+    "Physical display/font-driver compatibility and phone-camera scanning are not qualified by these VM tests.",
+    "No real provider account or model request was used.",
+    "Ventoy is disconnected; the new NixOS image has not been delivered to USB.",
+    "Arch image definitions include the change, but the rebuilt Arch ISO is not available: the package transaction failed its free-space check."
+  ],
+  "nixos": {
+    "build": {
+      "byte_identical_rebuild_verified": false,
+      "bytes": 7427911680,
+      "distro": "nixos",
+      "image": "controlstack-openclaw-nixos-x86_64.iso",
+      "lock_sha256": "7ba8a625abfbcbe2063620709f116432999a84cf159c7e385700981390dc37ad",
+      "qualification": {
+        "disk_install": false,
+        "physical_hardware": false,
+        "vm_boot": false
+      },
+      "schema": 1,
+      "sha256": "61e3bfbc7f37c44cbc441417539e928109475f8c76b4a0eb87668462bc09a26a",
+      "source_date_epoch": 1791479194,
+      "source_sha256": "f8ffe07530c663f9d818ef8c2e4dd228afbd04728af564dd3d493c3798ff5c33"
+    },
+    "bios_offline": {
+      "distro": "nixos",
+      "mode": "bios-offline",
+      "iso_sha256": "61e3bfbc7f37c44cbc441417539e928109475f8c76b4a0eb87668462bc09a26a",
+      "passed": true,
+      "live_wifi_backend_available": true,
+      "installed_wifi_backend_available": false,
+      "offline_signin_then_network_setup": true,
+      "live_console_text_size": true,
+      "live_nixos_mcp_discovery": false,
+      "live_hypruse_disabled": false,
+      "installed_nixos_mcp_discovery": false,
+      "installed_hypruse_mcp_discovery": false,
+      "installation": false,
+      "disk_boot_without_iso": false,
+      "ram_mib": 4096,
+      "desktop": "none",
+      "encryption": false,
+      "keyboard": "us",
+      "graphical_owner_login": false,
+      "installed_setup_autostart": false,
+      "quickshell_panel_and_launcher": false,
+      "quickshell_launcher_opens_application": false,
+      "desktop_customization_survives_reboot": false,
+      "resident_monitor_tracks_service_stop_start": false,
+      "audio_and_network_panels": false,
+      "development_cli_and_default_editor": false,
+      "desktop_lock_unlock": false,
+      "primary_console_tui_reply": false,
+      "graphical_tui_reply": false,
+      "interactive_install_review": false,
+      "ratatui_install_review": false,
+      "provider": "none",
+      "real_account_login": false,
+      "physical_disks_attached": false
+    }
+  },
+  "arch": {
+    "build_completed": false,
+    "reason": "Insufficient available build storage; pinned native target package transaction refused to continue.",
+    "runtime_console_test": "Shared packaged console component passed; exact Arch ISO remains unqualified."
+  }
+}

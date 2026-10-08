@@ -144,7 +144,7 @@ class Setup:
         while True:
             labels = ["Connect your AI account or change provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
             if self.live:
-                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Review choices and install Arch Linux"), "Forget this USB session", "Change keyboard layout"]
+                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Review choices and install Arch Linux"), "Forget this USB session", "Change keyboard layout", "Text size"]
             labels += ["Name your assistant", "Troubleshooting shell", "Leave setup"]
             try:
                 answer = choose("What would you like to do?", labels)
@@ -172,6 +172,12 @@ class Setup:
                     self.forget()
                 elif self.live and answer == 6:
                     self.keyboard()
+                elif self.live and answer == 7:
+                    if tui.active:
+                        from .console_font import choose_size
+                        choose_size(tui.active)
+                    else:
+                        print("Open the normal Ratatui setup to preview and change text size.")
                 elif answer == len(labels) - 2:
                     name = input("What would you like to call your assistant? [OpenClaw]: ").strip() or "OpenClaw"
                     result = self.agent("name-agent", name, capture=True)
@@ -201,6 +207,12 @@ def main():
         return 1
     try:
         setup = Setup(facts["phase"] == "live", facts["distro_id"])
+        if setup.live:
+            from .console_font import initialize
+            try:
+                initialize()
+            except (OSError, subprocess.CalledProcessError):
+                print("Keeping the current console font; text-size support is unavailable.")
         if plain:
             setup.run()
         else:

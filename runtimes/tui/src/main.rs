@@ -186,6 +186,7 @@ fn run(
     sock: &mut UnixStream,
     rx: mpsc::Receiver<Value>,
 ) -> io::Result<()> {
+    let mut preview_deadline: Option<Instant> = None;
     let mut screen = json!({"kind":"busy","title":"Welcome to OpenClaw","text":"Preparing your system assistant…"});
     let mut logs: VecDeque<String> = VecDeque::new();
     let mut selected = 0usize;
@@ -231,6 +232,9 @@ fn run(
                     logs.clear();
                 }
                 _ => {
+                    preview_deadline = v["timeout_seconds"]
+                        .as_u64()
+                        .map(|seconds| Instant::now() + Duration::from_secs(seconds));
                     screen = v;
                     selected = 0;
                     input = String::new();
@@ -245,6 +249,12 @@ fn run(
         if suspended {
             thread::sleep(Duration::from_millis(40));
             continue;
+        }
+        if preview_deadline.is_some_and(|deadline| Instant::now() >= deadline) {
+            send(sock, json!({"value":2,"id":screen["id"]}))?;
+            preview_deadline = None;
+            screen =
+                json!({"kind":"busy","title":"Text size","text":"Restoring the previous size…"});
         }
         let kind = strval(&screen, "kind");
         let options = screen["options"].as_array().cloned().unwrap_or_default();
@@ -306,6 +316,7 @@ fn run(
                     && (matches!(kind, "choose" | "input" | "info")
                         || screen["cancellable"].as_bool().unwrap_or(false))
                 {
+                    preview_deadline = None;
                     send(sock, json!({"cancel":true}))?;
                     screen =
                         json!({"kind":"busy","title":"Returning","text":"Keeping your choices…"});
@@ -342,6 +353,7 @@ fn run(
                         } else {
                             json!(input)
                         };
+                        preview_deadline = None;
                         send(sock, json!({"value":value,"id":screen["id"]}))?;
                         input.clear();
                         screen = json!({"kind":"busy","title":"OpenClaw","text":"Preparing the next step…"});

@@ -1,10 +1,12 @@
 """Non-secret console fixture. Runs only in the isolated TUI VM."""
 from system_agent.tui import Interface, Cancelled
+from system_agent.console_font import initialize, choose_size
+initialize()
 with Interface(True,'nixos') as ui:
  while True:
   try:
    choice=ui.choose('Welcome to your OpenClaw System Assistant',[
-    'Connect your AI account','Choose your desktop','Try protected input','Review a disk plan','Leave setup'])
+    'Connect your AI account','Choose your desktop','Try protected input','Review a disk plan','Text size','Leave setup'])
    if choice==1:
     ui.context('Connect your AI account')
     ui.request({'kind':'device','title':'Connect your ChatGPT account','text':'On your phone or another computer, visit this address.\nThis is a synthetic demonstration; no real account is used.',
@@ -21,5 +23,7 @@ with Interface(True,'nixos') as ui:
     ui.notes='Disk: EXAMPLE 48 GiB — serial DEMO123\nAll contents of this disk will be lost.\nLayout: EFI startup partition and ZFS datasets.\nSnapshots need an independent backup.\nNo operation will run in this fixture.'
     value=ui.input('Type ERASE DEMO123 to confirm this example')
     ui.info('Review complete','This fixture did not change any disk.')
+   elif choice==5:
+    choose_size(ui)
    else:break
   except Cancelled:pass

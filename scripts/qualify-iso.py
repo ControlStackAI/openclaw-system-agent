@@ -221,6 +221,21 @@ def main():
             guest.type_console("3")
             guest.command("sleep 2; runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/run/controlstack-agent system-agent setup-choice | grep '\"keyboard\": \"de\"'")
         if not installing:
+            # Change the real live-console font through the shipped setup menu.
+            guest.type_console("7")
+            guest.command("cat /dev/vcs1 | grep -a 'Text size for this USB session'")
+            guest.type_console("3")
+            guest.command("cat /dev/vcs1 | grep -a 'Keep this text size'")
+            guest.type_console("1")
+            guest.command("sleep 1; cat /dev/vcs1 | grep -a 'Text size saved'; grep -q '20' /run/controlstack-console/tty1.json")
+            guest.qmp("screendump", {"filename": str(area / "text-size-large.png"), "format": "png"})
+            guest.type_console("")
+            # Return to Standard before the existing offline checks.
+            guest.type_console("7")
+            guest.type_console("2")
+            guest.type_console("1")
+            guest.command("sleep 1; grep -q '16' /run/controlstack-console/tty1.json")
+            guest.type_console("")
             guest.qmp("human-monitor-command", {"command-line": "sendkey 1"})
             guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
             guest.command("sleep 20; cat /dev/vcs1 | grep 'Internet check failed'", timeout=90)
@@ -449,6 +464,7 @@ p.write_text(json.dumps(c))
                "live_wifi_backend_available": True,
                "installed_wifi_backend_available": installing,
                "offline_signin_then_network_setup": not installing,
+               "live_console_text_size": not installing,
                "live_nixos_mcp_discovery": installing and args.distro == "nixos", "live_hypruse_disabled": installing,
                "installed_nixos_mcp_discovery": installing and args.distro == "nixos",
                "installed_hypruse_mcp_discovery": installing and args.desktop == "hyprland",

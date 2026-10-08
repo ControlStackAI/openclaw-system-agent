@@ -1,5 +1,35 @@
 # Qualification status
 
+## Live-console text size — 2026-10-08 UTC
+
+The live-image configuration for both distributions includes Small (14),
+Standard (16), Large (20), and Extra large (24) console fonts in Ratatui. Standard is the initial
+setting. A 15-second preview restores the previous font unless confirmed;
+confirmed choices survive reopening setup during the same live boot.
+
+All 69 Python tests and 3 Rust tests pass. The console VM checks every font,
+QR decoding or its complete-code fallback, timeout, Escape, abruptly closing the
+frontend, and reloading the saved preference. The exact rebuilt NixOS image also
+passed BIOS live boot, font changes through the shipped setup menu, and the
+offline sign-in followed by network setup path.
+
+| Text-size image | SHA-256 | Bytes |
+| --- | --- | ---: |
+| nixos | `61e3bfbc7f37c44cbc441417539e928109475f8c76b4a0eb87668462bc09a26a` | 7,427,911,680 |
+
+The Arch image definitions include the same packaged console component, but its
+rebuild stopped at the native package transaction’s free-space check. No new
+Arch ISO is released or qualified by this change.
+
+OpenClaw and kernel/ZFS pins are unchanged. Full disk installation was not
+repeated for this live-console change; earlier installation results remain bound
+to their earlier artifact hashes. Physical display compatibility, phone-camera
+scanning and real provider/model access are not qualified by these VM checks.
+The new NixOS image remains local while Ventoy is disconnected.
+
+[Exact receipts](../evidence/live-console-text-size-2026-10-08.json) record the
+source and artifact hashes and tested scope.
+
 ## Ratatui phone QR update — 2026-10-08 UTC
 
 The ChatGPT connection screen now shows a QR below the public verification URL,

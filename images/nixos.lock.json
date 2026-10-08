@@ -231,7 +231,7 @@
     "adapters/nixos/live-image.nix": "7364ec2bab5ccd0e9c70f79ca374c925b5331061a60a6cfa0c4d9bd8698d5d52",
     "adapters/nixos/module.nix": "5de75d606b6852548fb396e9410c06078250dee0789e8b87c7ba08a158a5d320",
     "adapters/nixos/networking.nix": "7f33383a1a93559e818d53012325eaf1250f0c7b7e9071b1a417fb1d07560f23",
-    "adapters/nixos/package.nix": "ed5e126e5fce8f1ce1a0ba42a97340b05e19255477f4c4d5647479ae63318762",
+    "adapters/nixos/package.nix": "e00200f0df14a2e3008f8486e966daaa462d99ff956679ba2351df7017d1cc1e",
     "adapters/shared/hyprland/AudioDevices.qml": "e2555bba19fbf8f9e610c758063c3d28281681880ac7fa9a90031ac677260a60",
     "adapters/shared/hyprland/NetworkControls.qml": "2eeeaf1119d179ffd431261d40b116fe89ce92302e0d84ed73ee9ac26af4c73f",
     "adapters/shared/hyprland/ShellButton.qml": "1f4a9e74b5f7156308116c2c4579202214ad2f8a7853b0721248523420330036",
@@ -273,13 +273,14 @@
     "runtimes/tui/Cargo.lock": "0f211d9c450dff8bc36542775abe4eb799e2603192127a31402e6c01e76aa72d",
     "runtimes/tui/Cargo.toml": "88ebb5d0d414de75b94a1a7aaaf04f499e76f466e4572ff18b6d5820868a2a07",
     "runtimes/tui/default.nix": "6bf1d1163236f83977035853ae70e4098ae77bc8f622bb97860cd8393a5c704f",
-    "runtimes/tui/src/main.rs": "1b07d625dce7040d856484a76777a8fafc3feb03734761f81f9b5a835a1422f7",
+    "runtimes/tui/src/main.rs": "80f6457751e1444795468cd42b88ed8408124e9b2d76701e9afab05a8f6b4729",
     "scripts/image.py": "048ed818950804700cc368f2adb6e59ab30e66e528c6de96704ff1f6d32ae54c",
     "system_agent/__init__.py": "76f554627b87b60cca0aa456d0ed06489b605b49bbead8470d8f77476cf84aeb",
     "system_agent/__main__.py": "fbbbbd7cda7459313170f2251d9bec88a7c9873f514b5ba615bd14db0678e068",
     "system_agent/admin.py": "0f33b8cceb75ac3ec773eb99e9242e4dd7ba1d67b6cf3a88fc64ed0f6e1ba845",
     "system_agent/choices.py": "709b5fa378b05ce2620f8aed9178a377fe82e55584099c1be1277189d392d629",
     "system_agent/coding_login.py": "838a2f88404a32dc68c43a074a5dde2f4d8d7407927d4fe07b54924afc85f6ae",
+    "system_agent/console_font.py": "696fb4045b193ab651103ed8bf2aae9c053b0473e36f85cfb3d1cf069c5ae9e5",
     "system_agent/facts.py": "3cb9daff407a3473039aea61881fc0e294af9c7fdc7e8e1e14949ba14515ce18",
     "system_agent/handoff.py": "898bd6369a60029bcd8a6ec2cbf3f9c8d5f769bef54163f8a915a2b8e331a1c7",
     "system_agent/install_common.py": "efd154595e89b42347e78bce67d09253d86ddc781bbf6e31118850a70e707dd4",
@@ -288,10 +289,10 @@
     "system_agent/policy.py": "b24891b94251f06d05b10aed0a4c253e3c7e5e9657e6e338c46a2f41df8f5417",
     "system_agent/profile.py": "3b8fce9e933b62fddc058c59fc6f3a1c5f986e542cd43897dabe919d137b943e",
     "system_agent/readiness.py": "1e1f88b68212546cd18b9d51474c5a2794fe665c61f0a7e67f0367919fd5c072",
-    "system_agent/setup.py": "c7ce939844a4fa1c8d503e66788a8079f82e4bf64585153bc965f0237e01816b",
+    "system_agent/setup.py": "cb23f4370755012389fa7c5f26815767fd11a55171c5b54c34fb6680d03a8b3c",
     "system_agent/state.py": "568a6a69746f7117628f9f87db05eb970469d5bfb8debb95da28db494df11f93",
     "system_agent/tui.py": "b928882029689564c7f3baf91d71b4761ad78dcb2aa04f78381307f1d8c5ab33"
   },
-  "source_date_epoch": 1791476828,
-  "source_sha256": "46f00df7826a5ecf7904543635f30aeb6f9b2c8ac329294dbdcde73746c3f3b5"
+  "source_date_epoch": 1791479194,
+  "source_sha256": "f8ffe07530c663f9d818ef8c2e4dd228afbd04728af564dd3d493c3798ff5c33"
 }
