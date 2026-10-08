@@ -42,7 +42,7 @@ Live state remains private RAM state. Installed authentication and conversations
 remain persistent, and live credentials are never transferred. Account storage
 success is not proof of working model access: the next conversation checks a reply.
 
-The integration deliberately pins OpenClaw 2026.9.5 on NixOS and 2026.9.8 on Arch.
+The integration deliberately pins OpenClaw 2026.9.5 on NixOS and 2026.9.9 on Arch.
 It uses a version-checked upstream module surface, not a promised stable public
 API. Updating a runtime requires rerunning the provider integration tests.
 

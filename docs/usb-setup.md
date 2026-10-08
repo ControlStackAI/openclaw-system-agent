@@ -1,14 +1,18 @@
 # NixOS USB setup (development image)
 
-[Historical ISO (known Wi-Fi defect)](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654).
-SHA-256: `a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a`. This first Ventoy image disabled NetworkManager’s Wi-Fi backend. Use a corrected build from `images/nixos.lock.json`; see [image builds](image-builds.md) and [qualification](qualification.md) for exact receipts and limits.
+Use an image built from the current `images/nixos.lock.json`; there is no
+published GitHub release download yet. See [image builds](image-builds.md) and
+[qualification](qualification.md) for the build instructions, exact tested hashes
+and limits. Older Actions artifacts are historical evidence; the first NixOS
+image had a Wi-Fi defect and should not be used for new tests.
 
 ## What the owner does
 
-Download the image archive from the linked successful qualification run and unzip
-it. Select its `.iso` file in your image writer and write it to a USB drive;
-16 GB or larger is recommended. Writing the image erases that USB drive. Use a disposable test computer until hardware and real
-provider sign-in have been qualified; the current test results are VM results.
+Verify the image against its accompanying checksum. Copy its `.iso` onto an
+existing Ventoy drive, or select it in your USB image writer; 16 GB or larger is
+recommended. Writing an image directly erases that USB drive. Use a spare test
+computer and a backed-up target disk while physical installation remains
+unqualified; automated qualification uses virtual machines.
 
 1. Start the computer from the USB in UEFI mode. The setup screen opens
    automatically. Choose a keyboard layout, then connect to Wi-Fi if Ethernet
@@ -21,10 +25,11 @@ provider sign-in have been qualified; the current test results are VM results.
    choices one at a time, including KDE Plasma, GNOME, Hyprland + Quickshell or no desktop; language,
    keyboard, time zone, computer name, account and encryption. Real-model
    interview quality still needs testing with an actual provider account.
-4. Press **Ctrl+D** to return to the setup screen and choose the installation
-   review. It collects missing choices, prepares the selected system, and shows
-   the disk and storage plan. Nothing is erased until the separate local disk
-   confirmation. This version uses the whole selected disk and erases its data.
+4. Ask the assistant to proceed: it opens the local installation review with
+   saved choices. Alternatively, press **Ctrl+D** to return to setup and choose
+   installation review. It collects missing choices, prepares the selected system, and shows
+   the disk and storage plan. The guided installer waits for the separate local disk
+   confirmation before erasing anything. This version uses the whole selected disk and erases its data.
    Account passwords and the optional disk passphrase use hidden local prompts,
    never the chat.
 5. After installation, choose shutdown, remove the USB, and start the computer.
@@ -59,7 +64,7 @@ are consumed from the pinned agent-installer source; that repository is unchange
 
 The experimental installer supports UEFI, a whole disk of at least 32 GiB, ZFS,
 and no desktop, KDE Plasma, GNOME or Hyprland + Quickshell.
-See the [Hyprland desktop guide](hyprland-quickshell.md) for its current qualification status. The console path was tested with 4 GiB
+See the [qualification matrix](qualification.md) for the current image test scope. The console path was tested with 4 GiB
 of RAM. Desktop preparation requires 8 GB of usable RAM in this development
 image; a smaller machine is stopped before building or changing its disk. Optional
 desktop packages are carried on the read-only USB image to avoid filling RAM
@@ -91,18 +96,12 @@ The assistant can inspect and edit its own state but has no sudo grant. Privileg
 installation remains in the owner-operated local screen. Remote access and
 unattended updates are off. Backups still need an independent destination.
 
-The preceding build’s [full qualification run](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964) passed BIOS/UEFI live boot, offline gating,
-no-desktop installation, encrypted Plasma with a German keyboard, GNOME, and
-Hyprland + Quickshell. The Hyprland case additionally checked the launcher, lock
-and unlock, and retention of a QML customization after another reboot.
-Each installed case booted its ZFS root without the USB and displayed an OpenClaw
-fixture reply through the normal local interface. The endpoint was a non-secret
-local fixture; real provider sign-in, physical hardware, Secure Boot and
-installed-root recovery remain unqualified.
-
-The current image additionally passed the [Hyprland installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487)
-with the final development tools and desktop polish. Other profiles were tested
-on the preceding five-case image; see [qualification](qualification.md).
+The current SYSTEM-ACCESS image passed live BIOS/offline boot and UEFI Hyprland
+installation, installed ZFS-root boot without the ISO, and desktop checks through
+a second reboot. Replies used a local provider fixture. Other desktops and
+encryption have earlier, separately scoped evidence. Real provider accounts,
+physical installation, physical YubiKeys, Secure Boot and installed-root recovery
+remain unqualified; see [qualification](qualification.md) for exact receipts.
 
 ## Installation started from the conversation
 
