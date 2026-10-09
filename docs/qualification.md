@@ -14,12 +14,19 @@ full installation test; neither existing ISO has been updated by these changes.
 
 Both adapters now preserve the prepared plan when erasure confirmation is mistyped,
 offering Retry or Cancel. The real Ratatui VM passed typo/retry/exact-match,
-Escape and explicit cancellation. All 101 Python tests pass, including both
+Escape and explicit cancellation. All 106 Python tests pass, including both
 adapter cancellation paths, boot-entry transformation and export error reporting.
+The root-console bridge VM also passed an injected export failure: the same
+conversation resumed with the detailed cleanup status, and a retry with changed
+preferences could not reopen disk review. This test uses a disk-free fixture,
+not a reproduction or repair of the reported hardware pool holder.
 
 A reported target-pool export failure on hardware remains undiagnosed: the old
 error path omitted ZFS's detailed output. Source now preserves that output and
 states that disk writes have already occurred before this final cleanup step.
+The conversation receives explicit `blocked` (payload) or `needs-cleanup` (export)
+status. Cleanup failure blocks re-entering disk installation through the current
+console bridge, even with changed choices or an explicit retry.
 This is improved diagnostics, not evidence that the hardware export failure has
 been fixed. Do not infer that a preexisting unrelated pool should be destroyed.
 

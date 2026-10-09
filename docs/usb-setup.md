@@ -141,3 +141,28 @@ The agent calls `system-agent request-install` after saving your supported choic
 The primary console opens installation review automatically and returns to the
 same conversation after cancellation, failure, or completion. The agent checks
 `system-agent install-status` for the root installer's own payload/readiness view.
+
+## Handling installation errors
+
+New source builds distinguish preparation failures from final cleanup failures in
+`system-agent install-status`. These changes are not present in the original
+2026-10-08 SYSTEM-ACCESS ISOs.
+
+- **Missing, unreadable or corrupt Arch payload:** state `blocked`, stage
+  `payload-check`, and `disk_changes: none-this-attempt`. The message explains
+  read-only boot-media recovery or image replacement and retains checksum checks.
+- **Mistyped erasure confirmation:** stay in local review and choose Try again or
+  Cancel. Retrying preserves the prepared plan and never treats the typo as approval.
+- **Failed ZFS export:** state `needs-cleanup`, stage `pool-export`, with the pool,
+  exit code and ZFS diagnostic. `disk_changes: system-written` explicitly records
+  that installation already wrote the disk; `installed_boot_verified` stays false.
+  The current root console refuses to reopen installation even with `--retry` or
+  changed preferences. The assistant must inspect confirmed pool holders, including
+  mounts retained by live-service namespaces, and preserve unrelated pools.
+
+No service is automatically killed and no pool is force-exported. Unexpected errors
+remain `failed` with disk changes marked unknown rather than falsely claiming an
+untouched disk. This status belongs to the running console session; restarting it
+is not proof that a failed cleanup has been resolved. Inspect actual pool and boot
+state before taking further action. Long export diagnostics are bounded and marked
+as truncated so the result remains deliverable to the conversation.

@@ -6,6 +6,34 @@ import subprocess
 from pathlib import Path
 from zoneinfo import available_timezones
 
+
+class InstallationIssue(ValueError):
+    """An expected installer failure with an explicit, non-secret recovery state."""
+    def __init__(self, message, **status):
+        super().__init__(message)
+        self.status = {**status, "message": message, "installed_boot_verified": False}
+
+
+def payload_issue(payload, reason):
+    if reason == "missing":
+        message = ("The installed-system payload is missing from its expected location. "
+                   "No disk was changed by this attempt. Keep the USB connected. "
+                   "Check whether Arch copy-to-RAM mode unmounted the boot image; identify "
+                   "that same image, remount it read-only, and verify its payload checksum "
+                   "before reopening installation review.")
+    elif reason == "unreadable":
+        message = ("The local installer cannot read the installed-system payload. "
+                   "No disk was changed by this attempt. Inspect the boot image mount, "
+                   "read errors and installer access before retrying; do not bypass verification.")
+    else:
+        message = ("The installation payload failed its integrity check. "
+                   "No disk was changed by this attempt. Stop and verify or replace the USB image; "
+                   "do not use this payload or bypass the checksum check.")
+    return InstallationIssue(message, state="blocked", stage="payload-check",
+                             disk_erasure_approved=False, disk_changes="none-this-attempt",
+                             payload=str(payload), reason=reason)
+
+
 def run(args, **kwargs):
     return subprocess.run(args, check=True, text=True, **kwargs)
 
@@ -77,14 +105,23 @@ def export_installed_pool(pool):
     """Keep ZFS's error available to the conversation after final cleanup fails."""
     try:
         run(["zpool", "export", pool], capture_output=True)
-    except subprocess.CalledProcessError as error:
-        detail = (error.stderr or error.stdout or "ZFS returned no diagnostic text.").strip()
-        raise ValueError(
+    except (subprocess.CalledProcessError, OSError) as error:
+        code = error.returncode if isinstance(error, subprocess.CalledProcessError) else None
+        detail = ((error.stderr or error.stdout or "ZFS returned no diagnostic text.")
+                  if isinstance(error, subprocess.CalledProcessError) else str(error)).strip()
+        # Leave room for the bridge's other fields in its bounded JSON response.
+        truncated = len(detail) > 2000
+        detail = detail[:2000] + (" [diagnostic truncated]" if truncated else "")
+        raise InstallationIssue(
             f"System files and boot configuration were written, but final cleanup could not export "
-            f"the target ZFS pool {pool} (exit {error.returncode}). ZFS reports: {detail}\n"
+            f"the target ZFS pool {pool} (exit {code}). Export error: {detail}\n"
             "The disk has already been changed. Preserve this installation and inspect the pool "
-            "and remaining users or mounts before retrying cleanup. Do not restart installation "
-            "or force-export the pool. Installed boot has not yet been verified."
+            "and remaining users or mounts, including live-service mount namespaces, before "
+            "retrying cleanup. Do not restart installation or force-export the pool. "
+            "Installed boot has not yet been verified.",
+            state="needs-cleanup", stage="pool-export", disk_erasure_approved=True,
+            disk_changes="system-written", pool=pool, exit_code=code,
+            diagnostic=detail, diagnostic_truncated=truncated, reinstall_allowed=False,
         ) from error
 
 

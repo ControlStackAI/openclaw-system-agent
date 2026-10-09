@@ -84,3 +84,23 @@ class PoolExportDiagnostics(unittest.TestCase):
             self.assertIn('Do not restart installation', str(caught.exception))
             self.assertIn('exit 1', str(caught.exception))
             run.assert_called_once_with(['zpool', 'export', 'csafixture'], capture_output=True)
+
+
+    def test_missing_export_command_still_reports_post_write_cleanup(self):
+        from system_agent.install_common import InstallationIssue
+        with patch('system_agent.install_common.run', side_effect=FileNotFoundError('fixture executable missing')):
+            with self.assertRaises(InstallationIssue) as caught:
+                export_installed_pool('csafixture')
+        self.assertEqual(caught.exception.status['state'], 'needs-cleanup')
+        self.assertIsNone(caught.exception.status['exit_code'])
+        self.assertIn('fixture executable missing', caught.exception.status['diagnostic'])
+
+    def test_large_diagnostic_fits_bridge_response_and_is_marked_truncated(self):
+        import json
+        from system_agent.install_common import InstallationIssue
+        failure = subprocess.CalledProcessError(1, ['zpool','export','csafixture'], stderr='x'*20000)
+        with patch('system_agent.install_common.run', side_effect=failure):
+            with self.assertRaises(InstallationIssue) as caught:
+                export_installed_pool('csafixture')
+        self.assertTrue(caught.exception.status['diagnostic_truncated'])
+        self.assertLess(len(json.dumps(caught.exception.status).encode()), 8192)

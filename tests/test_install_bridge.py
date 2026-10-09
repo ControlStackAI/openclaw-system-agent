@@ -68,3 +68,37 @@ class InstallBridgeTests(unittest.TestCase):
         self.assertEqual(setup.bridge.record['state'], 'failed')
         self.assertIsNone(setup.bridge.record['disk_erasure_approved'])
         self.assertIn('unknown', setup.bridge.record['disk_changes'])
+
+
+    def test_known_payload_failure_reports_pre_write_state(self):
+        from system_agent.install_common import payload_issue
+        setup = Setup(True, 'arch'); setup.bridge = bridge.Bridge('arch')
+        record = setup.bridge.handle({'operation':'request', 'choices':{}, 'retry':False})
+        with patch.object(setup, 'install_choices', side_effect=payload_issue('/fixture/target.sfs', 'missing')):
+            setup.install_requested(record)
+        result = setup.bridge.record
+        self.assertEqual(result['state'], 'blocked')
+        self.assertEqual(result['stage'], 'payload-check')
+        self.assertEqual(result['disk_changes'], 'none-this-attempt')
+        self.assertFalse(result['disk_erasure_approved'])
+        self.assertNotEqual(setup.bridge.handle({'operation':'request', 'choices':{}, 'retry':True})['id'], record['id'])
+
+    def test_export_failure_is_preserved_and_cannot_restart_erasure(self):
+        import subprocess
+        from system_agent.install_common import export_installed_pool
+        setup = Setup(True, 'arch'); setup.bridge = bridge.Bridge('arch')
+        record = setup.bridge.handle({'operation':'request', 'choices':{}, 'retry':False})
+        failure = subprocess.CalledProcessError(1, ['zpool','export','csafixture'], stderr='pool is busy')
+        with patch.object(setup, 'install_choices', side_effect=lambda _: export_installed_pool('csafixture')), \
+                patch('system_agent.install_common.run', side_effect=failure):
+            setup.install_requested(record)
+        result = dict(setup.bridge.record)
+        self.assertEqual(result['state'], 'needs-cleanup')
+        self.assertEqual(result['disk_changes'], 'system-written')
+        self.assertTrue(result['disk_erasure_approved'])
+        self.assertFalse(result['installed_boot_verified'])
+        self.assertEqual(result['diagnostic'], 'pool is busy')
+        for retry in [False, True]:
+            for choices in [{}, {'hostname':'different-choice'}]:
+                self.assertEqual(setup.bridge.handle({'operation':'request', 'choices':choices, 'retry':retry}), result)
+        self.assertIsNone(setup.bridge.take())

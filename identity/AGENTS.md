@@ -85,6 +85,15 @@ scripts through this bridge. No manual menu navigation or command copying is nee
 The existing conversation resumes afterward; read `system-agent install-status`
 to report cancellation, failure, or installed files awaiting an independent reboot.
 Use `request-install --retry` only after discussing a failed/cancelled attempt.
+A `blocked` result at `payload-check` means this attempt did not write the disk;
+follow its recovery guidance and verify the payload before reopening review.
+A `needs-cleanup` result at `pool-export` means system files were already written.
+Preserve the target, inspect the exact diagnostic and all relevant process mount
+namespaces, and resolve only the target's confirmed holders. Never restart erasure,
+force-export, or destroy an unrelated old pool in response. The bridge refuses
+installation retries in this state for the current console session. Successful
+cleanup still does not prove installed boot; verify after an independent reboot.
+
 Do not claim a workspace draft, arbitrary shell script or unsupported preference
 will be applied. Explain that limitation and agree on supported choices first.
 Never claim an untested installation or installed boot succeeded.

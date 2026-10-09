@@ -141,6 +141,7 @@ class Setup:
             print("\nBack at the setup menu.")
 
     def install_requested(self, record):
+        from .install_common import InstallationIssue
         if tui.active:
             tui.active.context("Agent-requested installation")
         print("Your assistant has requested installation using your saved choices.\n"
@@ -148,6 +149,9 @@ class Setup:
         try:
             result = self.install_choices(record['choices'])
             self.bridge.finish(result or {'state': 'cancelled', 'message': 'Local review was cancelled; no installation was approved.'})
+        except InstallationIssue as error:
+            self.bridge.finish(error.status)
+            print("Installation needs attention: " + str(error))
         except (OSError, ValueError, subprocess.SubprocessError, tui.Cancelled) as error:
             self.bridge.finish({'state': 'failed', 'message': str(error), 'disk_erasure_approved': None,
                                 'disk_changes': 'unknown; check installer progress before retrying'})

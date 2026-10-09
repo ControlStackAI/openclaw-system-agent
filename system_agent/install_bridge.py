@@ -111,6 +111,10 @@ class Bridge:
         from .choices import validate_partial
         choices = dict(validate_partial(value['choices']))
         with self.lock:
+            # A retry of an installed target must not reopen the erasure flow.
+            # Keep the cleanup diagnosis even if the model changes its choices.
+            if self.record and self.record['state'] == 'needs-cleanup':
+                return dict(self.record)
             if self.record and self.record['state'] in ('queued', 'reviewing'):
                 return dict(self.record)
             # Tool retries cannot reopen the same approval after cancel/failure.

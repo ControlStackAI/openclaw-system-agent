@@ -17,6 +17,13 @@ class Demo(Setup):
         answer = choose('Approve the disposable installation fixture?', ['Cancel without disk changes', 'Approve fixture only'])
         if answer == 1: return None
         Path('/run/fixture-approved').write_text('local UI approval only')
+        if Path('/run/fixture-export-failure').exists():
+            from unittest.mock import patch
+            from system_agent.install_common import export_installed_pool
+            failure = subprocess.CalledProcessError(1, ['zpool', 'export', 'csafixture'], stderr='pool is busy: synthetic namespace holder')
+            with patch('system_agent.install_common.run', side_effect=failure):
+                export_installed_pool('csafixture')
+
         return {'state':'installed-awaiting-reboot', 'disk_erasure_approved':True, 'message':'Fixture only; no disk was touched.'}
 
 setup = Demo(True, 'nixos')

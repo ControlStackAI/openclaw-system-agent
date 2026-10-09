@@ -31,6 +31,29 @@ class ArchInstallation(unittest.TestCase):
                     install.prepare({}, choices)
                 command.assert_not_called()
 
+    def test_missing_and_unreadable_payloads_are_blocked_before_commands(self):
+        from system_agent.install_common import InstallationIssue
+        choices = dict(hostname='fixture', username='owner', desktop='hyprland',
+                       keyboard='us', locale='en_US.UTF-8', timezone='UTC', encrypt=False)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); payload = root / 'target.sfs'; inputs = root / 'inputs.json'
+            inputs.write_text(json.dumps({'payload':str(payload), 'sha256':'0'*64}))
+            with patch.object(install, 'INPUTS', inputs), patch.object(install, 'check_context', return_value={}), patch.object(install, 'run') as run:
+                with self.assertRaises(InstallationIssue) as caught:
+                    install.prepare({}, choices)
+                self.assertEqual(caught.exception.status['reason'], 'missing')
+                self.assertEqual(caught.exception.status['disk_changes'], 'none-this-attempt')
+                payload.write_bytes(b'fixture')
+                original = Path.open
+                def denied(path, *args, **kwargs):
+                    if path == payload: raise PermissionError('fixture denial')
+                    return original(path, *args, **kwargs)
+                with patch.object(Path, 'open', denied):
+                    with self.assertRaises(InstallationIssue) as caught:
+                        install.prepare({}, choices)
+                self.assertEqual(caught.exception.status['reason'], 'unreadable')
+                run.assert_not_called()
+
     def test_unavailable_saved_desktop_is_reasked(self):
         choices = dict(hostname='fixture', username='owner', desktop='gnome', purpose='development',
                        keyboard='us', locale='en_US.UTF-8', timezone='UTC', encrypt=False)

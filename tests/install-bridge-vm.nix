@@ -48,5 +48,26 @@ in pkgs.testers.runNixOSTest {
     machine.succeed("test -e /run/fixture-approved")
     machine.wait_until_succeeds("grep -q 'FIXTURE CHAT READY' /dev/vcs1")
     machine.screenshot("same-chat-resumed")
+    # A late failure preserves its stage and diagnostic in the same conversation.
+    machine.succeed("touch /run/fixture-export-failure")
+    machine.succeed(agent + "request-install --retry")
+    machine.wait_until_succeeds("grep -q 'Approve the disposable' /dev/vcs1")
+    machine.send_key("2"); machine.send_key("ret")
+    machine.wait_until_succeeds(agent + "install-status | grep needs-cleanup")
+    failed = json.loads(machine.succeed(agent + "install-status"))["request"]
+    assert failed["disk_changes"] == "system-written"
+    assert failed["disk_erasure_approved"] is True
+    assert failed["diagnostic"] == "pool is busy: synthetic namespace holder"
+    assert failed["installed_boot_verified"] is False
+    machine.wait_until_succeeds("grep -q 'FIXTURE CHAT READY' /dev/vcs1")
+    machine.succeed("rm /run/review-reached")
+    machine.succeed(agent + "setup-choice hostname changed-after-failure")
+    retry_result = json.loads(machine.succeed(agent + "request-install --retry"))
+    assert retry_result["id"] == failed["id"] and retry_result["state"] == "needs-cleanup"
+    machine.sleep(3)
+    machine.succeed("test ! -e /run/review-reached")
+    machine.succeed("grep -q 'FIXTURE CHAT READY' /dev/vcs1")
+    machine.screenshot("cleanup-failure-preserved-in-chat")
+
   '';
 }

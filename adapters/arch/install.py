@@ -25,7 +25,8 @@ INPUTS = Path("/etc/controlstack-agent/arch-target.json")
 
 
 from system_agent.install_common import (run, output, descendants, eligible, disks, disk_identity,
-                                         secret_twice, timezone_choice, describe_choices, confirm_disk_erasure, export_installed_pool)
+                                         secret_twice, timezone_choice, describe_choices, confirm_disk_erasure, export_installed_pool,
+                                         payload_issue)
 
 
 def check_context():
@@ -46,13 +47,18 @@ def prepare(node, choices, enrollment=None):
         raise ValueError('This Arch image supports Hyprland or no desktop.')
     inputs = json.loads(INPUTS.read_text())
     payload = Path(inputs['payload'])
-    if not payload.is_file():
-        raise ValueError('The installed-system payload is missing. No disk was changed.')
-    print('Checking the prepared Arch system before changing any disk...', flush=True)
-    with payload.open('rb') as stream:
-        actual = hashlib.file_digest(stream, 'sha256').hexdigest()
+    try:
+        if not stat.S_ISREG(payload.stat().st_mode):
+            raise payload_issue(payload, 'integrity')
+        print('Checking the prepared Arch system before changing any disk...', flush=True)
+        with payload.open('rb') as stream:
+            actual = hashlib.file_digest(stream, 'sha256').hexdigest()
+    except FileNotFoundError as error:
+        raise payload_issue(payload, 'missing') from error
+    except OSError as error:
+        raise payload_issue(payload, 'unreadable') from error
     if actual != inputs['sha256']:
-        raise ValueError('The installation payload failed its integrity check. No disk was changed.')
+        raise payload_issue(payload, 'integrity')
     if output(['uname', '-r']) != inputs['kernel_release']:
         raise ValueError('The live kernel differs from the pinned target kernel.')
     if not Path('/usr/share/zfs/compatibility.d/openzfs-2.2').is_file():
