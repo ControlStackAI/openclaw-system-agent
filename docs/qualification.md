@@ -1,5 +1,29 @@
 # Qualification status
 
+## Source corrections after hardware feedback — replacement images pending
+
+The Arch SYSTEM-ACCESS ISO below has a reproduced higher-memory boot defect:
+with 8 GiB RAM, Arch's automatic copy-to-RAM mode unmounts the boot image and
+hides `target.sfs`. Read-only remounting restored the exact checksum in an isolated
+VM. Its earlier 4 GiB installation test did not exercise that mode.
+
+Source now sets `copytoram=n` in systemd-boot, Syslinux and GRUB loopback entries.
+The ISO harness defaults to 8 GiB for desktop installation and accepts an explicit
+`--memory-mib`. A replacement image still needs an actual higher-memory boot and
+full installation test; neither existing ISO has been updated by these changes.
+
+Both adapters now preserve the prepared plan when erasure confirmation is mistyped,
+offering Retry or Cancel. The real Ratatui VM passed typo/retry/exact-match,
+Escape and explicit cancellation. All 101 Python tests pass, including both
+adapter cancellation paths, boot-entry transformation and export error reporting.
+
+A reported target-pool export failure on hardware remains undiagnosed: the old
+error path omitted ZFS's detailed output. Source now preserves that output and
+states that disk writes have already occurred before this final cleanup step.
+This is improved diagnostics, not evidence that the hardware export failure has
+been fixed. Do not infer that a preexisting unrelated pool should be destroyed.
+
+
 ## Current system-access images — 2026-10-08
 
 Both images passed direct BIOS/offline boot, live text-size preview/rollback,

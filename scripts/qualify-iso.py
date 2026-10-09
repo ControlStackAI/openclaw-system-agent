@@ -197,7 +197,10 @@ def main():
     parser.add_argument("--desktop", choices=["none", "plasma", "gnome", "hyprland"], default="none")
     parser.add_argument("--encrypted", action="store_true")
     parser.add_argument("--keyboard", choices=["us", "de"], default="us")
+    parser.add_argument("--memory-mib", type=int, help="Guest RAM; use at least 8192 to cover Arch automatic copy-to-RAM behavior")
     args = parser.parse_args()
+    if args.memory_mib is not None and args.memory_mib < 2048:
+        parser.error("VM qualification requires at least 2048 MiB of guest RAM")
     iso = args.iso.resolve()
     if not iso.is_file():
         parser.error("ISO must be a regular file")
@@ -207,7 +210,7 @@ def main():
     for name in ("target.qcow2", "OVMF_VARS.fd", "result.json", "qmp.sock"):
         (area / name).unlink(missing_ok=True)
     installing = args.mode == "uefi-install"
-    memory = 4096 if args.desktop == "none" or args.distro == "arch" else 8192
+    memory = args.memory_mib or (4096 if args.desktop == "none" else 8192)
     guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std", live_login=args.distro == "arch")
     try:
         guest.command("system-agent inspect | grep '\"phase\": \"live\"'")
@@ -217,6 +220,7 @@ def main():
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
         guest.command("openclaw --version | grep -F " + ("2026.9.9" if args.distro == "arch" else "2026.9.5"))
         if args.distro == "arch":
+            guest.command("grep -w copytoram=n /proc/cmdline && test -f /run/archiso/bootmnt/arch/controlstack/target.sfs")
             guest.command("test $(stat -Lc %u /usr/local/bin/openclaw) = 0; test -x /opt/codex/bin/codex-code-mode-host")
         guest.command("openclaw onboard --help > /tmp/onboard-help; for flag in --skip-daemon --skip-health --skip-ui --skip-skills --skip-channels --skip-bootstrap --skip-hooks --skip-search; do grep -q -- $flag /tmp/onboard-help || exit 1; done")
         guest.command("cat /dev/vcs1 | grep 'Welcome to your OpenClaw'")

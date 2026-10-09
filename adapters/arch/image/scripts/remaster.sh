@@ -91,18 +91,7 @@ old_uuid=$(basename "$(find "$workspace/iso/boot" -maxdepth 1 -name '*.uuid' -pr
 test -n "$old_uuid"
 find "$workspace/iso/boot" -maxdepth 1 -name '*.uuid' -delete
 touch "$workspace/iso/boot/$uuid.uuid"
-python - "$workspace/iso" "$old_uuid" "$uuid" <<'PY'
-from pathlib import Path
-import sys
-root=Path(sys.argv[1])
-for pattern in ('*.conf','*.cfg'):
-    for path in root.rglob(pattern):
-        text=path.read_text().replace(sys.argv[2],sys.argv[3]).replace('Arch Linux install medium','ControlStackAI Arch OpenClaw System Assistant')
-        # The stock CMS signature cannot authenticate our changed squashfs.
-        text=text.replace('cms_verify=y','cms_verify=n')
-        text='\n'.join(line + ' console=ttyS0,115200 console=tty0' if line.lstrip().startswith(('options ', 'APPEND ')) else line for line in text.splitlines()) + '\n'
-        path.write_text(text)
-PY
+python /repo/scripts/boot-config.py "$workspace/iso" "$old_uuid" "$uuid"
 
 # Rebuild the appended FAT image as well: UEFI boots its copy of these files.
 mkdir -p "$workspace/efi-tree"

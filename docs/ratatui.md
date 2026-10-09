@@ -49,7 +49,11 @@ API. Updating a runtime requires rerunning the provider integration tests.
 ## Installation and installed use
 
 The usual desktop, account, regional and encryption questions use Ratatui, and the
-full disk/storage/access review precedes exact disk confirmation. Choosing an
+full disk/storage/access review precedes exact disk confirmation. A mistyped
+`ERASE <disk identifier>` now offers Try again or Cancel installation while keeping
+the prepared plan. The phrase must still match exactly; no password prompt or
+disk write follows a mismatch. Type CANCEL or press Escape to leave confirmation.
+This source update is not included in the 2026-10-08 SYSTEM-ACCESS ISOs. Choosing an
 assistant name updates its identity; the reviewed name carries into the installed
 system alongside the non-secret owner preferences. Existing identity role and
 instructions are preserved.

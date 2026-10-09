@@ -21,8 +21,9 @@ with Interface(True,'nixos') as ui:
     ui.info('Protected input accepted','The password did not enter the conversation or logs.')
    elif choice==4:
     ui.notes='Disk: EXAMPLE 48 GiB — serial DEMO123\nAll contents of this disk will be lost.\nLayout: EFI startup partition and ZFS datasets.\nSnapshots need an independent backup.\nNo operation will run in this fixture.'
-    value=ui.input('Type ERASE DEMO123 to confirm this example')
-    ui.info('Review complete','This fixture did not change any disk.')
+    from system_agent.install_common import confirm_disk_erasure
+    value=confirm_disk_erasure({'serial':'DEMO123','wwn':None})
+    ui.info('Review complete' if value else 'Review cancelled','This fixture did not change any disk.')
    elif choice==5:
     choose_size(ui)
    else:break

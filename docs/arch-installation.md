@@ -1,5 +1,12 @@
 # Arch USB to resident desktop
 
+**Known issue in the 2026-10-08 SYSTEM-ACCESS ISO:** automatic copy-to-RAM boot
+on machines with enough memory unmounts the ISO and hides the separate target
+payload. This was reproduced with 8 GiB RAM; read-only remounting of the same boot
+image restored the payload and its expected checksum. The source now disables
+this mode in live boot entries, including GRUB loopback. A replacement ISO has
+not yet been built and qualified. Keep the USB attached throughout installation.
+
 Build the Arch image from `images/arch.lock.json` using the repository image
 builder. The lock selects the Arch ISO, package archive, signed kernel/ZFS
 packages, complete OpenClaw runtime and this project's reviewed source. Building

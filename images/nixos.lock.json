@@ -213,13 +213,14 @@
     "adapters/arch/image/config/target-packages.txt": "6da9f2899b9fb5bafc837e225c52b23b7c0b140d8b8f1107580309dbba33b8c2",
     "adapters/arch/image/config/zfs-policy.json": "1a4f7f74bb450c84c0a446afebafe0249da68361d4a9322b3ccb1ad10fe8d173",
     "adapters/arch/image/inputs.lock.json": "2c7be877486d9354528a6072d0e6413d1593eae1d73154d2ab39976ae5ddd842",
+    "adapters/arch/image/scripts/boot-config.py": "cad866470afa89e30c33b8c2136e0825ff6a83e9ccc73f4f5610f1162da98eec",
     "adapters/arch/image/scripts/build-target.sh": "ebbcb040a4898ff50376f4b0e2258eafd6ca9e62fb05ebae3ac7b3a671d613dd",
     "adapters/arch/image/scripts/configure-root.sh": "ee101af5d7b8acf5a1ea393344da33843af639d5fe57260ba93aa5c863036f9c",
     "adapters/arch/image/scripts/inputs.py": "37ec27e875d6030a81b10e9c9d81a1236b2cbfbf28c0a52d9ee15ccf88627183",
     "adapters/arch/image/scripts/openclaw-overlay.py": "e5fb2070124724d298130daf99bf2bba28c7666e9d5994700aac4021230fc350",
-    "adapters/arch/image/scripts/remaster.sh": "1ddd056592f42f2aeef61facac711713a43afa26e2b1438306f1cc1bfc8ab1a1",
+    "adapters/arch/image/scripts/remaster.sh": "f4c6fbc6482c111523f0fdc030659b1de84b2fa53fdffd1d2a094e7fe1949d9c",
     "adapters/arch/image/scripts/seal-image.sh": "c41ff77db197e9ea26175c73f68fe1ff25f1c52c32f24d9952bec0bcefac0831",
-    "adapters/arch/install.py": "8049d5f27b34059ba677dfa263defd3789c3412ec01f8378c551ae4590a9dcc1",
+    "adapters/arch/install.py": "c65be86f0065e5aabc0de8f95b5fe4bbc639014c6732d067b28a0d7bc504dfec",
     "adapters/arch/owner_policy.py": "10e33b1f0a1273b34de1985efea70a29781ab77c628ac10ff05b6ec4c605d8d9",
     "adapters/arch/target.py": "b32df280e3ef7f45fab821560a264bb73221d3789abadfe407a11d48f8b45ae1",
     "adapters/nixos/__init__.py": "a37676696055efb2cab2295e4e8cda11d89fda7f468c920c738e31818fc8467f",
@@ -228,7 +229,7 @@
     "adapters/nixos/hyprland/default.nix": "113eb22c5e31eea1fbe0f90f90c9a58605578ad5609ae156bc05ba56867747cb",
     "adapters/nixos/hypruse/default.nix": "5c54e35bf9237f6ff3fbe7650d90adb737a0e94070934d495e5659ced9f0e337",
     "adapters/nixos/hypruse/package.nix": "9f2b046edd764ec7d72c7f2f3707a8ccc4673d1a07c851e9c55a9ffb1118f68f",
-    "adapters/nixos/install.py": "6a1d8b8d9642a19c74c481578b6b09c2a548f69efa569fba38beb5914ab0771b",
+    "adapters/nixos/install.py": "620ea66db8e4bd3a8e487dabb14d264a2fd7c50cdde12b61d06ef033026f7bbd",
     "adapters/nixos/live-access.nix": "f9c11345075b39a0995e74e9724d62b21d40fb97248efdfbec0ddeaad6e20591",
     "adapters/nixos/live-image.nix": "fbc11bbcb0e037440c469cb39721be60238416e3a4f31d3dd22abd663cef33d8",
     "adapters/nixos/module.nix": "5de75d606b6852548fb396e9410c06078250dee0789e8b87c7ba08a158a5d320",
@@ -292,7 +293,7 @@
     "system_agent/facts.py": "a684bf7d280e2faf69da6373106207df95cbe3ac3fabc7668dec8fe877063195",
     "system_agent/handoff.py": "898bd6369a60029bcd8a6ec2cbf3f9c8d5f769bef54163f8a915a2b8e331a1c7",
     "system_agent/install_bridge.py": "974258607e305c231c909c0bc72d73ab83e09bd0f0038293d815091276a749be",
-    "system_agent/install_common.py": "3bf0d164bec1e2a2ac4b8392bd693662f5976b291efd3e68387548a941b5b265",
+    "system_agent/install_common.py": "740f870f89618d3b2e9267e78f4d5dc1ac89dcb7dc1cff53e9bdcd454aa65f85",
     "system_agent/interview.py": "9dfefb21d30806784062f8848d2494aaafc53d9f48944bf8e4d072b550b9ebb9",
     "system_agent/networking.py": "858f98f4523ea2bbf03bd8a0425dc44c7dd1b79379ee353c11ee99d42e1540a7",
     "system_agent/policy.py": "b24891b94251f06d05b10aed0a4c253e3c7e5e9657e6e338c46a2f41df8f5417",
@@ -303,6 +304,6 @@
     "system_agent/state.py": "568a6a69746f7117628f9f87db05eb970469d5bfb8debb95da28db494df11f93",
     "system_agent/tui.py": "b928882029689564c7f3baf91d71b4761ad78dcb2aa04f78381307f1d8c5ab33"
   },
-  "source_date_epoch": 1791487497,
-  "source_sha256": "a2ad3f800178fca9d24c3aa7c0dcc1ae2d7f0be6a4309d0fd246e3db98d3fbc0"
+  "source_date_epoch": 1791511865,
+  "source_sha256": "7f992a00c46889f775b5a8361afc0e7e6b18a1fc60f49df79dc2b1fbec4f04d6"
 }

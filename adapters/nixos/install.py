@@ -25,7 +25,7 @@ INPUTS = Path("/etc/controlstack-agent/install-inputs.json")
 
 
 from system_agent.install_common import (run, output, descendants, eligible, disks, disk_identity,
-                                         secret_twice, timezone_choice, describe_choices)
+                                         secret_twice, timezone_choice, describe_choices, confirm_disk_erasure, export_installed_pool)
 
 
 def check_context():
@@ -276,7 +276,7 @@ def install(plan, confirmation, password, encryption_key=None):
     run(["umount", str(TARGET / "boot")])
     for directory in ("var/lib/controlstack-agent", "home", ""):
         run(["umount", str(TARGET / directory)])
-    run(["zpool", "export", pool])
+    export_installed_pool(pool)
     print("\nInstallation files are ready. Shut down before removing the USB, then turn the computer on again.\n"
           "Sign in with your new local account. System Assistant will open and help you sign in to OpenClaw again.\n"
           "The installed boot still needs to be verified after that restart.", flush=True)
@@ -325,9 +325,8 @@ def interactive(state, suggestions=None):
           "No remote login or automatic updates. ZFS compatibility is limited to the OpenZFS 2.2 feature set.\n"
           "Snapshots are not independent backups. Keep the USB for recovery and arrange an external backup.\n"
           "Before proceeding, separately back up anything on the selected disk that you need to keep.")
-    expected = "ERASE " + str(node["serial"] or node["wwn"])
-    confirmation = input(f"To approve this exact disk, type {expected}; anything else cancels: ").strip()
-    if confirmation != expected:
+    confirmation = confirm_disk_erasure(plan["disk"])
+    if confirmation is None:
         print("Cancelled. No disk changes were made.")
         return
     # Use exactly the target console map before secrets are typed. Otherwise a

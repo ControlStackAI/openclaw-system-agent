@@ -52,6 +52,42 @@ def disk_identity(node):
     return {key: node.get(key) for key in ("name", "size", "model", "serial", "wwn", "children")}
 
 
+def confirm_disk_erasure(node):
+    """Retry typing mistakes without rebuilding the plan or granting approval."""
+    from system_agent.setup import choose
+    from system_agent.tui import Cancelled
+    expected = "ERASE " + str(node["serial"] or node["wwn"])
+    try:
+        while True:
+            confirmation = input(f"Type {expected} to approve this disk, or CANCEL to go back: ").strip()
+            if confirmation == expected:
+                return confirmation
+            if confirmation.casefold() == "cancel":
+                return None
+            print("That did not match. Nothing has been erased.\n"
+                  "Use uppercase ERASE, one space, then the disk identifier exactly as shown.\n"
+                  "Your disk selection and setup choices are still here.")
+            if choose("Try the disk confirmation again?", ["Try again", "Cancel installation"]) != 1:
+                return None
+    except (Cancelled, EOFError, KeyboardInterrupt):
+        return None
+
+
+def export_installed_pool(pool):
+    """Keep ZFS's error available to the conversation after final cleanup fails."""
+    try:
+        run(["zpool", "export", pool], capture_output=True)
+    except subprocess.CalledProcessError as error:
+        detail = (error.stderr or error.stdout or "ZFS returned no diagnostic text.").strip()
+        raise ValueError(
+            f"System files and boot configuration were written, but final cleanup could not export "
+            f"the target ZFS pool {pool} (exit {error.returncode}). ZFS reports: {detail}\n"
+            "The disk has already been changed. Preserve this installation and inspect the pool "
+            "and remaining users or mounts before retrying cleanup. Do not restart installation "
+            "or force-export the pool. Installed boot has not yet been verified."
+        ) from error
+
+
 def secret_twice(prompt):
     while True:
         value = getpass.getpass(prompt)
