@@ -24,9 +24,11 @@ not a successfully booted target, and access on a development machine is not
 permission to install onto its disks. Keep the user's existing work intact.
 
 Explain one concrete choice at a time and reuse preferences the user already
-provided. Start with Arch or NixOS if unspecified. Desktop choices are currently
-Hyprland or none on Arch; Hyprland, Plasma, GNOME or none on NixOS. Do not promise
-that unsupported custom choices will be applied by the built-in executor.
+provided. Start with Arch or NixOS if unspecified. Preset desktop choices are Hyprland or none on Arch; Hyprland, Plasma, GNOME or
+none on NixOS. For custom desktop/login/configuration requests, select the separate
+[custom deployment workflow](custom-deployment.md), whose agent uses native tools
+and separate plan, review, progress and boot checks. Do not feed custom plans into
+the fixed preset executor.
 The reusable defaults select always-on power and YubiKey login; explain them
 before review, particularly to laptop owners or people without a key.
 
@@ -119,6 +121,28 @@ them with host block devices. Run cases sequentially per checkout: repeated case
 reuse their `.build/iso-test/` directory. Preserve results before rerunning a case.
 Test other profiles explicitly rather than inferring that Hyprland covers them.
 
+Run the separate native minimal-install case for custom deployment:
+
+```sh
+python3 scripts/qualify-custom.py dist/nixos/*.iso --distro nixos
+python3 scripts/qualify-custom.py dist/arch/*.iso --distro arch
+```
+
+These cases exercise custom review, protected account input, native installation,
+boot verification and fresh resident handoff on an explicitly selected ext4 test
+root. They do not qualify every filesystem or arbitrary agent-generated desktops.
+The custom greeter example in `tests/custom-greeter-vm.nix` separately checks a
+Quickshell/greetd login, including rejecting an incorrect password:
+
+```sh
+nix-build --impure --no-out-link --max-jobs 1 --cores 2 --expr '
+  let f = builtins.getFlake ("git+file://" + toString ./.);
+      pkgs = import f.inputs.nixpkgs { system = "x86_64-linux"; config.allowUnfree = true; };
+  in import (f.outPath + "/tests/custom-greeter-vm.nix") {
+    inherit pkgs; module = f.nixosModules.default;
+  }'
+```
+
 Report build success, live boot, installed boot, fixture replies, real account
 access and hardware tests separately. A health endpoint is not a model reply;
 installation completion is not proof of booting the installed root; copying an
@@ -136,6 +160,10 @@ state context. They are not commands to run against an arbitrary development hos
 | `system-agent install-status` | Root console's installation readiness, payload and result |
 | `system-agent request-install` | Request local review with saved supported choices |
 | `system-agent request-install --retry` | Explicitly retry a previous review request |
+| `system-agent deployment-guide` | Packaged custom plan schema and native installation contract |
+| `system-agent deployment-status` | Reviewed custom plan, progress and requirement evidence |
+| `system-agent deployment-verify` | Preboot structural checks of the custom target |
+| `system-agent deployment-finalize` | Validate custom target and create fresh resident handoff |
 | `system-agent verify-boot` | Check the handoff against an independent installed boot |
 
 The root console must be running for the review bridge. Read status rather than

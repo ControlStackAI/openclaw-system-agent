@@ -37,6 +37,15 @@ pkgs.testers.runNixOSTest {
   machine.send_key("ret"); machine.sleep(1)
   machine.succeed("cat /dev/vcs1 | grep 'Protected input accepted'")
   machine.send_key("ret"); machine.sleep(1)
+  # A stopped external TUI must not corrupt the next protected prompt.
+  for attempt in range(2):
+      machine.send_key("6"); machine.send_key("ret")
+      machine.wait_until_succeeds("cat /dev/vcs1 | grep 'Password after returning from chat'", timeout=20)
+      machine.send_chars("fixturepassword")
+      machine.fail("cat /dev/vcs1 | grep fixturepassword")
+      machine.send_key("ret")
+      machine.wait_until_succeeds("cat /dev/vcs1 | grep 'Protected return works'", timeout=20)
+      machine.send_key("ret"); machine.sleep(1)
   machine.send_key("4"); machine.send_key("ret"); machine.sleep(1)
   machine.succeed("cat /dev/vcs1 | grep 'All contents'")
   machine.screenshot("disk-review")

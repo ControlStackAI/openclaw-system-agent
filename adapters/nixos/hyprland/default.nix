@@ -40,6 +40,9 @@ let
     done
     exec ${config.programs.hyprland.package}/bin/start-hyprland
   '';
+  loginSession = pkgs.writeShellScriptBin "Hyprland-Quickshell" ''
+    exec ${pkgs.uwsm}/bin/uwsm start -e -D Hyprland -- ${session}/bin/start-hyprland
+  '';
   entry = pkgs.writeTextFile {
     name = "controlstack-hyprland-session";
     destination = "/share/wayland-sessions/controlstack-hyprland.desktop";
@@ -55,14 +58,16 @@ let
   };
 in {
   imports = [ ../hypruse ];
-  services.xserver.enable = true;
   programs.hyprland = { enable = true; withUWSM = true; };
   programs.neovim.enable = true;
   programs.hyprlock.enable = true;
   services.displayManager = {
-    sddm.enable = true;
     defaultSession = "controlstack-hyprland";
     sessionPackages = [ entry ];
+  };
+  services.greetd = {
+    enable = true;
+    settings.default_session.command = "${pkgs.coreutils}/bin/env XKB_DEFAULT_LAYOUT=${config.services.xserver.xkb.layout} ${pkgs.cage}/bin/cage -s -- ${pkgs.gtkgreet}/bin/gtkgreet -s ${../../shared/greeter.css} -c Hyprland-Quickshell";
   };
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = false;
@@ -98,12 +103,12 @@ in {
   services.pipewire = { enable = true; alsa.enable = true; pulse.enable = true; };
   services.upower.enable = true;
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.sddm.enableGnomeKeyring = true;
+  security.pam.services.greetd.enableGnomeKeyring = true;
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   xdg.portal.config.Hyprland.default = [ "hyprland" "gtk" ];
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with pkgs; [ loginSession
     quickshell xterm thunar mousepad networkmanagerapplet pavucontrol
     brightnessctl wl-clipboard libnotify polkit_gnome mako
     papirus-icon-theme adwaita-icon-theme blueman ghostty playerctl firefox seahorse

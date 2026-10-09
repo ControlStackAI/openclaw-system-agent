@@ -1,0 +1,6 @@
+/* Small graphical sign-in; authentication is owned by greetd/PAM. */
+window { background-color: #0b1423; color: #e4edf8; font-family: Sans; font-size: 16px; }
+box { padding: 12px; }
+entry { background-color: #15253a; color: #f2f6fc; border: 1px solid #425a77; border-radius: 8px; padding: 10px; min-width: 280px; }
+button { background-image: none; background-color: #234f72; color: #ffffff; border-radius: 8px; padding: 10px 20px; }
+label { color: #e4edf8; }

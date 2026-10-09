@@ -156,9 +156,10 @@ Exec=uwsm start -e -D Hyprland -- /usr/local/bin/start-hyprland
 Type=Application
 DesktopNames=Hyprland
 ''')
-    write(root, 'etc/sddm.conf.d/controlstack.conf', '[General]\nInputMethod=\n[Users]\nRememberLastUser=true\n[Autologin]\nSession=controlstack-hyprland.desktop\n')
-    # SDDM's initial selection reads state.conf; this does not enable autologin.
-    write(root, 'var/lib/sddm/state.conf', '[Last]\nSession=/usr/share/wayland-sessions/controlstack-hyprland.desktop\n')
+    write(root, 'etc/greetd/config.toml', '[terminal]\nvt = 1\n[default_session]\nuser = "greeter"\ncommand = "/usr/local/bin/controlstack-greeter"\n')
+    script(root, 'controlstack-greeter', 'export XKB_DEFAULT_LAYOUT=' + choices['keyboard'] + '\nexec /usr/bin/cage -s -- /usr/bin/gtkgreet -s /usr/share/controlstack/greeter.css -c Hyprland-Quickshell\n')
+    script(root, 'Hyprland-Quickshell', 'exec uwsm start -e -D Hyprland -- /usr/local/bin/start-hyprland\n')
+    write(root, 'usr/share/controlstack/greeter.css', (assets.parent / 'greeter.css').read_text())
     write(root, 'etc/xdg/autostart/controlstack-agent.desktop', '''[Desktop Entry]
 Type=Application
 Name=System Assistant

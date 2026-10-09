@@ -60,7 +60,7 @@ def readiness(distro):
               'desktops': ['hyprland', 'none'] if distro == 'arch' else list(DESKTOPS),
               'checked_by': 'root-local-console', 'disk_erasure_approved': False,
               'approval': 'The local screen reviews the exact disk and requires the owner to approve it.',
-              'custom_scripts_supported': False}
+              'custom_native_deployment_supported': True}
     from .choices import DEFAULTS
     result['supported_choices'] = list(DEFAULTS)
     if distro == 'arch':
@@ -106,10 +106,11 @@ class Bridge:
             with self.lock:
                 result['request'] = dict(self.record) if self.record else None
             return result
-        if operation != 'request' or set(value) != {'operation', 'choices', 'retry'} or type(value.get('retry')) is not bool:
+        if operation not in ('request', 'custom', 'custom-account', 'custom-key') or set(value) != {'operation', 'choices', 'retry'} or type(value.get('retry')) is not bool:
             raise ValueError('Only status and a typed installation request are supported; approval must happen locally')
         from .choices import validate_partial
-        choices = dict(validate_partial(value['choices']))
+        from .deployment import validate_plan
+        choices = dict(validate_plan(value['choices']) if operation in ('custom', 'custom-account', 'custom-key') else validate_partial(value['choices']))
         with self.lock:
             # A retry of an installed target must not reopen the erasure flow.
             # Keep the cleanup diagnosis even if the model changes its choices.
@@ -121,7 +122,7 @@ class Bridge:
             digest = hashlib.sha256(json.dumps(choices, sort_keys=True).encode()).hexdigest()
             if self.record and self.record['choices_digest'] == digest and not value['retry']:
                 return dict(self.record)
-            self.record = {'id': secrets.token_hex(8), 'state': 'queued', 'choices': choices,
+            self.record = {'id': secrets.token_hex(8), 'state': 'queued', 'mode': operation if operation in ('custom', 'custom-account', 'custom-key') else 'tested', 'choices': choices,
                            'choices_digest': digest, 'requested_at': time.monotonic(),
                            'disk_erasure_approved': False,
                            'message': 'Your local console will open installation review automatically. No disk has been changed.'}

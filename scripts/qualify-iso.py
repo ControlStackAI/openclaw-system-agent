@@ -156,7 +156,7 @@ class Guest:
     def wait_screen_text(self, expected, timeout=120):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            if " ".join(expected.casefold().split()) in " ".join(self.screen_text().casefold().split()):
+            if " ".join(expected.casefold().split()) in " ".join(self.screen_text().casefold().replace("usemame", "username").split()):
                 return
             time.sleep(2)
         raise RuntimeError("Graphical screen did not show: " + expected)
@@ -335,6 +335,8 @@ def main():
         guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std")
         try:
             guest.command("findmnt -n -o FSTYPE / | grep -x zfs")
+            guest.put('/tmp/verify-floor.py', 'import json\nfrom pathlib import Path\nfrom system_agent.deployment import verify\nr=verify(Path("/"), ' + repr({'distro': args.distro, 'username': 'owner'}) + ')\nprint(json.dumps(r,indent=2))\nassert r["boot_floor_passed"]\n')
+            guest.command('core=$(readlink -f $(command -v system-agent)); PYTHONPATH=$(dirname $(dirname "$core"))/lib/system-agent python3 /tmp/verify-floor.py')
             guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
             guest.command("test ! -e /etc/agent-installer/live-image; test ! -e /etc/controlstack-agent/live-system-access.json; ! runuser -u controlstack-agent -- sudo -n id -u")
             if args.desktop != "none":
@@ -346,7 +348,7 @@ def main():
             guest.command("grep 'purpose: development' /var/lib/controlstack-agent/workspace/USER.md")
             guest.command("grep -x 'Name: Luna' /var/lib/controlstack-agent/workspace/IDENTITY.md")
             if args.desktop != "none":
-                guest.command("timeout 180 bash -c 'until systemctl is-active --quiet display-manager; do sleep 2; done'")
+                guest.command("timeout 180 bash -c 'until systemctl is-active --quiet " + ("greetd" if args.desktop == "hyprland" else "display-manager") + "; do sleep 2; done'")
             if args.encrypted:
                 guest.command("zfs get -H -o value encryption $(findmnt -n -o SOURCE /) | grep -x aes-256-gcm")
             guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
@@ -355,7 +357,13 @@ def main():
                 guest.type_console("owner")
                 time.sleep(3)
             else:
-                guest.wait_screen_text("owner")
+                if args.desktop == "hyprland":
+                    guest.command("systemctl is-active greetd; pgrep -x gtkgreet; ! systemctl is-active --quiet sddm")
+                    guest.wait_screen_text("Username")
+                    guest.type_console("owner")
+                    guest.wait_screen_text("Password")
+                else:
+                    guest.wait_screen_text("owner")
                 if args.desktop == "gnome":
                     guest.qmp("human-monitor-command", {"command-line": "sendkey ret"})
                     guest.command("timeout 60 bash -c 'until pgrep -f \"[p]am/gdm-password\"; do sleep 1; done'")
@@ -470,7 +478,13 @@ p.write_text(json.dumps(c))
                 guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted,
                               memory=memory, keyboard=args.keyboard, gpu="virtio")
                 guest.command("test $(cat /proc/sys/kernel/random/boot_id) != $(cat /home/owner/desktop-test-boot-id)")
-                guest.wait_screen_text("owner")
+                if args.desktop == "hyprland":
+                    guest.command("systemctl is-active greetd; pgrep -x gtkgreet; ! systemctl is-active --quiet sddm")
+                    guest.wait_screen_text("Username")
+                    guest.type_console("owner")
+                    guest.wait_screen_text("Password")
+                else:
+                    guest.wait_screen_text("owner")
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-a"})
                 guest.type_console("vmonlytestpassword")
                 guest.wait_screen_text("OpenClaw")
@@ -499,8 +513,9 @@ p.write_text(json.dumps(c))
                "live_gateway_usb_mount": installing, "agent_requested_installation": installing,
                "same_conversation_resumed_after_install": installing,
                "live_sudo_absent_from_installed_system": installing,
-               "installation": installing, "disk_boot_without_iso": installing, "ram_mib": memory,
+               "installation": installing, "disk_boot_without_iso": installing, "custom_boot_floor_on_zfs": installing, "ram_mib": memory,
                "desktop": args.desktop, "encryption": args.encrypted, "keyboard": args.keyboard, "graphical_owner_login": installing and args.desktop != "none",
+               "greetd_gtkgreet_login": installing and args.desktop == "hyprland",
                "installed_setup_autostart": installing,
                "quickshell_panel_and_launcher": installing and args.desktop == "hyprland",
                "quickshell_launcher_opens_application": installing and args.desktop == "hyprland",

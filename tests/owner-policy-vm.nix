@@ -29,7 +29,7 @@ pkgs.testers.runNixOSTest {
     machine.succeed("runuser -u owner -- sh -c 'printf fixture-password | pamtester hyprlock owner authenticate'")
     machine.fail("runuser -u owner -- sh -c 'printf wrong-password | pamtester hyprlock owner authenticate'")
     # Correct passwords cannot replace the key at initial sign-in.
-    machine.fail("printf fixture-password | pamtester sddm owner authenticate")
+    machine.fail("printf fixture-password | pamtester greetd owner authenticate")
     machine.fail("printf fixture-password | pamtester login owner authenticate")
     machine.fail("runuser -u owner -- sh -c 'echo true > /var/lib/controlstack-security/password-unlock.json'")
     machine.succeed("printf '{\"enabled\":false}' > /var/lib/controlstack-security/password-unlock.json")

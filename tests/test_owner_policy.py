@@ -60,7 +60,7 @@ class OwnerPolicyTests(unittest.TestCase):
             target.configure(root, '/public-runtime', {**CHOICES, 'power_policy':'always-on', 'login_policy':'yubikey'})
             self.assertEqual((root / 'etc/systemd/system/suspend.target').readlink(), Path('/dev/null'))
             self.assertIn('HandleLidSwitch=ignore', (root / 'etc/systemd/logind.conf.d/90-controlstack.conf').read_text())
-            self.assertNotIn('password-check', (root / 'etc/pam.d/sddm').read_text())
+            self.assertNotIn('password-check', (root / 'etc/pam.d/greetd').read_text())
             self.assertIn('[success=ignore default=1]', (root / 'etc/pam.d/hyprlock').read_text())
             self.assertIn('password-check', (root / 'etc/pam.d/hyprlock').read_text())
 

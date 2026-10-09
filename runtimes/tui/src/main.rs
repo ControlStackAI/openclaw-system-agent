@@ -221,6 +221,11 @@ fn run(
                     send(sock, json!({"ok":true,"id":v["id"]}))?;
                 }
                 "resume" => {
+                    // A stopped external client may leave a scroll region,
+                    // origin mode or synchronized output enabled. Reset those
+                    // modes without resetting the owner's console font.
+                    write!(io::stdout(), "\x1b[?2026l\x1b[?6l\x1b[r\x1b[4l\x1b[?7h\x1b[0m")?;
+                    io::stdout().flush()?;
                     palette(true)?;
                     enable_raw_mode()?;
                     execute!(io::stdout(), EnterAlternateScreen)?;

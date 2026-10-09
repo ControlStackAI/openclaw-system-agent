@@ -179,7 +179,7 @@ def install(plan, confirmation, password, encryption_key=None):
         chroot('groupadd', '--system', 'controlstack-desktop')
         for account in (owner, 'controlstack-agent'):
             chroot('usermod', '-aG', 'controlstack-desktop', account)
-        services += ['sddm', 'bluetooth']
+        services += ['greetd', 'bluetooth']
         chroot('systemctl', '--global', 'enable', 'pipewire.socket', 'pipewire-pulse.socket', 'wireplumber.service')
     if plan['choices'].get('power_policy') == 'always-on':
         services.append('controlstack-performance')

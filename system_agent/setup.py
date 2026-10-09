@@ -58,6 +58,14 @@ class Setup:
                         except subprocess.TimeoutExpired:
                             os.killpg(process.pid, signal.SIGKILL)
                             process.wait()
+                        # runuser may exit before its CLI descendants finish.
+                        # Stop the whole private client group before handing the
+                        # terminal back; the systemd gateway is a separate group.
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                        time.sleep(.1)
                         break
                     time.sleep(.2)
             finally:
@@ -144,10 +152,26 @@ class Setup:
         from .install_common import InstallationIssue
         if tui.active:
             tui.active.context("Agent-requested installation")
-        print("Your assistant has requested installation using your saved choices.\n"
-              "Review them below. The disk is changed only after your separate, exact approval.")
+        if record.get('mode') in ('custom-account', 'custom-key'):
+            print("Your assistant opened protected local input for the reviewed custom deployment. Secrets stay out of the conversation.")
+        else:
+            print("Your assistant has requested installation using your saved choices.\n"
+                  "Review them below. The disk is changed only after your separate, exact approval.")
         try:
-            result = self.install_choices(record['choices'])
+            if record.get('mode') == 'custom-key':
+                from .deployment import encryption_key_setup
+                result = encryption_key_setup(self.state)
+            elif record.get('mode') == 'custom-account':
+                from .deployment import account_setup
+                result = account_setup(self.state)
+            elif record.get('mode') == 'custom':
+                from .deployment import review
+                result = review(record['choices'])
+                saved = self.agent('deployment-record', json.dumps(result), capture=True)
+                if saved.returncode:
+                    raise ValueError('Review result could not be saved; do not change the disk')
+            else:
+                result = self.install_choices(record['choices'])
             self.bridge.finish(result or {'state': 'cancelled', 'message': 'Local review was cancelled; no installation was approved.'})
         except InstallationIssue as error:
             self.bridge.finish(error.status)
@@ -164,6 +188,23 @@ class Setup:
         else:
             from adapters.nixos.install import interactive
         return interactive(self.state, suggestions)
+
+    def deployment_mode(self):
+        selection = choose("How would you like to deploy this computer?", [
+            "Use the tested setup — guided choices and ready-made desktop",
+            "Build my own system — the agent creates your custom configuration",
+            "Back"])
+        if selection == 3:
+            return
+        selected = ('tested', 'custom')[selection - 1]
+        subprocess.run(["systemctl", "stop", "controlstack-agent.service"], check=True)
+        try:
+            result = self.agent('deployment-mode', selected, capture=True)
+            if result.returncode:
+                raise ValueError(result.stderr.strip())
+        finally:
+            subprocess.run(["systemctl", "start", "controlstack-agent.service"], check=True)
+        print("Deployment mode saved. Continue with Talk to the assistant.")
 
     def keyboard(self):
         from .profile import LAYOUTS
@@ -200,7 +241,7 @@ class Setup:
         while True:
             labels = ["Connect your AI account or change provider", "Talk to the assistant", "Connect to Wi-Fi or Ethernet"]
             if self.live:
-                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Review choices and install Arch Linux"), "Forget this USB session", "Change keyboard layout", "Text size"]
+                labels += [("Review choices and install NixOS" if self.distro == "nixos" else "Review choices and install Arch Linux"), "Forget this USB session", "Change keyboard layout", "Text size", "Deployment mode — tested setup or build my own system"]
             labels += ["Name your assistant", "Troubleshooting shell", "Leave setup"]
             try:
                 answer = choose("What would you like to do?", labels)
@@ -217,6 +258,11 @@ class Setup:
                     from .networking import connect
                     connect()
                 elif self.live and answer == 4:
+                    from .deployment import mode
+                    if mode(self.state) == 'custom':
+                        print("Custom mode: describe your setup to the assistant. It will open local review for your generated plan.")
+                        self.chat()
+                        continue
                     result = self.agent("setup-choice", capture=True)
                     suggestions = json.loads(result.stdout) if result.returncode == 0 else {}
                     self.install_choices(suggestions)
@@ -230,6 +276,8 @@ class Setup:
                         choose_size(tui.active)
                     else:
                         print("Open the normal Ratatui setup to preview and change text size.")
+                elif self.live and answer == 8:
+                    self.deployment_mode()
                 elif answer == len(labels) - 2:
                     name = input("What would you like to call your assistant? [OpenClaw]: ").strip() or "OpenClaw"
                     result = self.agent("name-agent", name, capture=True)

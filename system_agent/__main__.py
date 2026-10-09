@@ -29,6 +29,22 @@ def main():
     choices.add_argument("value", nargs="?")
     sub.add_parser("install-status")
     sub.add_parser("request-install").add_argument("--retry", action="store_true")
+    sub.add_parser("deployment-mode").add_argument("mode", choices=("tested", "custom"), nargs="?")
+    sub.add_parser("deployment-review").add_argument("plan", type=Path)
+    sub.add_parser("deployment-status")
+    sub.add_parser("deployment-guide")
+    sub.add_parser("deployment-account")
+    sub.add_parser("deployment-encryption-key")
+    sub.add_parser("deployment-record").add_argument("record")
+    progress = sub.add_parser("deployment-checkpoint")
+    progress.add_argument("phase")
+    progress.add_argument("detail")
+    requirement = sub.add_parser("deployment-requirement")
+    requirement.add_argument("id")
+    requirement.add_argument("status")
+    requirement.add_argument("evidence")
+    sub.add_parser("deployment-verify")
+    sub.add_parser("deployment-finalize")
     sub.add_parser("onboard")
     sub.add_parser("name-agent").add_argument("name")
     login = sub.add_parser("connect-account")
@@ -69,7 +85,48 @@ def main():
         elif args.command in ("install-status", "request-install"):
             from .install_bridge import request
             from .choices import read
+            from .deployment import mode
+            if args.command == "request-install" and mode(args.state) == "custom":
+                raise ValueError("Custom mode uses deployment-review and native configuration, not the preset executor")
             result = request("status") if args.command == "install-status" else request("request", read(args.state), retry=args.retry)
+        elif args.command.startswith("deployment-"):
+            from . import deployment as d
+            if args.command == "deployment-guide":
+                print((Path(__file__).resolve().parent.parent / "adapters/custom-deployment.md").read_text())
+                return 0
+            elif args.command == "deployment-mode":
+                result = d.set_mode(args.state, args.mode) if args.mode else {"mode": d.mode(args.state)}
+            elif args.command == "deployment-review":
+                from .install_bridge import request
+                if d.mode(args.state) != "custom":
+                    raise ValueError("Select Build my own system in the local setup menu first")
+                previous = d.read(args.state, "custom-deployment.json")
+                if previous and previous['state'] != 'cancelled':
+                    raise ValueError("An approved deployment already exists. Resume it; do not repeat disk approval or erasure.")
+                result = request("custom", d.validate_plan(json.loads(args.plan.read_text())))
+            elif args.command in ("deployment-account", "deployment-encryption-key"):
+                from .install_bridge import request
+                record = d.read(args.state, "custom-deployment.json")
+                if not record or record['state'] == 'cancelled':
+                    raise ValueError("Review the custom deployment first")
+                result = request("custom-key" if args.command == "deployment-encryption-key" else "custom-account", record['plan'], retry=True)
+            elif args.command == "deployment-record":
+                result = d.record_review(args.state, json.loads(args.record))
+            elif args.command == "deployment-status":
+                result = d.read(args.state, "custom-deployment.json", {"state": "draft"})
+            elif args.command == "deployment-checkpoint":
+                result = d.checkpoint(args.state, args.phase, args.detail)
+            elif args.command == "deployment-requirement":
+                result = d.requirement(args.state, args.id, args.status, args.evidence)
+            elif args.command == "deployment-verify":
+                record = d.read(args.state, "custom-deployment.json")
+                if not record:
+                    raise ValueError("No reviewed custom deployment")
+                result = d.verify(record['plan']['target'], record['plan'])
+                print(json.dumps(result, indent=2))
+                return 0 if result['boot_floor_passed'] else 1
+            else:
+                result = d.finalize(args.state)
         elif args.command == "name-agent":
             from .profile import name_agent
             from .choices import update
@@ -84,11 +141,14 @@ def main():
         elif args.command == "onboard":
             return runtime.onboard(args.state, args.config)
         elif args.command == "chat":
-            command = ["tui"]
+            from .deployment import mode
+            selected = mode(args.state)
+            # New sessions prevent a mode switch retaining contradictory cached instructions.
+            command = ["tui", "--session", "deployment-custom"] if selected == "custom" and discover()['phase'] == 'live' else ["tui"]
             if args.welcome:
                 command += ["--message", "Help me with this computer. Check where you are running and my saved intentions, then ask just the next useful question. Do not assume that live media means I want to erase or install."]
             if args.resume_install:
-                command += ["--message", "The local installation review returned. Read system-agent install-status and explain the actual result. Do not equate copied installation files with a verified installed boot."]
+                command += ["--message", "The local installation review returned. Read system-agent install-status and, in custom mode, deployment-status. Explain the actual result and resume only unfinished authorized work. Do not equate copied installation files with a verified installed boot."]
             return runtime.invoke(args.state, command, args.config)
         elif args.command == "health":
             return runtime.invoke(args.state, ["health", "--json"], args.config)

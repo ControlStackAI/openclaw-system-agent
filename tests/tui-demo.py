@@ -6,7 +6,7 @@ with Interface(True,'nixos') as ui:
  while True:
   try:
    choice=ui.choose('Welcome to your OpenClaw System Assistant',[
-    'Connect your AI account','Choose your desktop','Try protected input','Review a disk plan','Text size','Leave setup'])
+    'Connect your AI account','Choose your desktop','Try protected input','Review a disk plan','Text size','Return from an external client','Leave setup'])
    if choice==1:
     ui.context('Connect your AI account')
     ui.request({'kind':'device','title':'Connect your ChatGPT account','text':'On your phone or another computer, visit this address.\nThis is a synthetic demonstration; no real account is used.',
@@ -26,5 +26,13 @@ with Interface(True,'nixos') as ui:
     ui.info('Review complete' if value else 'Review cancelled','This fixture did not change any disk.')
    elif choice==5:
     choose_size(ui)
+   elif choice==6:
+    import sys
+    with ui.external():
+     # Model an interrupted external TUI that did not restore terminal modes.
+     sys.stdout.write('\x1b[4;12r\x1b[?6hExternal client fixture');sys.stdout.flush()
+    value=ui.input('Password after returning from chat',True)
+    assert value=='fixturepassword'
+    ui.info('Protected return works','No credential was logged.')
    else:break
   except Cancelled:pass

@@ -18,7 +18,11 @@ pkgs.testers.runNixOSTest {
       "f /var/lib/controlstack-security/key-device.json 0644 root root - {\"serial\":\"fixture\"}"
     ];
     users.users.owner = { isNormalUser = true; extraGroups = [ "wheel" "networkmanager" ]; password = "vm-only"; };
-    services.displayManager.autoLogin = { enable = true; user = "owner"; };
+    # Test-only initial session; real installed images always authenticate.
+    services.greetd.settings.initial_session = {
+      user = "owner";
+      command = "uwsm start controlstack-hyprland.desktop";
+    };
     virtualisation = { memorySize = 4096; cores = 2; qemu.options = [ "-vga virtio" ]; };
     environment.systemPackages = [ pkgs.python3 pkgs.pulseaudio ];
     services.pipewire.extraConfig.pipewire."99-test-devices"."context.objects" = map (device: {

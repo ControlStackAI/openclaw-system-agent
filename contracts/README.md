@@ -23,3 +23,10 @@ The installation boot ID and target machine ID must be generated/observed at
 installation time. The installed service refreshes root/distro/boot facts locally
 and compares them before claiming an installed boot. No handoff is invented merely
 to mark a test or a VM as an installed target.
+
+Custom deployment emits schema 2 with the same narrow field set. It additionally
+accepts ext4, Btrfs and XFS root UUIDs; ZFS still uses the actual root dataset.
+Schema 1 remains ZFS-only and remains supported unchanged. The boot verifier
+compares the actual mounted root identity and a different boot ID for both schemas.
+Custom plan/progress/requirement records are separate reviewed non-secret metadata,
+not additional fields in the boot handoff. They are never executable instructions.

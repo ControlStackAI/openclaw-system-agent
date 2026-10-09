@@ -13,7 +13,6 @@ def configure(root, runtime, choices):
               'login_policy': choices.get('login_policy', 'password')}
     write(root, 'etc/controlstack-agent/owner-policy.json', json.dumps(policy) + '\n')
     if policy['power_policy'] == 'always-on':
-        write(root, 'etc/sddm.conf.d/90-controlstack-power.conf', '[X11]\nServerArguments=-nolisten tcp -s 0 -dpms\n')
         write(root, 'etc/systemd/logind.conf.d/90-controlstack.conf', '[Login]\n' +
               '\n'.join(f'{k}={v}' for k, v in POWER['logind'].items()) + '\n')
         write(root, 'etc/systemd/sleep.conf.d/90-controlstack.conf', '[Sleep]\n' +
@@ -40,7 +39,7 @@ WantedBy=multi-user.target
         # All modules come from the same pinned runtime closure on both distros.
         module = runtime + '/lib/controlstack-security/pam_u2f.so'
         args = ' authfile=/var/lib/controlstack-security/u2f-keys origin=pam://controlstack-system appid=pam://controlstack-system cue userpresence=1\n'
-        for service in ['sddm', 'login']:
+        for service in ['greetd', 'login']:
             write(root, 'etc/pam.d/' + service, 'auth required ' + module + args +
                   'account include system-login\npassword include system-login\nsession include system-login\n')
         write(root, 'etc/pam.d/hyprlock',

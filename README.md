@@ -16,8 +16,9 @@ erasure locally. Start with Arch Linux or NixOS, with a desktop or without one.
 and reboot tests with Hyprland. An owner reports successful hardware boot and
 YubiKey sign-in, removal locking and key unlock; broader hardware coverage and
 real provider accounts remain under test. Use a spare computer and a backed-up
-disk. The installer **erases one whole internal disk**; it does
-not support dual boot or keeping existing partitions.
+disk. The tested preset **erases one whole internal disk** and does not preserve
+partitions. Custom mode uses a separately reviewed native storage plan; its initial
+review interface is also limited to one unused internal disk.
 
 ![OpenClaw's Ratatui setup interface on the Arch live USB](docs/images/ratatui-live.png)
 
@@ -71,9 +72,10 @@ erasing the disk: use a newer image or explicitly choose the image-pinned versio
 version or download an untested replacement. [Version policy details](docs/owner-preferences.md#openclaw-release-selection).
 
 Hyprland is the most recently tested desktop on both images. Plasma, GNOME,
-encryption and other keyboard layouts have earlier test evidence; they were not
-rerun on the latest image bytes. Ubuntu, Debian and arbitrary custom desktops
-are not implemented in the guided installer yet.
+encryption and other keyboard layouts have earlier test evidence; qualification
+is specific to each image. Ubuntu and Debian adapters are not implemented.
+Custom mode can configure other desktops natively; each resulting configuration
+needs its own validation and does not inherit the preset's test results.
 
 ## Get started
 
@@ -124,6 +126,12 @@ qualified here and do not provide the same short device-code flow.
 
 ### 3. Describe the computer you want
 
+Keep **Use the tested setup** for the guided preset, or select **Deployment mode →
+Build my own system** for custom native deployment from a minimal base or a preset.
+Custom mode tracks your requirements, reviews the storage and access plan locally,
+and checks boot essentials separately from desktop and application requirements.
+See the [custom workflow and current verifier scope](docs/custom-deployment.md).
+
 For example:
 
 > Set up a development computer with Hyprland, Firefox and Ghostty. Help me
@@ -171,9 +179,12 @@ on the left, OpenClaw monitoring in the center, and device/system controls on th
 right. An icon-based searchable launcher opens applications. Quick settings offer
 speaker and microphone selection, volume, network connections and system controls.
 
-Hyprland currently uses **SDDM for the login screen** on both distributions.
-Quickshell supplies the desktop islands and controls after sign-in; a Quickshell
-login screen and custom company branding are not built-in installer choices.
+The Hyprland preset uses **greetd with gtkgreet**, a lightweight graphical login
+screen, on both distributions. Quickshell supplies the desktop islands after
+sign-in. For a different greeter, custom company branding or an entirely different
+desktop, select **Deployment mode → Build my own system** and describe it to the
+agent. [Custom deployment](docs/custom-deployment.md) uses native configuration
+and separate instructions; it does not silently substitute the preset login screen.
 
 The development environment includes **Ghostty, Firefox, Neovim, Codex CLI,
 Codex Desktop, Claude Code and Claude Desktop**, plus Git, GitHub CLI, language

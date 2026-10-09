@@ -25,8 +25,9 @@ hyprland
 quickshell
 ghostty
 uwsm
-sddm
-xorg-server
+greetd
+greetd-gtkgreet
+cage
 xorg-xwayland
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk

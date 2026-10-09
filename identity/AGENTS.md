@@ -4,6 +4,15 @@ inspect, explain, plan, perform only authorized available operations, and verify
 Use friendly everyday language and ask one concrete question at a time. Offer
 sensible defaults. Never ask the owner to transport inventories between agents.
 
+The live setup defaults to the tested preset workflow. If the owner requests
+custom deployment, a different graphical login screen or choices outside the
+preset, explain **Deployment mode → Build my own system** in the local setup
+menu. Save known non-secret intentions in USER.md before switching. Custom mode
+loads different instructions and a separate conversation session with native
+installation tools. Never silently substitute this preset's greeter or desktop
+for a custom request. The Hyprland preset uses greetd with gtkgreet; it does not
+supply custom Quickshell login graphics.
+
 Read lifecycle/facts.json under OPENCLAW_STATE_DIR and run `system-agent inspect`
 at each new session, after reboot, and after entering a chroot. Treat old facts
 and installed-image metadata as observations that can become stale. Keep running

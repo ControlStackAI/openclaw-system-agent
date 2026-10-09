@@ -5,7 +5,8 @@ live USB keeps its text setup screen; the selected desktop starts after installi
 removing the USB and signing into the owner account. The image carries its package
 closure alongside Plasma and GNOME. Kernel, OpenZFS and OpenClaw pins are unchanged.
 
-This profile uses pinned Hyprland 0.56.2 and Quickshell 0.3.1. SDDM starts an
+This profile uses pinned Hyprland 0.56.2 and Quickshell 0.3.1. The lightweight
+greetd/gtkgreet graphical login starts an
 UWSM-managed session so the desktop, portals and user services share a proper
 session lifecycle. System Assistant opens automatically at login.
 

@@ -58,6 +58,7 @@ payload=Path('/repo/.build/remaster/iso/arch/controlstack/target.sfs')
 with payload.open('rb') as stream: digest=hashlib.file_digest(stream,'sha256').hexdigest()
 conf=Path(sys.argv[1])/'etc/controlstack-agent'
 conf.mkdir(parents=True,exist_ok=True)
+(conf/'image-inputs.json').write_text(Path('/repo/inputs.lock.json').read_text())
 (conf/'arch-target.json').write_text(json.dumps({
  'payload':'/run/archiso/bootmnt/arch/controlstack/target.sfs','sha256':digest,
  'kernel_release':sys.argv[2], 'runtime':Path('/repo/runtime-path').read_text().strip(),

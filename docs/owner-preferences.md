@@ -19,7 +19,8 @@ enabled. Touch it to register and again to test the actual pinned PAM module.
 Both checks finish before disk approval. Only the public registration and device
 identity go into the installed system; the private key stays on the YubiKey.
 
-After reboot, SDDM and local console sign-in require the enrolled key; the account
+After reboot, the Hyprland preset’s greetd login and local console sign-in require
+the enrolled key; the account
 password cannot replace it. Disk encryption remains a separate passphrase. The
 owner still sets an account password for administration and optional screen unlock.
 The default profile disables display-manager autologin.

@@ -56,7 +56,7 @@ in {
   # Authentication rules are intentionally explicit and version-pinned. Review
   # this module against nixpkgs PAM changes before changing the nixpkgs pin.
   security.pam.services = lib.mkIf keyLogin {
-    sddm.rules.auth = lib.mkForce { key = u2f; };
+    greetd.rules.auth = lib.mkForce { key = u2f; };
     login.rules.auth = lib.mkForce { key = u2f; };
     hyprlock.rules.auth = lib.mkForce {
       key = u2f // { order = 300; };
