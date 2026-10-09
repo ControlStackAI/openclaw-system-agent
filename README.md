@@ -1,11 +1,16 @@
 # ControlStackAI OpenClaw System Agent
 
-**Boot from USB, set up Linux with an assistant, and keep that assistant on your computer.**
+**Infrastructure that onboards itself.**
 
-This project puts [OpenClaw](https://github.com/openclaw/openclaw) on an Arch Linux
-or NixOS installation image. Explain what you want the computer to do, choose
-your desktop and preferences, and review the installation locally. After you
-boot the installed system, OpenClaw stays as your resident system assistant.
+An open-source **agentic deployment environment** for Linux, powered by
+[OpenClaw](https://github.com/openclaw/openclaw). Boot a machine from USB, tell the
+agent what it is for, and work through deployment in a conversation—from choosing
+your setup to reviewing the disk plan and installing the system.
+
+OpenClaw is already on the image, ready to guide you once you connect your AI
+account. It helps you make choices one at a time, then stays on the installed
+machine as its resident system assistant. You approve the storage plan and disk
+erasure locally. Start with Arch Linux or NixOS, with a desktop or without one.
 
 **Development preview:** both distributions have passed isolated VM installation
 and reboot tests with Hyprland. An owner reports successful hardware boot and
@@ -16,13 +21,34 @@ not support dual boot or keeping existing partitions.
 
 ![OpenClaw's Ratatui setup interface on the Arch live USB](docs/images/ratatui-live.png)
 
-*The console interface works without a desktop. Current images also include a
-text-size chooser and phone QR code for ChatGPT sign-in.*
+*The deployment console works without a desktop. Choose a comfortable text size
+and connect your ChatGPT account with a short pairing code and phone QR code.*
 
 [Get started](#get-started) · [Build an ISO](#build-an-iso) ·
 [Use with your agent](#use-this-with-your-agent) ·
 [Desktop and apps](#your-installed-desktop) · [Test status](docs/qualification.md) ·
 [Report a problem](https://github.com/ControlStackAI/openclaw-system-agent/issues)
+
+## From first boot to a running system
+
+Use the environment to bring up a development workstation, a lab machine or a
+system without a desktop. Describe the job the machine should do; the agent helps
+turn that intent into supported operating-system choices.
+
+- **Inspect the machine.** The live agent can examine hardware, networking and
+  storage with administrator access.
+- **Choose the setup together.** Discuss the desktop, account, region, encryption,
+  sign-in and power settings. Review supported choices before committing them.
+- **Deploy with local approval.** The agent opens the installation review from
+  your conversation. You confirm the exact disk and enter secrets in protected
+  local prompts. The conversation resumes after installation.
+- **Keep an assistant on the system.** After reboot and fresh provider sign-in,
+  the resident agent checks where it is running and keeps its workspace and
+  conversations. Its installed privileges are described [below](#what-access-does-the-assistant-have).
+
+Each build starts from a reviewed image lock and produces checksums and a build
+receipt. You can give this repository to your own agent to build and test an image,
+then use the onboard agent to guide deployment on the target machine.
 
 ## Choose your system
 
@@ -205,7 +231,7 @@ You can give this repository to a coding or system agent and ask it to prepare
 an image for you. For example:
 
 > Use https://github.com/ControlStackAI/openclaw-system-agent to help me prepare
-> a Linux installer. Read AGENTS.md and docs/agent-guide.md first. Ask whether I
+> a Linux deployment image. Read AGENTS.md and docs/agent-guide.md first. Ask whether I
 > want Arch or NixOS if I have not already said. Check the build prerequisites,
 > use the reviewed image lock, and build and test the ISO on disposable VM disks.
 > Tell me which checks passed and how to put it on USB. Do not write a USB or
