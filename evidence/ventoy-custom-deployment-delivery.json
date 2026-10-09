@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "source_commit": "84324d8723c9a3faac99d86910954c6ba23f2568",
+  "removable_drive_identity_verified": true,
+  "readback_verified": [
+    {
+      "name": "00-OpenClaw-Arch-Hyprland-2026-10-09-CUSTOM-DEPLOYMENT.iso",
+      "sha256": "105508a03f9de72449074998f92f48231726b5605d1d3ce43f62891e0ad235b0",
+      "bytes": 7173838848
+    },
+    {
+      "name": "00-OpenClaw-Arch-Hyprland-2026-10-09-CUSTOM-DEPLOYMENT.iso.sha256",
+      "sha256": "3c9eee02a0e4cde9e4908b798789a6c6b61f4d8c4960b477f892ed5f4862871e",
+      "bytes": 125
+    },
+    {
+      "name": "OpenClaw-CUSTOM-DEPLOYMENT-ARCH.lock.json",
+      "sha256": "44376ca68db2547ff0793b99acf438864e3f63e6edc51f4b671a5589a2f19057",
+      "bytes": 20533
+    },
+    {
+      "name": "00-OpenClaw-NixOS-2026-10-09-CUSTOM-DEPLOYMENT.iso",
+      "sha256": "76fe93c57730ec0d6ebb42e6f03eef73616cd130f01785dd68bfa73688556f96",
+      "bytes": 7413202944
+    },
+    {
+      "name": "00-OpenClaw-NixOS-2026-10-09-CUSTOM-DEPLOYMENT.iso.sha256",
+      "sha256": "c9804e4a6160318ae66c1ed51b9c4f59bf485199c091ccc7192f0ff83edcfed1",
+      "bytes": 117
+    },
+    {
+      "name": "OpenClaw-CUSTOM-DEPLOYMENT-NIXOS.lock.json",
+      "sha256": "6ae69e190255ef51dedb1e5720830ad9c1a69d735b8e1af95fe135f64af9ffb6",
+      "bytes": 17062
+    },
+    {
+      "name": "OpenClaw-CUSTOM-DEPLOYMENT-TEST-PLAN.txt",
+      "sha256": "9e40051d7d4c825e9c1ecb876e4e7ac544a7bb256626842729d337a46c020d41",
+      "bytes": 3188
+    },
+    {
+      "name": "OpenClaw-CUSTOM-DEPLOYMENT-QUALIFICATION.json",
+      "sha256": "119262f7ab9ed6bfffddd4ca89652d463cee51e2d5b7fde7ad6380e0fa581950",
+      "bytes": 12325
+    }
+  ],
+  "replaced": [
+    "00-OpenClaw-Arch-Hyprland-2026-10-08-INSTALL-RECOVERY.iso",
+    "00-OpenClaw-Arch-Hyprland-2026-10-08-INSTALL-RECOVERY.iso.sha256",
+    "00-OpenClaw-NixOS-2026-10-08-INSTALL-RECOVERY.iso",
+    "00-OpenClaw-NixOS-2026-10-08-INSTALL-RECOVERY.iso.sha256"
+  ],
+  "unrelated_files_unchanged": true,
+  "safely_unmounted": true,
+  "physical_boot_tested": false
+}
