@@ -40,7 +40,7 @@ before review, particularly to laptop owners or people without a key.
 | `python3 scripts/image.py plan --lock images/nixos.lock.json` | Validate a lock and print a JSON input summary without building |
 | `images/arch.lock.json`, `images/nixos.lock.json` | Exact sources, dependency pins, source manifest and fixed build epoch |
 | `build-receipt.json`, `image.lock.json`, `SHA256SUMS` in build output | Artifact identity and build provenance |
-| [evidence/install-recovery-isos.json](../evidence/install-recovery-isos.json) | Current exact-image test results and their scope |
+| [evidence/custom-deployment-isos.json](../evidence/custom-deployment-isos.json) | Current exact-image test results and their scope |
 | [docs/qualification.md](qualification.md) | Human explanation of current and historical evidence |
 | [contracts/](../contracts/) | Shared installer boundary and validated boot handoff |
 | [identity/install-preferences.json](../identity/install-preferences.json) | Public non-secret installation defaults |
@@ -103,7 +103,7 @@ nix build .#checks.x86_64-linux.live-access-vm --max-jobs 1 --cores 2
 ```
 
 For a newly built ISO, boot its exact bytes and perform installation on disposable
-VM disks. The harness needs QEMU, qemu-img, OVMF, Python pexpect and Tesseract;
+VM disks. The harness needs QEMU, qemu-img, OVMF, Python pexpect/Pillow and Tesseract;
 usable KVM is recommended. `CONTROLSTACK_OVMF_DIR` can select a directory containing
 `OVMF_CODE_4M.fd` and `OVMF_VARS_4M.fd`. See the
 [qualification workflow](../.github/workflows/iso.yml) for runner setup.

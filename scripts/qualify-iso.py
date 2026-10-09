@@ -13,6 +13,7 @@ import time
 import tempfile
 from pathlib import Path
 import pexpect
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,6 +58,7 @@ class Guest:
         self.process = pexpect.spawn("qemu-system-x86_64", args, encoding="utf-8", codec_errors="replace", timeout=300)
         self.process.logfile = self.log
         self.count = 0
+        self.network_retries = 0
         try:
             if installed and encrypted:
                 # Only the disposable test disk uses this public fixture passphrase.
@@ -133,9 +135,17 @@ class Guest:
                         if "return" in response:
                             break
 
-    def screen_text(self):
+    def screen_text(self, high_contrast=False):
         screen = self.area / "screen.png"
         self.qmp("screendump", {"filename": str(screen), "format": "png"})
+        if high_contrast:
+            # Pale GTK text on a dark greeter can be discarded by Tesseract's
+            # automatic threshold. Read the same pixels with a fixed threshold.
+            with Image.open(screen) as source:
+                processed = source.convert("L").point(lambda value: 0 if value > 130 else 255)
+                processed = processed.resize((source.width * 2, source.height * 2))
+                screen = self.area / "screen-ocr.png"
+                processed.save(screen)
         return subprocess.run(["tesseract", str(screen), "stdout", "--psm", "11"],
                               capture_output=True, text=True, check=True).stdout
 
@@ -153,11 +163,19 @@ class Guest:
         ]})
         time.sleep(1)
 
-    def wait_screen_text(self, expected, timeout=120):
+    def wait_screen_text(self, expected, timeout=120, retry_network=False):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            if " ".join(expected.casefold().split()) in " ".join(self.screen_text().casefold().replace("usemame", "username").split()):
+            visible = " ".join(self.screen_text().casefold().replace("usemame", "username").split())
+            if " ".join(expected.casefold().split()) in visible:
                 return
+            contrast = " ".join(self.screen_text(high_contrast=True).casefold().replace("usemame", "username").split())
+            if " ".join(expected.casefold().split()) in contrast:
+                return
+            if retry_network and self.network_retries < 3 and "connection is not ready" in visible and "try again" in visible:
+                self.type_console("2")
+                self.network_retries += 1
+                time.sleep(10)
             time.sleep(2)
         raise RuntimeError("Graphical screen did not show: " + expected)
 
@@ -331,6 +349,7 @@ def main():
 
     finally:
         guest.close()
+    graphical_network_retries = 0
     if installing:
         guest = Guest(iso, area, uefi=True, installed=True, encrypted=args.encrypted, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std")
         try:
@@ -455,7 +474,8 @@ p.write_text(json.dumps(c))
                 guest.wait_screen_text("What would you like to do?")
                 guest.focus_assistant()
                 guest.type_console("2")
-                guest.wait_screen_text("resident conversation works")
+                guest.wait_screen_text("resident conversation works", timeout=180, retry_network=True)
+                graphical_network_retries += guest.network_retries
                 guest.qmp("screendump", {"filename": str(area / "conversation.png"), "format": "png"})
                 guest.qmp("human-monitor-command", {"command-line": "sendkey ctrl-d"})
                 guest.wait_screen_text("What would you like to do?")
@@ -526,6 +546,7 @@ p.write_text(json.dumps(c))
                "desktop_lock_unlock": installing and args.desktop == "hyprland",
                "primary_console_tui_reply": installing and args.desktop == "none",
                "graphical_tui_reply": installing and args.desktop != "none",
+               "graphical_network_readiness_retries": graphical_network_retries,
                "interactive_install_review": installing, "ratatui_install_review": installing,
                "mistyped_disk_confirmation_retry": installing,
                "provider": "local deterministic fixture" if installing else "none",

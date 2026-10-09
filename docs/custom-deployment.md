@@ -26,3 +26,9 @@ covered. Credentials and conversations from the USB are never copied to the targ
 
 See the [packaged native deployment contract](../adapters/custom-deployment.md)
 for the exact plan schema, commands, native recipes and evidence boundaries.
+
+For agents building a custom login, the [Quickshell/greetd example](../tests/fixtures/custom-greeter.qml)
+and its [isolated authentication test](../tests/custom-greeter-vm.nix) show a working
+UI/backend connection. Adapt the appearance and selected session to the owner's
+plan; use protected owner enrollment instead of the test's public fixture account.
+Authentication, key policy and the requested desktop must each be verified.

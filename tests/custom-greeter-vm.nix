@@ -25,6 +25,7 @@ pkgs.testers.runNixOSTest {
     machine.send_chars("vm-only"); machine.send_key("ret")
     owner = "runuser -u owner -- env XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus "
     machine.wait_until_succeeds(owner + "systemctl --user is-active controlstack-shell", timeout=120)
+    machine.wait_until_succeeds(owner + "systemd-run --user --quiet --wait --pipe hyprctl -j layers | grep controlstack-islands", timeout=120)
     machine.screenshot("custom-login-hyprland")
     machine.succeed("! systemctl is-enabled sddm.service")
   '';

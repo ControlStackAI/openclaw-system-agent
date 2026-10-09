@@ -1,6 +1,40 @@
 # Qualification status
 
-## Installation recovery images — 2026-10-08
+## Custom deployment and lighter login — 2026-10-09
+
+Both final images passed BIOS/offline boot. Full UEFI Hyprland installation
+passed on 8 GiB VMs. The preset tests cover ZFS-root boot with the ISO removed, greetd/gtkgreet
+login, the three-island desktop and launcher, fixture agent replies, MCP discovery,
+lock/unlock, desktop controls and persistence after a second reboot. The custom
+boot-floor verifier also passed against each installed ZFS system.
+
+Each exact image separately passed a native minimal custom installation on an
+explicitly selected ext4 root: custom-mode selection, local plan/disk review,
+confirmation typo/retry, protected local password entry, requirement records,
+fresh resident handoff and independent installed boot. Live credentials were not
+copied and live full-sudo permissions were absent from the resident account.
+
+The separate source VM tests include the default graphical greeter and a custom
+Quickshell/greetd example, both with wrong-password rejection. They also cover
+key-policy denial, desktop controls and repeated returns from external chat to
+protected Ratatui input. All 120 Python tests pass. These are fixture/component
+checks; they do not constitute real provider or physical YubiKey qualification.
+
+| Image | SHA-256 |
+| --- | --- |
+| arch CUSTOM-DEPLOYMENT | `105508a03f9de72449074998f92f48231726b5605d1d3ce43f62891e0ad235b0` |
+| nixos CUSTOM-DEPLOYMENT | `76fe93c57730ec0d6ebb42e6f03eef73616cd130f01785dd68bfa73688556f96` |
+
+[Exact receipts and limits](../evidence/custom-deployment-isos.json) ·
+[Hardware test plan](custom-deployment-test-plan.md) ·
+[Custom workflow and verifier scope](custom-deployment.md)
+
+Retest the physical key with the new greeter. Custom configurations require their
+own verification; a minimum boot check does not prove every requested feature.
+Encryption, other keyboard layouts, real provider accounts, Secure Boot and
+physical Ventoy boot are not qualified by these image tests.
+
+## Previous installation recovery images — 2026-10-08
 
 The Arch SYSTEM-ACCESS ISO below has a reproduced higher-memory boot defect:
 with 8 GiB RAM, Arch's automatic copy-to-RAM mode unmounts the boot image and
