@@ -53,7 +53,8 @@ full disk/storage/access review precedes exact disk confirmation. A mistyped
 `ERASE <disk identifier>` now offers Try again or Cancel installation while keeping
 the prepared plan. The phrase must still match exactly; no password prompt or
 disk write follows a mismatch. Type CANCEL or press Escape to leave confirmation.
-This source update is not included in the 2026-10-08 SYSTEM-ACCESS ISOs. Choosing an
+This behavior is included and tested in the INSTALL-RECOVERY ISOs; the earlier
+SYSTEM-ACCESS images do not include it. Choosing an
 assistant name updates its identity; the reviewed name carries into the installed
 system alongside the non-secret owner preferences. Existing identity role and
 instructions are preserved.

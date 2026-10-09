@@ -1,16 +1,20 @@
 # Qualification status
 
-## Source corrections after hardware feedback — replacement images pending
+## Installation recovery images — 2026-10-08
 
 The Arch SYSTEM-ACCESS ISO below has a reproduced higher-memory boot defect:
 with 8 GiB RAM, Arch's automatic copy-to-RAM mode unmounts the boot image and
 hides `target.sfs`. Read-only remounting restored the exact checksum in an isolated
 VM. Its earlier 4 GiB installation test did not exercise that mode.
 
-Source now sets `copytoram=n` in systemd-boot, Syslinux and GRUB loopback entries.
-The ISO harness defaults to 8 GiB for desktop installation and accepts an explicit
-`--memory-mib`. A replacement image still needs an actual higher-memory boot and
-full installation test; neither existing ISO has been updated by these changes.
+The replacement Arch image sets `copytoram=n` in systemd-boot, Syslinux and GRUB
+loopback entries. Its exact ISO passed an 8 GiB live boot with the target payload
+accessible and a full Hyprland installation. Both replacement images passed
+confirmation typo/retry, normal ZFS export, same-conversation resumption, installed
+ZFS-root boot with the ISO detached, desktop controls, fixture replies, lock/unlock
+and customization after a second reboot. Both also passed BIOS/offline boot and
+text-size checks. The Arch readiness screen needed one ordinary Try again action
+after a transient internet-check failure; no guest files or checks were bypassed.
 
 Both adapters now preserve the prepared plan when erasure confirmation is mistyped,
 offering Retry or Cancel. The real Ratatui VM passed typo/retry/exact-match,
@@ -30,8 +34,23 @@ console bridge, even with changed choices or an explicit retry.
 This is improved diagnostics, not evidence that the hardware export failure has
 been fixed. Do not infer that a preexisting unrelated pool should be destroyed.
 
+| Replacement image | SHA-256 |
+| --- | --- |
+| arch INSTALL-RECOVERY | `6558ce78800b8a78e68b4e54b2b4530e17da8a22036d07c3564269d792cd3c31` |
+| nixos INSTALL-RECOVERY | `e962d7aaec3fa8c46513c30a1bf157a244ed398a1222df9f3f4b81cb7a04d168` |
 
-## Current system-access images — 2026-10-08
+[Exact replacement receipts](../evidence/install-recovery-isos.json) and
+[hardware test plan](system-access-hardware-test.md). These tests use 8 GiB RAM,
+Hyprland, US keyboard and unencrypted ZFS; real provider accounts and physical
+keys are outside their scope. Other desktops and encryption retain earlier evidence.
+
+The owner separately reports that the previous physical installation completed
+and rebooted, with Ghostty and the assistant TUI opening. YubiKey sign-in, removal
+locking and key unlock worked. The password-unlock toggle remains untested on
+hardware. This is [owner feedback](../evidence/owner-hardware-feedback-2026-10-08.json),
+not independently captured qualification of the replacement images.
+
+## Previous system-access images — 2026-10-08
 
 Both images passed direct BIOS/offline boot, live text-size preview/rollback,
 real gateway sudo/mount access to a separate emulated USB, conversation-requested

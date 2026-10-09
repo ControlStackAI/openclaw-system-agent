@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "evidence_type": "owner_report",
+  "context": "Previous Arch installation discussed in this conversation; reported after recovering an installation-time ZFS export failure. Exact installed artifact and recovery commands were not independently collected.",
+  "checks": {
+    "installation_completed_and_rebooted": true,
+    "desktop_ghostty_and_assistant_tui_opened": true,
+    "yubikey_sign_in": true,
+    "yubikey_removal_locks_desktop": true,
+    "yubikey_unlock": true,
+    "password_unlock_toggle": null
+  },
+  "limitations": [
+    "Owner report, not a captured hardware test receipt or fresh test of replacement ISO bytes.",
+    "Custom Quickshell login screen and company icon were requested but not observed; shipped Hyprland profile uses SDDM.",
+    "Original hardware ZFS export cause and recovery procedure remain unconfirmed."
+  ]
+}

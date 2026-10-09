@@ -313,9 +313,11 @@ def main():
             answer("Do you have a disk", "2")
             answer("Which disk should hold", "1")
             # Wait for the prepared target and separate exact disk approval.
-            guest.command("timeout 900 bash -c " + shlex.quote("until grep -Fq 'To approve this exact disk' /dev/vcs1; do sleep 2; done"),timeout=920)
+            guest.command("timeout 900 bash -c " + shlex.quote("until grep -Fq 'Type ERASE CONTROLSTACK-VM-ONLY' /dev/vcs1; do sleep 2; done"),timeout=920)
             guest.qmp("screendump", {"filename":str(area/"ratatui-disk-review.png"),"format":"png"})
-            answer("To approve this exact disk", "ERASE CONTROLSTACK-VM-ONLY")
+            answer("Type ERASE CONTROLSTACK-VM-ONLY", "ERASE TYPO")
+            answer("Try the disk confirmation again?", "1")
+            answer("Type ERASE CONTROLSTACK-VM-ONLY", "ERASE CONTROLSTACK-VM-ONLY")
             answer("Password for your local account", "vmonlytestpassword")
             answer("Enter it again:", "vmonlytestpassword")
             if args.encrypted:
@@ -510,6 +512,7 @@ p.write_text(json.dumps(c))
                "primary_console_tui_reply": installing and args.desktop == "none",
                "graphical_tui_reply": installing and args.desktop != "none",
                "interactive_install_review": installing, "ratatui_install_review": installing,
+               "mistyped_disk_confirmation_retry": installing,
                "provider": "local deterministic fixture" if installing else "none",
                "real_account_login": False, "physical_disks_attached": False}
     (area / "result.json").write_text(json.dumps(receipt, indent=2) + "\n")

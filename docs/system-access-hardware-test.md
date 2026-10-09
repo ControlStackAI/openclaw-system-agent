@@ -1,7 +1,7 @@
-OpenClaw USB test — system access and reusable owner preferences
+OpenClaw USB test — installation recovery and system access
 2026-10-08
 
-Choose one of the two SYSTEM-ACCESS images in Ventoy:
+Choose one of the two INSTALL-RECOVERY images in Ventoy:
 - Arch-Hyprland: OpenClaw 2026.9.9; Hyprland or no desktop.
 - NixOS: OpenClaw 2026.9.5; Hyprland, Plasma, GNOME or no desktop.
 
@@ -42,6 +42,19 @@ must not erase anything. Password-only sign-in remains an explicit alternative.
 Check the disk's model, size and serial. Only type the exact ERASE phrase when it
 identifies the spare internal disk. Enter account/encryption passwords only in
 the protected local prompts, not in the chat.
+
+Before approving erasure, deliberately mistype the confirmation once. Setup
+should offer Try again or Cancel and keep the disk plan. Cancel must leave the
+disk untouched; retry must still require the exact phrase.
+
+If installation reports a missing payload, stop before erasure and preserve the
+error. If it reports a ZFS export failure, the system has already been written:
+do not start another installation. The assistant should receive the exact error
+and a needs-cleanup status. Ask it to inspect holders of only the named target
+pool, including mounts in other process namespaces. Do not destroy unrelated
+pools or force-export. A normal export after verified cleanup is the goal;
+reboot only after the target is safely released. The earlier hardware export
+failure is still not diagnosed.
 
 4. Check conversation resumption
 After installation, choose Stay in this USB session once. The same assistant

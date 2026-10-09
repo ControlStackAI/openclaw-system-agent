@@ -96,12 +96,13 @@ The assistant can inspect and edit its own state but has no sudo grant. Privileg
 installation remains in the owner-operated local screen. Remote access and
 unattended updates are off. Backups still need an independent destination.
 
-The current SYSTEM-ACCESS image passed live BIOS/offline boot and UEFI Hyprland
+The current INSTALL-RECOVERY image passed live BIOS/offline boot and UEFI Hyprland
 installation, installed ZFS-root boot without the ISO, and desktop checks through
 a second reboot. Replies used a local provider fixture. Other desktops and
-encryption have earlier, separately scoped evidence. Real provider accounts,
-physical installation, physical YubiKeys, Secure Boot and installed-root recovery
-remain unqualified; see [qualification](qualification.md) for exact receipts.
+encryption have earlier, separately scoped evidence. These VM tests do not qualify
+real provider accounts, physical hardware, Secure Boot or installed-root recovery.
+Separate owner feedback reports hardware boot and YubiKey sign-in, removal locking
+and key unlock; see [qualification](qualification.md) for the exact scope.
 
 ## Installation started from the conversation
 
@@ -144,7 +145,7 @@ same conversation after cancellation, failure, or completion. The agent checks
 
 ## Handling installation errors
 
-New source builds distinguish preparation failures from final cleanup failures in
+The INSTALL-RECOVERY images distinguish preparation failures from final cleanup failures in
 `system-agent install-status`. These changes are not present in the original
 2026-10-08 SYSTEM-ACCESS ISOs.
 

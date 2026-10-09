@@ -8,9 +8,10 @@ your desktop and preferences, and review the installation locally. After you
 boot the installed system, OpenClaw stays as your resident system assistant.
 
 **Development preview:** both distributions have passed isolated VM installation
-and reboot tests with Hyprland. Physical installation, real provider accounts,
-and physical YubiKey authentication are still being tested. Use a spare computer
-and a backed-up disk. The installer **erases one whole internal disk**; it does
+and reboot tests with Hyprland. An owner reports successful hardware boot and
+YubiKey sign-in, removal locking and key unlock; broader hardware coverage and
+real provider accounts remain under test. Use a spare computer and a backed-up
+disk. The installer **erases one whole internal disk**; it does
 not support dual boot or keeping existing partitions.
 
 ![OpenClaw's Ratatui setup interface on the Arch live USB](docs/images/ratatui-live.png)
@@ -64,7 +65,7 @@ For a first test, prepare:
 - An unused internal disk of at least **32 GiB** whose contents can be erased.
 - A USB drive of **16 GB or larger**, or an existing Ventoy drive with space for the ISO.
 - For NixOS desktop installation, **8 GiB of usable RAM**; allow more installed RAM
-  if integrated graphics reserves some. The Arch Hyprland VM path passed with 4 GiB.
+  if integrated graphics reserves some. The current Arch and NixOS Hyprland images were tested with 8 GiB.
 - Ethernet or Wi-Fi and a supported AI provider account. A phone or second
   computer makes ChatGPT device pairing convenient.
 - A FIDO-enabled YubiKey if you want the default key-based system sign-in.
@@ -144,6 +145,10 @@ on the left, OpenClaw monitoring in the center, and device/system controls on th
 right. An icon-based searchable launcher opens applications. Quick settings offer
 speaker and microphone selection, volume, network connections and system controls.
 
+Hyprland currently uses **SDDM for the login screen** on both distributions.
+Quickshell supplies the desktop islands and controls after sign-in; a Quickshell
+login screen and custom company branding are not built-in installer choices.
+
 The development environment includes **Ghostty, Firefox, Neovim, Codex CLI,
 Codex Desktop, Claude Code and Claude Desktop**, plus Git, GitHub CLI, language
 and build tools, rootless Podman, Yazi, screenshot annotation, clipboard history,
@@ -171,7 +176,9 @@ With the YubiKey policy selected, desktop sign-in after reboot requires the key;
 removing it locks Hyprland. Screen unlock can use the key or, initially, your
 password. The right island can disable password unlock while you are unlocked
 and the enrolled key is present, with a fresh key touch. Disk encryption has its
-own passphrase. **Physical key behavior still needs hardware testing.**
+own passphrase. An owner has reported successful sign-in, removal locking and
+key unlock; the password-unlock toggle still needs a physical test.
+[Hardware feedback](evidence/owner-hardware-feedback-2026-10-08.json).
 
 ## What access does the assistant have?
 
@@ -253,7 +260,7 @@ Its artifacts alone are not evidence of a successful installation.
 
 ## Test, contribute and get help
 
-The latest SYSTEM-ACCESS images passed BIOS live/offline boot and UEFI Hyprland
+The latest INSTALL-RECOVERY images passed BIOS live/offline boot and UEFI Hyprland
 installation, real gateway sudo/mount operations on an emulated USB, installation
 review from chat, ZFS-root boot with the ISO removed, desktop checks and a second
 reboot. Provider replies in these tests used fixtures. See
