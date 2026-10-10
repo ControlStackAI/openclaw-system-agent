@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "source_commit": "2d68d9f316b730a858b4c27cd02d0f5915bbcb3e",
+  "removable_drive_identity_verified": true,
+  "readback_verified": [
+    {
+      "name": "00-OpenClaw-Arch-Hyprland-2026-10-10-FIRST-BOOT-FIX.iso",
+      "sha256": "5bbc8ac2457c84bcd7a4e42b5a70a1f3a390719d770dae8df7d7dd56b9011db6",
+      "bytes": 7173847040
+    },
+    {
+      "name": "00-OpenClaw-Arch-Hyprland-2026-10-10-FIRST-BOOT-FIX.iso.sha256",
+      "sha256": "5e25a86e44ee89479cb67dc324b641181699316ac5bb0423e4c721ee9eae3b57",
+      "bytes": 122
+    },
+    {
+      "name": "OpenClaw-FIRST-BOOT-FIX-ARCH.lock.json",
+      "sha256": "2a0a9df932faa411936faec2bd228f1c4c655808bc94b140911ca622d339ca10",
+      "bytes": 20533
+    },
+    {
+      "name": "00-OpenClaw-NixOS-2026-10-10-FIRST-BOOT-FIX.iso",
+      "sha256": "3a35a093be47cba165baedbeff5509265888fe3988bbb9b54ba4ea095cb6a987",
+      "bytes": 7413202944
+    },
+    {
+      "name": "00-OpenClaw-NixOS-2026-10-10-FIRST-BOOT-FIX.iso.sha256",
+      "sha256": "45c7191ada7b582e413a651f20d7edf9ce52d65a90b87e8a32888fb3a3d9b37b",
+      "bytes": 114
+    },
+    {
+      "name": "OpenClaw-FIRST-BOOT-FIX-NIXOS.lock.json",
+      "sha256": "0d8de9bae958065858b27fb87faf44a58112267ba54aeea0d8bf2b247b65e025",
+      "bytes": 17062
+    },
+    {
+      "name": "OpenClaw-FIRST-BOOT-FIX-TEST-PLAN.txt",
+      "sha256": "352cfe18d987f46c5910cf5d4367ffe0eea351c7f8aee558264900442bcd3410",
+      "bytes": 4119
+    },
+    {
+      "name": "OpenClaw-FIRST-BOOT-FIX-QUALIFICATION.json",
+      "sha256": "e86d880032420b07ae03c7ca157b6641e508d099a5088b70e9a751c73a8513c8",
+      "bytes": 13037
+    }
+  ],
+  "replaced": [
+    "00-OpenClaw-Arch-Hyprland-2026-10-09-CUSTOM-DEPLOYMENT.iso",
+    "00-OpenClaw-Arch-Hyprland-2026-10-09-CUSTOM-DEPLOYMENT.iso.sha256",
+    "00-OpenClaw-NixOS-2026-10-09-CUSTOM-DEPLOYMENT.iso",
+    "00-OpenClaw-NixOS-2026-10-09-CUSTOM-DEPLOYMENT.iso.sha256"
+  ],
+  "unrelated_files_unchanged": true,
+  "safely_unmounted": true,
+  "physical_boot_tested": false
+}
