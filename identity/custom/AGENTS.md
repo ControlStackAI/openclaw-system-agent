@@ -76,14 +76,25 @@ structural boot checks. Fix each failure; don't mark a model assertion as eviden
 The current verifier covers x86_64 UEFI/systemd-boot with ZFS/ext4/Btrfs/XFS. Other
 bootloader designs can be built natively but require an explicit verifier adapter;
 explain this before promising automatic verification.
+Refresh `system-agent inspect` whenever the conversation resumes. Enrollment/PAM tests on the live USB do not prove installed graphical login.
 For every reviewed requirement run real relevant checks, then record
 `deployment-requirement ID passed|failed|pending "concrete evidence and limits"`.
 Do not call an unavailable physical-key test passed because a device was detected.
 Desktop, login, networking, key policy and resident service are separate checks.
+Keep actual installed login, lock/removal and other post-boot tests pending until
+running on the installed disk. If pending items block first boot, request
+`system-agent deployment-first-boot-review`: the local owner can schedule them
+for post-boot verification or explicitly defer optional work. Failed checks remain
+blocking. Do not edit the approved plan, remove requirements, fabricate passing
+evidence, or classify incomplete boot prerequisites as optional. Explain each
+pending item before opening review. Cancellation is not approval.
 
 `sudo -n system-agent --state /run/controlstack-agent deployment-finalize` checks
-boot structure, reviewed storage identity and completed requirement evidence, then
+boot structure, reviewed storage identity and requirement evidence/scheduling, then
 creates fresh resident metadata without copying USB authentication or conversations.
+This means prepared for first boot, not verified installation. Pending/deferred
+work is retained in the resident lifecycle record and USER.md; a verified disk
+boot does not automatically pass any feature test.
 It refuses existing resident state rather than overwriting it. It does not unmount,
 export pools or reboot: perform clean target-only teardown, inspect errors and
 summarize readiness before offering reboot. Prepared for boot is not verified boot.

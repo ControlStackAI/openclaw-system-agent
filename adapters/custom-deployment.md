@@ -137,11 +137,20 @@ not proof of successful boot or complete hardware support. Also validate matchin
 kernel/ZFS versions, native build results and each requested feature independently.
 Record concrete evidence with `deployment-requirement ID passed|failed|pending
 "evidence and limitations"`; these are agent-reported feature tests, clearly
-separate from the programmatic boot floor. Failed/pending requirements block finalization.
+separate from the programmatic boot floor. Failures and unreviewed pending items
+block finalization. For tests that require an actual installed boot, keep the
+result pending and call `system-agent deployment-first-boot-review`. The root
+console asks the owner whether each pending item must finish before reboot,
+needs post-boot verification, or is optional work they approve deferring. A final
+confirmation saves that schedule without editing the approved plan or evidence.
+Cancelled reviews preserve prior records. Changed evidence invalidates its prior
+pending-work approval; failed checks cannot be deferred through this review.
+The minimum boot/storage checks always remain mandatory.
 
 `sudo -n system-agent --state /run/controlstack-agent deployment-finalize` checks
-storage identity, requirements and the boot floor and creates fresh resident
-handoff metadata. It refuses to overwrite existing resident state. It copies no
+storage identity, requirements/the local first-boot schedule and the boot floor and creates fresh resident
+handoff metadata. Pending tasks remain pending in the lifecycle record and new
+USER.md; `requested_features_verified` stays false. It refuses to overwrite existing resident state. It copies no
 live credentials or conversation. Preserve generated configuration and package
 manifests separately on the target. Then sync, unmount the target and export only
 its pool without force. Preserve the installation and diagnose busy mounts rather

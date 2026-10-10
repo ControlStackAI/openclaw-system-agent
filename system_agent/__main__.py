@@ -34,6 +34,7 @@ def main():
     sub.add_parser("deployment-status")
     sub.add_parser("deployment-guide")
     sub.add_parser("deployment-account")
+    sub.add_parser("deployment-first-boot-review")
     sub.add_parser("deployment-encryption-key")
     sub.add_parser("deployment-record").add_argument("record")
     progress = sub.add_parser("deployment-checkpoint")
@@ -104,12 +105,14 @@ def main():
                 if previous and previous['state'] != 'cancelled':
                     raise ValueError("An approved deployment already exists. Resume it; do not repeat disk approval or erasure.")
                 result = request("custom", d.validate_plan(json.loads(args.plan.read_text())))
-            elif args.command in ("deployment-account", "deployment-encryption-key"):
+            elif args.command in ("deployment-account", "deployment-encryption-key", "deployment-first-boot-review"):
                 from .install_bridge import request
                 record = d.read(args.state, "custom-deployment.json")
                 if not record or record['state'] == 'cancelled':
                     raise ValueError("Review the custom deployment first")
-                result = request("custom-key" if args.command == "deployment-encryption-key" else "custom-account", record['plan'], retry=True)
+                operation = {"deployment-account": "custom-account", "deployment-encryption-key": "custom-key",
+                             "deployment-first-boot-review": "custom-first-boot"}[args.command]
+                result = request(operation, record['plan'], retry=True)
             elif args.command == "deployment-record":
                 result = d.record_review(args.state, json.loads(args.record))
             elif args.command == "deployment-status":

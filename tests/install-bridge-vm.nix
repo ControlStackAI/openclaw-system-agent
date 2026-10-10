@@ -23,7 +23,7 @@ in pkgs.testers.runNixOSTest {
     '';
   };
   testScript = ''
-    import json
+    import json, hashlib, shlex
     machine.start()
     machine.wait_for_unit("getty@tty1.service")
     machine.wait_until_succeeds("test -S /run/controlstack-install-bridge/console.sock")
@@ -48,6 +48,30 @@ in pkgs.testers.runNixOSTest {
     machine.succeed("test -e /run/fixture-approved")
     machine.wait_until_succeeds("grep -q 'FIXTURE CHAT READY' /dev/vcs1")
     machine.screenshot("same-chat-resumed")
+    # Pending post-boot work is explicitly scheduled in the root console, then
+    # the same conversation resumes without pretending the feature passed.
+    plan = dict(schema=1, distro="nixos", disk="/dev/vda", storage_action="erase",
+      storage_plan="Disposable VM fixture only", requirements=[dict(id="login", description="Test actual login after reboot")],
+      access_plan="Local owner", recovery_plan="Keep the USB", username="owner", target="/mnt/controlstack-custom", base="minimal")
+    reviewed = dict(mode="custom",state="configuring",plan=plan,
+      plan_digest=hashlib.sha256(json.dumps(plan,sort_keys=True).encode()).hexdigest(),
+      boot_id=machine.succeed("cat /proc/sys/kernel/random/boot_id").strip())
+    # Use the supported review-record state, then advance with a checkpoint.
+    reviewed["state"] = "approved"
+    machine.succeed(agent + "deployment-record " + shlex.quote(json.dumps(reviewed)))
+    machine.succeed(agent + "deployment-requirement login pending 'Needs installed boot'")
+    machine.succeed(agent + "deployment-first-boot-review")
+    machine.wait_until_succeeds("grep -q 'When should this be completed' /dev/vcs1")
+    machine.send_key("2"); machine.send_key("ret")
+    machine.wait_until_succeeds("grep -q 'Save this first-boot review' /dev/vcs1")
+    machine.send_key("2"); machine.send_key("ret")
+    machine.wait_until_succeeds(agent + "install-status | grep first-boot-reviewed")
+    record = json.loads(machine.succeed(agent + "deployment-status"))
+    assert record["requirement_results"]["login"]["status"] == "pending"
+    assert record["first_boot_review"]["decisions"]["login"]["when"] == "post-boot"
+    assert record["plan"] == plan
+    machine.wait_until_succeeds("grep -q 'FIXTURE CHAT READY' /dev/vcs1")
+    machine.screenshot("first-boot-review-resumed-chat")
     # A late failure preserves its stage and diagnostic in the same conversation.
     machine.succeed("touch /run/fixture-export-failure")
     machine.succeed(agent + "request-install --retry")

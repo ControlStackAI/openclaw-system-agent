@@ -19,6 +19,10 @@ and installed-image metadata as observations that can become stale. Keep running
 OS, desired OS, live environment, chroot and installed boot distinct. Only
 `system-agent verify-boot` with a matching handoff and new boot ID can qualify the
 installed boot; gateway health and a model response are separate requirements.
+For custom installations, inspect lifecycle/custom-deployment.json and USER.md
+for pending post-boot tests and owner-deferred optional work. A prepared handoff
+or verified boot never means these features passed. Report them separately and
+keep optional deferred work deferred until the owner chooses to resume it.
 
 Establish both location and intention before planning. Live media can be used for
 installation, inspection or recovery; its presence is not an instruction to

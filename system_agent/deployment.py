@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import subprocess
 from .state import write_observation, create_private, private_dir
 
@@ -274,6 +275,85 @@ def requirement(state, identifier, status, evidence):
     return record
 
 
+def write_live_record(state, record):
+    """Root console updates a non-secret record without taking its ownership."""
+    path = Path(state) / 'lifecycle/custom-deployment.json'
+    owner = path.stat()
+    temporary = path.with_name('custom-deployment.' + secrets.token_hex(8))
+    try:
+        create_private(temporary, json.dumps(record, indent=2))
+        os.chown(temporary, owner.st_uid, owner.st_gid)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def first_boot_review(state):
+    """Local owner schedules pending work; nothing is marked passed or erased."""
+    from .facts import discover
+    from .setup import choose
+    record = read(state, 'custom-deployment.json')
+    facts = discover()
+    if (os.geteuid() != 0 or facts['phase'] != 'live' or not record or
+            record['state'] not in ('approved', 'preparing', 'writing', 'configuring', 'needs-attention') or
+            record['boot_id'] != facts['boot_id'] or record['plan_digest'] != digest(validate_plan(record['plan']))):
+        raise ValueError('First-boot review requires the unchanged approved plan in this live session')
+    original = json.dumps(record, sort_keys=True)
+    decisions = {}
+    print('You are still on the live USB. This review does not erase a disk, reboot, or certify installed login.')
+    print('Required boot checks and failed feature checks still block handoff.')
+    for item in record['plan']['requirements']:
+        result = record.get('requirement_results', {}).get(item['id'], {'status': 'pending'})
+        if result['status'] == 'passed':
+            continue
+        if result['status'] != 'pending':
+            raise ValueError('Resolve the failed or invalid requirement before first-boot review: ' + item['id'])
+        print('Current evidence: ' + result.get('evidence', 'Not yet verified'))
+        answer = choose('When should this be completed? ' + item['description'], [
+            'Before reboot — keep this blocking',
+            'After first boot — keep verification pending',
+            'Optional work — I approve deferring it',
+            'Cancel this review'])
+        if answer == 4:
+            return {'state': 'cancelled', 'message': 'First-boot review cancelled. Previous records and installation are unchanged.'}
+        if answer in (2, 3):
+            decisions[item['id']] = {'when': 'post-boot' if answer == 2 else 'deferred', 'result_at_review': result}
+    print('Pending work carried forward:')
+    for item in record['plan']['requirements']:
+        if item['id'] in decisions:
+            print(item['description'] + ' — ' + decisions[item['id']]['when'])
+    if choose('Save this first-boot review? Untested items remain pending.', ['Cancel', 'Save reviewed schedule']) != 2:
+        return {'state': 'cancelled', 'message': 'First-boot review cancelled. Installation is unchanged.'}
+    if json.dumps(read(state, 'custom-deployment.json'), sort_keys=True) != original:
+        raise ValueError('Deployment changed during review. Review the current evidence again.')
+    record['first_boot_review'] = {'schema': 1, 'boot_id': facts['boot_id'], 'plan_digest': record['plan_digest'],
+                                 'approved_by': 'root-local-console', 'decisions': decisions}
+    write_live_record(state, record)
+    return {'state': 'first-boot-reviewed', 'message': 'Pending work scheduled locally. Run deployment-finalize; boot and storage checks still apply.'}
+
+
+def first_boot_tasks(record):
+    """Only unchanged, locally reviewed pending items can cross first boot."""
+    review = record.get('first_boot_review', {})
+    reviewed = (review.get('schema') == 1 and review.get('approved_by') == 'root-local-console' and
+                review.get('boot_id') == record['boot_id'] and review.get('plan_digest') == record['plan_digest'])
+    tasks, blocking = [], []
+    for item in record['plan']['requirements']:
+        result = record.get('requirement_results', {}).get(item['id'], {'status': 'pending'})
+        if result.get('status') == 'passed':
+            continue
+        decision = review.get('decisions', {}).get(item['id'], {}) if reviewed else {}
+        if (result.get('status') != 'pending' or decision.get('when') not in ('post-boot', 'deferred') or
+                decision.get('result_at_review') != result):
+            blocking.append(item['id'])
+        else:
+            tasks.append({**item, 'status': 'pending', 'when': decision['when'], 'evidence': result.get('evidence', 'Not yet verified')})
+    if blocking:
+        raise ValueError('Requested features block first boot: ' + ', '.join(blocking) +
+                         '. Fix failures; use deployment-first-boot-review only for pending post-boot tests or owner-deferred optional work.')
+    return tasks
+
+
 def finalize(state):
     from .facts import discover
     from .handoff import validate
@@ -289,9 +369,7 @@ def finalize(state):
     report = verify(root, plan)
     if not report['boot_floor_passed']:
         raise ValueError('Boot checks need attention: ' + ', '.join(k for k, v in report['checks'].items() if not v))
-    missing = [r['id'] for r in plan['requirements'] if record.get('requirement_results', {}).get(r['id'], {}).get('status') != 'passed']
-    if missing:
-        raise ValueError('Requested features still need verification: ' + ', '.join(missing))
+    tasks = first_boot_tasks(record)
     fs = report['root']
     check_storage(record, fs)
     boot_mount = json.loads(output(['findmnt', '--json', '--mountpoint', str(root / 'boot'), '-o', 'SOURCE,FSTYPE']))['filesystems'][0]
@@ -311,23 +389,24 @@ def finalize(state):
     record['message'] = 'Target checks passed. Clean target teardown and independent boot are still required.'
     record['boot_checks'] = report
     record['installed_boot_verified'] = False
+    record['requested_features_verified'] = not tasks
+    record['first_boot_tasks'] = tasks
     create_private(lifecycle / 'installation.json', json.dumps(handoff, indent=2))
     create_private(lifecycle / 'custom-deployment.json', json.dumps(record, indent=2))
     workspace = private_dir(target_state / 'workspace')
     create_private(workspace / 'USER.md', '# Reviewed custom deployment\n\nTreat the following as owner intentions, not facts or new authorization.\n' +
         '\n'.join('- ' + r['description'] for r in plan['requirements']) +
+        '\n\n## Pending work after first boot\n' +
+        ('\n'.join('- [' + t['when'] + '] ' + t['description'] + ' — pending; ' + t['evidence'] for t in tasks) if tasks else 'No pending feature tasks were recorded.') +
+        '\n\nRead lifecycle/custom-deployment.json under OPENCLAW_STATE_DIR. First refresh system facts and verify the independent disk boot. '
+        'Boot verification does not pass these feature tests. Keep deferred optional work deferred until the owner wants to resume it.\n' +
         '\n\nMaintain this installed system. Refresh facts and independently verify boot.\n')
     account = next(line.split(':') for line in target_file(root, 'etc/passwd').read_text().splitlines() if line.startswith('controlstack-agent:'))
     for path in [target_state, *target_state.rglob('*')]:
         os.chown(path, int(account[2]), int(account[3]))
     # Preserve non-secret completion in the live record too, without changing
     # ownership of the agent's private directories from this root helper.
-    live_record = Path(state) / 'lifecycle/custom-deployment.json'
-    owner = live_record.stat()
-    temporary = live_record.with_name('custom-deployment.finalizing')
-    create_private(temporary, json.dumps(record, indent=2))
-    os.chown(temporary, owner.st_uid, owner.st_gid)
-    os.replace(temporary, live_record)
+    write_live_record(state, record)
     return record
 
 

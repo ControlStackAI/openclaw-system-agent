@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class Guest:
-    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us", gpu="std", live_login=False):
+    def __init__(self, iso, area, uefi=False, installed=False, offline=False, encrypted=False, memory=4096, keyboard="us", gpu="std", live_login=False, public_package_cache=None):
         self.keyboard = keyboard
         self.area = area
         self.control = tempfile.TemporaryDirectory(prefix="cs-iso-", dir="/tmp")
@@ -29,6 +29,11 @@ class Guest:
                 "-device", "qemu-xhci,id=xhci", "-device", "usb-tablet,bus=xhci.0",
                 "-chardev", "stdio,id=serial0,signal=off", "-serial", "chardev:serial0", "-qmp", f"unix:{self.socket_path},server=on,wait=off",
                 "-nic", "none" if offline else "user,model=virtio-net-pci", "-no-reboot"]
+        if public_package_cache is not None:
+            cache = Path(public_package_cache).resolve(strict=True)
+            if not cache.is_dir() or ',' in str(cache) or any(p.is_symlink() or not p.is_file() or not (p.name.endswith('.pkg.tar.zst') or p.name.endswith('.pkg.tar.zst.sig')) for p in cache.iterdir()):
+                raise ValueError("Only a flat public package/signature cache can be exposed to the VM")
+            args += ["-virtfs", f"local,path={cache},mount_tag=cspkg,security_model=none,readonly=on"]
         if os.access("/dev/kvm", os.R_OK | os.W_OK):
             args += ["-enable-kvm", "-cpu", "host"]
         else:

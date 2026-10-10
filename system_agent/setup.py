@@ -152,13 +152,18 @@ class Setup:
         from .install_common import InstallationIssue
         if tui.active:
             tui.active.context("Agent-requested installation")
-        if record.get('mode') in ('custom-account', 'custom-key'):
+        if record.get('mode') == 'custom-first-boot':
+            print('Review pending work before first boot. This does not erase the disk or reboot.')
+        elif record.get('mode') in ('custom-account', 'custom-key'):
             print("Your assistant opened protected local input for the reviewed custom deployment. Secrets stay out of the conversation.")
         else:
             print("Your assistant has requested installation using your saved choices.\n"
                   "Review them below. The disk is changed only after your separate, exact approval.")
         try:
-            if record.get('mode') == 'custom-key':
+            if record.get('mode') == 'custom-first-boot':
+                from .deployment import first_boot_review
+                result = first_boot_review(self.state)
+            elif record.get('mode') == 'custom-key':
                 from .deployment import encryption_key_setup
                 result = encryption_key_setup(self.state)
             elif record.get('mode') == 'custom-account':

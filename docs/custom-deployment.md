@@ -15,7 +15,11 @@ failed command can be diagnosed without starting the installation over.
 The boot check is a minimum requirement, not a restriction on installed software.
 Requested desktop, login, key behavior, network and resident-agent checks are
 tracked separately. Prepared files are not a verified boot; the installed system
-must start independently after reboot. Custom configurations do not inherit the
+must start independently after reboot. Before first boot, a separate local review
+can schedule pending tests for the installed system and record optional work the
+owner chooses to defer. Failed tests, unreviewed pending items and failed minimum
+boot checks still block handoff. This preserves the original disk approval and
+never marks untested features as passed. Custom configurations do not inherit the
 qualification of a tested preset.
 
 The first custom review interface covers one unused internal disk. The supplied
@@ -32,3 +36,5 @@ and its [isolated authentication test](../tests/custom-greeter-vm.nix) show a wo
 UI/backend connection. Adapt the appearance and selected session to the owner's
 plan; use protected owner enrollment instead of the test's public fixture account.
 Authentication, key policy and the requested desktop must each be verified.
+
+For an installation blocked on an older image, see [first-boot handoff recovery](first-boot-handoff-recovery.md).

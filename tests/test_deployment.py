@@ -15,6 +15,92 @@ PLAN = dict(schema=1, distro='arch', disk='/dev/vda', target='/mnt/controlstack-
             requirements=[{'id':'login', 'description':'Custom company greeter'}])
 
 class DeploymentTests(unittest.TestCase):
+    def pending_record(self):
+        return dict(mode='custom', state='configuring', plan=copy.deepcopy(PLAN),
+                    plan_digest=d.digest(PLAN), boot_id='live-fixture',
+                    requirement_results={'login': {'status': 'pending', 'evidence': 'Requires installed boot'}})
+
+    def schedule(self, record, when='post-boot'):
+        record['first_boot_review'] = dict(schema=1, boot_id=record['boot_id'],
+            plan_digest=record['plan_digest'], approved_by='root-local-console',
+            decisions={'login': {'when': when, 'result_at_review': copy.deepcopy(record['requirement_results']['login'])}})
+        return record
+
+    def test_pending_and_failed_requirements_block_without_review(self):
+        for status in ('pending', 'failed', 'invented'):
+            record = self.pending_record()
+            record['requirement_results']['login']['status'] = status
+            with self.assertRaisesRegex(ValueError, 'block first boot'): d.first_boot_tasks(record)
+
+    def test_reviewed_postboot_and_deferred_tasks_remain_pending(self):
+        for when in ('post-boot', 'deferred'):
+            record = self.schedule(self.pending_record(), when)
+            tasks = d.first_boot_tasks(record)
+            self.assertEqual(tasks[0]['when'], when)
+            self.assertEqual(tasks[0]['status'], 'pending')
+            self.assertEqual(record['requirement_results']['login']['status'], 'pending')
+
+    def test_failed_or_changed_evidence_invalidates_pending_review(self):
+        for change in ({'status':'failed'}, {'evidence':'Different unfinished work'}):
+            record = self.schedule(self.pending_record())
+            record['requirement_results']['login'].update(change)
+            with self.assertRaises(ValueError): d.first_boot_tasks(record)
+
+    def test_review_bound_to_boot_plan_and_local_confirmation(self):
+        for change in ({'boot_id':'other'}, {'plan_digest':'other'}, {'approved_by':'model'}, {'schema':0}):
+            record = self.schedule(self.pending_record())
+            record['first_boot_review'].update(change)
+            with self.assertRaises(ValueError): d.first_boot_tasks(record)
+
+    def test_passing_later_check_removes_task_without_rewriting_review(self):
+        record = self.schedule(self.pending_record())
+        record['requirement_results']['login'] = {'status':'passed', 'evidence':'Test completed'}
+        self.assertEqual(d.first_boot_tasks(record), [])
+
+    def test_local_review_preserves_approval_and_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            record = self.pending_record()
+            d.write_observation(directory, 'custom-deployment.json', record)
+            with patch('system_agent.facts.discover', return_value={'phase':'live','boot_id':'live-fixture'}), patch.object(d.os,'geteuid',return_value=0), patch('system_agent.setup.choose',side_effect=[2,2]):
+                self.assertEqual(d.first_boot_review(directory)['state'], 'first-boot-reviewed')
+            saved = d.read(directory, 'custom-deployment.json')
+            self.assertEqual(saved['plan'], record['plan'])
+            self.assertEqual(saved['plan_digest'], record['plan_digest'])
+            self.assertEqual(saved['requirement_results'], record['requirement_results'])
+            self.assertEqual(d.first_boot_tasks(saved)[0]['when'], 'post-boot')
+
+    def test_cancel_or_failed_review_never_changes_saved_record(self):
+        for status, answers in [('pending',[4]), ('pending',[2,1]), ('failed',[])]:
+            with tempfile.TemporaryDirectory() as directory:
+                record = self.pending_record(); record['requirement_results']['login']['status'] = status
+                d.write_observation(directory, 'custom-deployment.json', record)
+                original = (Path(directory)/'lifecycle/custom-deployment.json').read_bytes()
+                with patch('system_agent.facts.discover',return_value={'phase':'live','boot_id':'live-fixture'}), patch.object(d.os,'geteuid',return_value=0), patch('system_agent.setup.choose',side_effect=answers):
+                    if status == 'failed':
+                        with self.assertRaisesRegex(ValueError,'failed'): d.first_boot_review(directory)
+                    else:
+                        self.assertEqual(d.first_boot_review(directory)['state'], 'cancelled')
+                self.assertEqual((Path(directory)/'lifecycle/custom-deployment.json').read_bytes(),original)
+
+    def test_preboot_choice_remains_blocking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            d.write_observation(directory,'custom-deployment.json',self.pending_record())
+            with patch('system_agent.facts.discover',return_value={'phase':'live','boot_id':'live-fixture'}), patch.object(d.os,'geteuid',return_value=0), patch('system_agent.setup.choose',side_effect=[1,2]):
+                d.first_boot_review(directory)
+            with self.assertRaises(ValueError): d.first_boot_tasks(d.read(directory,'custom-deployment.json'))
+
+    def test_finalizer_never_bypasses_failed_boot_floor_for_reviewed_tasks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            d.write_observation(directory,'custom-deployment.json',self.schedule(self.pending_record()))
+            with patch('system_agent.facts.discover',return_value={'phase':'live','boot_id':'live-fixture'}), patch.object(d.os,'geteuid',return_value=0), patch.object(d,'verify',return_value={'boot_floor_passed':False,'checks':{'kernel':False}}):
+                with self.assertRaisesRegex(ValueError,'Boot checks need attention: kernel'): d.finalize(directory)
+
+    def test_bridge_exposes_review_without_approving_or_erasing(self):
+        broker = Bridge('arch')
+        record = broker.handle({'operation':'custom-first-boot','choices':PLAN,'retry':True})
+        self.assertEqual(record['mode'],'custom-first-boot')
+        self.assertFalse(record['disk_erasure_approved'])
+
     def test_arbitrary_requirements_do_not_become_commands(self):
         plan = copy.deepcopy(PLAN)
         plan['requirements'][0]['description'] = 'A custom Quickshell greeter with company branding'

@@ -106,11 +106,11 @@ class Bridge:
             with self.lock:
                 result['request'] = dict(self.record) if self.record else None
             return result
-        if operation not in ('request', 'custom', 'custom-account', 'custom-key') or set(value) != {'operation', 'choices', 'retry'} or type(value.get('retry')) is not bool:
+        if operation not in ('request', 'custom', 'custom-account', 'custom-key', 'custom-first-boot') or set(value) != {'operation', 'choices', 'retry'} or type(value.get('retry')) is not bool:
             raise ValueError('Only status and a typed installation request are supported; approval must happen locally')
         from .choices import validate_partial
         from .deployment import validate_plan
-        choices = dict(validate_plan(value['choices']) if operation in ('custom', 'custom-account', 'custom-key') else validate_partial(value['choices']))
+        choices = dict(validate_plan(value['choices']) if operation in ('custom', 'custom-account', 'custom-key', 'custom-first-boot') else validate_partial(value['choices']))
         with self.lock:
             # A retry of an installed target must not reopen the erasure flow.
             # Keep the cleanup diagnosis even if the model changes its choices.
@@ -122,10 +122,12 @@ class Bridge:
             digest = hashlib.sha256(json.dumps(choices, sort_keys=True).encode()).hexdigest()
             if self.record and self.record['choices_digest'] == digest and not value['retry']:
                 return dict(self.record)
-            self.record = {'id': secrets.token_hex(8), 'state': 'queued', 'mode': operation if operation in ('custom', 'custom-account', 'custom-key') else 'tested', 'choices': choices,
+            self.record = {'id': secrets.token_hex(8), 'state': 'queued', 'mode': operation if operation in ('custom', 'custom-account', 'custom-key', 'custom-first-boot') else 'tested', 'choices': choices,
                            'choices_digest': digest, 'requested_at': time.monotonic(),
                            'disk_erasure_approved': False,
-                           'message': 'Your local console will open installation review automatically. No disk has been changed.'}
+                           'message': ('Your local console will review pending work before first boot. This request does not change the existing installation.'
+                                       if operation == 'custom-first-boot' else
+                                       'Your local console will open installation review automatically. No disk has been changed.')}
             return dict(self.record)
 
     def take(self):

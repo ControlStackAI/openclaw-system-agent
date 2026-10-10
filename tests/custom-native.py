@@ -40,6 +40,14 @@ def main(distro):
     if distro == 'arch':
         # Native package bootstrap, not the preset's full desktop payload.
         packages='base linux linux-firmware intel-ucode amd-ucode mkinitcpio networkmanager wpa_supplicant sudo python whois neovim'.split()
+        if os.environ.get('CONTROLSTACK_TEST_PACKAGE_CACHE'):
+            cache = Path(os.environ['CONTROLSTACK_TEST_PACKAGE_CACHE'])
+            assert cache == Path('/run/public-package-cache')
+            import shutil
+            destination = ROOT/'var/cache/pacman/pkg'; destination.mkdir(parents=True,exist_ok=True)
+            for package in cache.iterdir():
+                assert package.is_file() and not package.is_symlink()
+                shutil.copyfile(package,destination/package.name)
         run('pacstrap','-K','-C','/etc/pacman.conf',str(ROOT),*packages)
         run('cp','/etc/pacman.conf',str(ROOT/'etc/pacman.conf'))
         (ROOT/'nix').mkdir(exist_ok=True); run('cp','-a','/nix/.',str(ROOT/'nix'))
