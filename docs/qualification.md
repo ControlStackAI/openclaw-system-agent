@@ -1,6 +1,39 @@
 # Qualification status
 
-## First-boot handoff recovery — 2026-10-09
+## First-boot fix images — 2026-10-10
+
+Both rebuilt images passed BIOS/offline live boot and UEFI Hyprland installation
+on disposable VM disks, including ZFS-root boot without the ISO, graphical
+login, desktop controls, fixture replies and another reboot.
+
+Each exact ISO also passed the custom native minimal ext4 installation with the
+new bundled first-boot review. Unreviewed pending tasks blocked handoff; the local
+console scheduled an actual login check after reboot and deferred optional work.
+The same conversation resumed. Approval, password and feature evidence stayed
+unchanged. The installed system booted independently and retained both tasks as
+pending. No runtime recovery overlay was used for these tests.
+
+All 130 Python tests pass. A separate install-bridge VM covers the review/resume
+flow. These tests use public fixture accounts, not real AI providers or physical
+YubiKeys. The minimum boot checks remain mandatory; failed feature checks cannot
+be deferred. Multi-key enrollment and a persistent status strip remain separate
+work.
+
+The first custom NixOS attempt exposed a test-only Python PATH assumption; the
+corrected test passed from a fresh disk. The Arch custom VM logged one 22-second
+USB-storage watchdog warning during a memory-capped run, then completed the
+installation and independent boot checks. Both observations are retained in the
+receipt; these tests do not qualify physical USB behavior.
+
+| Image | SHA-256 |
+| --- | --- |
+| arch FIRST-BOOT-FIX | `5bbc8ac2457c84bcd7a4e42b5a70a1f3a390719d770dae8df7d7dd56b9011db6` |
+| nixos FIRST-BOOT-FIX | `3a35a093be47cba165baedbeff5509265888fe3988bbb9b54ba4ea095cb6a987` |
+
+[Exact receipts and limits](../evidence/first-boot-fix-isos.json) ·
+[Hardware test plan](first-boot-fix-test-plan.md)
+
+## Earlier first-boot handoff recovery — 2026-10-09
 
 The delivered CUSTOM-DEPLOYMENT images have a custom-mode sequencing defect:
 all requested features must pass before handoff, including tests which need an
@@ -16,7 +49,7 @@ ISO and retained both pending tasks. The new root-console request also passed a
 separate NixOS component VM, including return to the same conversation. All 130
 Python tests pass, including cancellation and stale/failed evidence rejection.
 
-**The ISOs have not been rebuilt.** Use the [recovery guide](first-boot-handoff-recovery.md)
+This recovery test used the older ISOs; the rebuilt images are qualified above. Use the [recovery guide](first-boot-handoff-recovery.md)
 for an existing blocked installation. Physical keys, hardware, ZFS cleanup and a
 full NixOS recovery installation were not qualified by these new tests.
 [Exact recovery receipt and source manifest](../evidence/first-boot-handoff-recovery.json).

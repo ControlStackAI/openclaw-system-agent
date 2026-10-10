@@ -40,7 +40,7 @@ before review, particularly to laptop owners or people without a key.
 | `python3 scripts/image.py plan --lock images/nixos.lock.json` | Validate a lock and print a JSON input summary without building |
 | `images/arch.lock.json`, `images/nixos.lock.json` | Exact sources, dependency pins, source manifest and fixed build epoch |
 | `build-receipt.json`, `image.lock.json`, `SHA256SUMS` in build output | Artifact identity and build provenance |
-| [evidence/custom-deployment-isos.json](../evidence/custom-deployment-isos.json) | Current exact-image test results and their scope |
+| [evidence/first-boot-fix-isos.json](../evidence/first-boot-fix-isos.json) | Current exact-image test results and their scope |
 | [docs/qualification.md](qualification.md) | Human explanation of current and historical evidence |
 | [contracts/](../contracts/) | Shared installer boundary and validated boot handoff |
 | [identity/install-preferences.json](../identity/install-preferences.json) | Public non-secret installation defaults |
@@ -124,8 +124,8 @@ Test other profiles explicitly rather than inferring that Hyprland covers them.
 Run the separate native minimal-install case for custom deployment:
 
 ```sh
-python3 scripts/qualify-custom.py dist/nixos/*.iso --distro nixos
-python3 scripts/qualify-custom.py dist/arch/*.iso --distro arch
+python3 scripts/qualify-custom.py dist/nixos/*.iso --distro nixos --first-boot-review
+python3 scripts/qualify-custom.py dist/arch/*.iso --distro arch --first-boot-review
 ```
 
 These cases exercise custom review, protected account input, native installation,
@@ -163,6 +163,7 @@ state context. They are not commands to run against an arbitrary development hos
 | `system-agent deployment-guide` | Packaged custom plan schema and native installation contract |
 | `system-agent deployment-status` | Reviewed custom plan, progress and requirement evidence |
 | `system-agent deployment-verify` | Preboot structural checks of the custom target |
+| `system-agent deployment-first-boot-review` | Ask the local console to schedule pending post-boot tests or owner-deferred optional work |
 | `system-agent deployment-finalize` | Validate custom target and create fresh resident handoff |
 | `system-agent verify-boot` | Check the handoff against an independent installed boot |
 

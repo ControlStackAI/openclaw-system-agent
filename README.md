@@ -170,7 +170,7 @@ Its new workspace, credentials and conversations then persist across restarts.
 Reopen **System Assistant** from your application menu whenever you need it.
 
 For the full walkthrough and hardware checks, see [USB setup](docs/usb-setup.md),
-[Arch installation](docs/arch-installation.md) and the [test plan](docs/custom-deployment-test-plan.md).
+[Arch installation](docs/arch-installation.md) and the [test plan](docs/first-boot-fix-test-plan.md).
 
 ## Your installed desktop
 
@@ -297,7 +297,7 @@ Its artifacts alone are not evidence of a successful installation.
 
 ## Test, contribute and get help
 
-The latest CUSTOM-DEPLOYMENT images passed BIOS live/offline boot and UEFI Hyprland
+The latest FIRST-BOOT-FIX images passed BIOS live/offline boot and UEFI Hyprland
 installation, real gateway sudo/mount operations on an emulated USB, installation
 review from chat, ZFS-root boot with the ISO removed, desktop checks and a second
 reboot. Provider replies in these tests used fixtures. See
