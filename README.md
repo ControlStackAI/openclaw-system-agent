@@ -238,27 +238,107 @@ restarts, but its friendly approval interface remains future work. See
 
 ## Use this with your agent
 
-You can give this repository to a coding or system agent and ask it to prepare
-an image for you. For example:
+Give the repository URL to a coding agent with terminal access to an x86_64 Linux
+build machine. It can check prerequisites, build the images and test them for you.
+You do not need to provide passwords, API keys or existing OpenClaw state to build
+an ISO.
 
-> Use https://github.com/ControlStackAI/openclaw-system-agent to help me prepare
-> a Linux deployment image. Read AGENTS.md and docs/agent-guide.md first. Ask whether I
-> want Arch or NixOS if I have not already said. Check the build prerequisites,
-> use the reviewed image lock, and build and test the ISO on disposable VM disks.
-> Tell me which checks passed and how to put it on USB. Do not write a USB or
-> erase a physical disk as part of this build request.
+### Ask your agent to build the ISOs
 
-Give your agent your desired distribution and desktop, intended use, and whether
-you want YubiKey sign-in and always-on power. You do not need to supply passwords,
-API keys or your existing agent state. Once you boot the image, its own OpenClaw
-assistant guides the actual installation.
+Copy this prompt. Change **both Arch Linux and NixOS** to just **Arch Linux** or
+**NixOS** if you only need one image:
 
-The [agent guide](docs/agent-guide.md) provides commands, JSON lock/receipt locations,
-test requirements, access boundaries and handoff expectations. It distinguishes
-a build machine, a live USB and an installed system so an agent does not assume
-it has the same permissions everywhere. Root [AGENTS.md](AGENTS.md) points agents
-to that guide; [identity/](identity/) contains the separate instructions shipped
-with the resident assistant.
+```text
+Build deployment ISOs for both Arch Linux and NixOS from
+https://github.com/ControlStackAI/openclaw-system-agent.
+
+Clone the repository or reuse my existing checkout without discarding changes.
+Read AGENTS.md, README.md and docs/agent-guide.md first. Check the host, build
+and VM-test prerequisites, available memory and free disk space. Tell me about
+missing prerequisites before changing the host. Ask one concrete question at
+a time if you need a choice I have not already made.
+
+Use the checked-in images/arch.lock.json and images/nixos.lock.json with
+scripts/image.py. Keep their pins and kernel/OpenZFS compatibility checks.
+Use fresh output directories. If source and lock disagree, explain why;
+do not bypass the check or silently update dependencies.
+
+Run the source checks and follow docs/agent-guide.md to test each exact ISO:
+BIOS/offline live boot, UEFI Hyprland installation and installed-system boot,
+and custom deployment with first-boot review. Use disposable VM disks only.
+Run builds and VM cases sequentially and limit build parallelism to fit memory.
+Preserve each test result before another case reuses its working directory.
+
+Return the ISO paths, SHA-256 checksums, image locks, build receipts and test
+results. Clearly separate passed, failed and unrun checks, fixture-based tests
+and real hardware/provider tests. Clean up temporary staging and disposable
+VM disks while keeping final images and diagnostic evidence. Keep my personal
+state and credentials out of builds. Do not write a USB or erase a physical
+disk as part of this build request.
+```
+
+The distribution is chosen **when building**. Desktop and installation choices
+are made **after booting**: Arch presets offer Hyprland or no desktop; NixOS presets
+offer Hyprland, Plasma, GNOME or no desktop. Hyprland is the currently qualified
+desktop path. The separate custom deployment flow supports other requests with
+their own checks; those configurations are not automatically qualified.
+
+Tell the live assistant your intended use, desktop preferences, and whether you
+want YubiKey sign-in and always-on power. Ordinary deployment choices do not
+require rebuilding the ISO. To build from a different base release, ask your
+coding agent to follow [locked image builds](docs/image-builds.md) and resolve a
+new lock explicitly. Arch takes an ISO release and package snapshot; NixOS takes
+a nixpkgs revision. A request for `latest` is resolved into fixed inputs before
+building; independent byte-for-byte reproducibility is not yet proven.
+
+### Ask your agent to explain or work on the repository
+
+Start with this prompt if you want help choosing a path or planning a change:
+
+```text
+Help me use https://github.com/ControlStackAI/openclaw-system-agent.
+Read AGENTS.md, README.md, docs/agent-guide.md and docs/qualification.md.
+Explain the build-machine, live-USB and installed-agent stages in plain language.
+Ask what I want to deploy or change, one question at a time, and reuse the
+preferences I have already given you. Show me the relevant files, supported
+choices and current test evidence. Before implementing a change, explain which
+layer owns it and which checks it needs. Keep existing work and dependency pins
+intact unless the requested change requires an explicit update.
+```
+
+These are the main entry points for an agent working with the source:
+
+| Location | What your agent should use it for |
+| --- | --- |
+| [AGENTS.md](AGENTS.md) and [agent guide](docs/agent-guide.md) | Contributor instructions, build commands, tests and installation handoff |
+| [images/](images/) and [image build guide](docs/image-builds.md) | Reviewed input locks and choosing a different base |
+| [qualification status](docs/qualification.md) and [evidence/](evidence/) | What has actually been tested, tied to specific artifacts |
+| [system_agent/](system_agent/), [runtimes/](runtimes/) and [adapters/](adapters/) | Portable lifecycle, OpenClaw integration and distribution packaging |
+| [identity/](identity/) | Instructions and defaults shipped with the live and resident assistants |
+
+The shipped identity instructions apply inside the deployment environment;
+they do not grant an agent permission to administer your build machine.
+
+### Put a verified image on USB, then boot it
+
+After reviewing the build results, you can give your agent this separate request
+for an **existing Ventoy USB**:
+
+```text
+Copy the newly built and tested OpenClaw ISOs to my attached Ventoy USB.
+Identify the device and available space first; ask me if its identity is unclear.
+Preserve existing files. If space is insufficient, show me what is on the USB
+and ask which files I want removed. Copy using temporary filenames, flush the
+writes, and verify the complete copies against the source SHA-256 checksums
+before publishing the final filenames. Include checksums and build receipts,
+then safely unmount the USB and give me the image names and a short test plan.
+```
+
+Boot the chosen image on the computer you want to install. Its own OpenClaw
+assistant guides networking, provider sign-in, deployment choices and local disk
+review. Passwords and key enrollment belong in the local setup screens, not in
+chat. After installation and reboot, the resident assistant starts with a fresh
+provider sign-in; live credentials and conversation history are not copied over.
 
 ## Build an ISO
 
