@@ -1,5 +1,26 @@
 # Qualification status
 
+## First-boot handoff recovery — 2026-10-09
+
+The delivered CUSTOM-DEPLOYMENT images have a custom-mode sequencing defect:
+all requested features must pass before handoff, including tests which need an
+installed boot. The source fix adds a local review for pending post-boot tests
+and optional work the owner explicitly defers. Failed checks and the minimum
+boot/storage checks remain blocking. Existing approval and test evidence remain
+unchanged; pending work is carried into the resident record and USER.md.
+
+The recovery helper passed on the exact delivered Arch ISO in an isolated VM:
+the old finalizer rejected pending tasks; local review and the corrected finalizer
+preserved the password and approval/evidence; the ext4 target booted without the
+ISO and retained both pending tasks. The new root-console request also passed a
+separate NixOS component VM, including return to the same conversation. All 130
+Python tests pass, including cancellation and stale/failed evidence rejection.
+
+**The ISOs have not been rebuilt.** Use the [recovery guide](first-boot-handoff-recovery.md)
+for an existing blocked installation. Physical keys, hardware, ZFS cleanup and a
+full NixOS recovery installation were not qualified by these new tests.
+[Exact recovery receipt and source manifest](../evidence/first-boot-handoff-recovery.json).
+
 ## Custom deployment and lighter login — 2026-10-09
 
 Both final images passed BIOS/offline boot. Full UEFI Hyprland installation

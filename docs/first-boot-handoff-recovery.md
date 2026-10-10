@@ -4,6 +4,9 @@ The 2026-10-09 CUSTOM-DEPLOYMENT images require every requested feature to pass
 before handoff. That incorrectly blocks tests which need the installed system
 running, and optional work the owner explicitly wants to defer.
 
+The tested fix is commit `ec707b1ae3e0b4d31d1aeb04b2769a0d3162cdeb`.
+[Qualification receipt](../evidence/first-boot-handoff-recovery.json).
+
 The corrected code has a separate local first-boot review. Required preboot work
 still blocks, actual failures still block, and the structural boot/storage checks
 always run. Approved post-boot tests and optional deferred work remain **pending**

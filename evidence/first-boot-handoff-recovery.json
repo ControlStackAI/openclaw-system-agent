@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "source_commit": "ec707b1ae3e0b4d31d1aeb04b2769a0d3162cdeb",
+  "scope": "In-place handoff recovery on an existing custom installation in an isolated Arch ISO VM; local review retains pending post-boot and optional deferred work.",
+  "recovery_check": {
+    "schema": 1,
+    "distro": "arch",
+    "iso_sha256": "105508a03f9de72449074998f92f48231726b5605d1d3ce43f62891e0ad235b0",
+    "native_minimal_install": true,
+    "custom_local_review": true,
+    "custom_instructions_reached_provider": true,
+    "confirmation_typo_retried": true,
+    "protected_account_setup": true,
+    "independent_installed_boot": true,
+    "filesystem": "ext4",
+    "real_provider": false,
+    "physical_key": false,
+    "physical_disks_attached": false,
+    "handoff_recovery": true,
+    "recovery_bundle_sha256": "98da72da8d50ef1e8278ef2c9d0914ee3840216e92c08e0bedc7d9a293049428",
+    "old_finalizer_blocked": true,
+    "public_package_cache_used": true,
+    "local_pending_review": true,
+    "approval_and_evidence_preserved": true,
+    "password_preserved": true,
+    "pending_tasks_survived_boot": true,
+    "iso_modified": false
+  },
+  "tested_recovery_source": {
+    "bundle_sha256": "98da72da8d50ef1e8278ef2c9d0914ee3840216e92c08e0bedc7d9a293049428",
+    "files": {
+      "system_agent/__init__.py": "76f554627b87b60cca0aa456d0ed06489b605b49bbead8470d8f77476cf84aeb",
+      "system_agent/__main__.py": "91b0a20b25cd1f9a6ebfff242ed826f508b47fde2f9b40671826a97d349d15a2",
+      "system_agent/access.py": "7f6d738cb96b6362f86d23dc027c34fad63cf1f9ef58610f777e2595e12a5a9c",
+      "system_agent/admin.py": "0f33b8cceb75ac3ec773eb99e9242e4dd7ba1d67b6cf3a88fc64ed0f6e1ba845",
+      "system_agent/choices.py": "9316ee730f09e43b8bc03109b0a3f9ec198a87f4ab68c8999f65be1b2f517b4b",
+      "system_agent/coding_login.py": "838a2f88404a32dc68c43a074a5dde2f4d8d7407927d4fe07b54924afc85f6ae",
+      "system_agent/console_font.py": "696fb4045b193ab651103ed8bf2aae9c053b0473e36f85cfb3d1cf069c5ae9e5",
+      "system_agent/deployment.py": "2fee8b22decb9b556cfbd939517021220bd1543b7b7181fa9315daf333731a16",
+      "system_agent/facts.py": "a684bf7d280e2faf69da6373106207df95cbe3ac3fabc7668dec8fe877063195",
+      "system_agent/handoff.py": "fc9a2f7013a62f59c240006cc4ac4cdfb28a4cd767fb140b7dc517d3544f5e40",
+      "system_agent/install_bridge.py": "c2be55fe505a2b198ef936f81db8ca4bf2c58fcff435ecb1d889f7f3f9b33221",
+      "system_agent/install_common.py": "186c2455815ff69fa429e8290d11473710dc51009082cc7843381b0f07a7794b",
+      "system_agent/interview.py": "9dfefb21d30806784062f8848d2494aaafc53d9f48944bf8e4d072b550b9ebb9",
+      "system_agent/networking.py": "858f98f4523ea2bbf03bd8a0425dc44c7dd1b79379ee353c11ee99d42e1540a7",
+      "system_agent/policy.py": "b24891b94251f06d05b10aed0a4c253e3c7e5e9657e6e338c46a2f41df8f5417",
+      "system_agent/profile.py": "9389fe7a2f1453f6562a92f2a50aeac56ea418cc1cc29b674cb56837eec2df0b",
+      "system_agent/readiness.py": "1e1f88b68212546cd18b9d51474c5a2794fe665c61f0a7e67f0367919fd5c072",
+      "system_agent/security_key.py": "9f2caf8cd952abcb9a2a2c7d6d4f679c70affd563e88760a12feb0972f639a86",
+      "system_agent/setup.py": "3998c9c29af295c4aae57f076a8bbf03574bb4abcf38f9765532707f818a85e1",
+      "system_agent/state.py": "568a6a69746f7117628f9f87db05eb970469d5bfb8debb95da28db494df11f93",
+      "system_agent/tui.py": "b928882029689564c7f3baf91d71b4761ad78dcb2aa04f78381307f1d8c5ab33",
+      "scripts/recover-custom-handoff.py": "4b92544ce9b7775eb4a26438668feb4c18ff79f026dbf8bc52469fa618ed648f"
+    }
+  },
+  "source_checks": {
+    "python_tests": 130,
+    "passed": true,
+    "local_review_and_conversation_resume_vm": "/nix/store/j6a7zf80wicp6z76dhv23iz8af7k6033-vm-test-run-controlstack-install-bridge"
+  },
+  "limits": [
+    "The recovered target was a minimal ext4 console installation. No physical disks, physical YubiKeys or real provider accounts were tested.",
+    "The local review bridge was tested in a NixOS component VM; full NixOS ISO recovery was not rerun.",
+    "No fresh ISO was built or written to Ventoy. Existing delivered images retain the old finalizer until the helper is used.",
+    "The VM used a read-only cache of public signed Arch packages to create its fixture target; package verification remained enabled.",
+    "The helper does not unmount, export ZFS pools or reboot. The actual machine requires safe target teardown and independent hardware verification."
+  ]
+}
