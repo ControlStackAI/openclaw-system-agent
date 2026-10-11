@@ -1,5 +1,36 @@
 # Qualification status
 
+## OpenClaw 2026.10.1 images — 2026-10-11
+
+Both exact images passed BIOS/offline boot and UEFI Hyprland installation on
+isolated disposable VM disks, including independent ZFS-root boot, graphical
+login, desktop/MCP checks, fixture conversation and a second reboot. Tests verified
+OpenClaw 2026.10.1 in the live environment and after installed-system boot.
+
+Each image also passed the custom native minimal ext4 deployment with local
+first-boot review. Unreviewed pending work blocked handoff; reviewed post-boot
+and deferred tasks survived reboot with approval, password and evidence intact.
+The installed custom system also ran OpenClaw 2026.10.1.
+
+The complete runtime and matching Codex/ACPX plugins use a reviewed npm lock with
+the official Nix packaging recipe. NixOS retains the explicit 2026.10.1 pin; Arch
+checks the stable release before installation. All 130 Python tests passed.
+API-key setup and ChatGPT device-code orchestration passed with synthetic
+credentials in an empty network namespace; the official device transport also
+passed with synthetic HTTP responses. These do not establish real account access.
+
+| Image | SHA-256 |
+| --- | --- |
+| arch OPENCLAW-10.1 | `8d01af1f348e1786e9dc7d763167aa95bd6c6a783708372f480d198225c59a0b` |
+| nixos OPENCLAW-10.1 | `6f4300fad957c3e3db968bd74129179d3ba13a7352f44ad23a8d93699c17e020` |
+
+[Exact receipts and limits](../evidence/openclaw-10.1-isos.json) ·
+[Hardware test plan](openclaw-10.1-test-plan.md)
+
+Physical hardware, real provider accounts, physical YubiKeys, Secure Boot and
+independent byte-for-byte rebuilds remain unqualified by these tests. Custom
+qualification covers the scripted minimal fixture, not every generated desktop.
+
 ## First-boot fix images — 2026-10-10
 
 Both rebuilt images passed BIOS/offline live boot and UEFI Hyprland installation

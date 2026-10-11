@@ -26,6 +26,11 @@ versions, and Nix store/flake inspection. Remote searches need internet access;
 they do not install packages, authorize a rebuild, or prove compatibility with
 the machine's pinned kernel/OpenZFS/nixpkgs.
 
+OpenClaw 2026.10.1 exposes MCP tools through Tool Search. The agent discovers
+`nixos__nix` there; its absence from the initial tool list alone is not a failure.
+Current [ISO qualification](qualification.md) checks discovery through the agent
+in both the live and installed NixOS environments.
+
 The root-owned `/etc/controlstack-agent/installed-mcp.json` contract determines
 which system integrations are active. Official onboarding and subsequent resident
 service starts merge this contract into mutable OpenClaw config without replacing

@@ -53,6 +53,9 @@ The agent must use native desktop/window/launch/input tools instead; synthetic
 keyboard events cannot trigger compositor shortcuts. This upstream limitation
 does not prevent direct window, pointer, keyboard or application control.
 
+For current exact-image results, see [qualification status](qualification.md).
+The component and Actions results below describe their original artifacts.
+
 The Nix package passed 656 upstream tests, with four upstream skips and 15
 exclusions (13 require a compositor; two assume a checkout-relative skill path).
 The installed skill file is checked separately. Local tests cover peer rejection,
@@ -63,10 +66,11 @@ workspace, and stop/resume operations. These checks [passed](https://github.com/
 [USB installation check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) verifies discovery after installing and booting
 without the ISO. Neither test uses an authenticated model.
 
-References: [OpenClaw 2026.9.5 MCP configuration](https://github.com/openclaw/openclaw/blob/v2026.9.5/docs/tools/mcp.md),
-[tool policy](https://github.com/openclaw/openclaw/blob/v2026.9.5/docs/gateway/config-tools/tool-policy.md).
+References: [OpenClaw 2026.10.1 MCP configuration](https://github.com/openclaw/openclaw/blob/v2026.10.1/docs/tools/mcp.md),
+[tool policy](https://github.com/openclaw/openclaw/blob/v2026.10.1/docs/gateway/config-tools/tool-policy.md).
 
-OpenClaw 2026.9.8 can expose Hypruse through its compact Tool Search catalog.
+OpenClaw 2026.10.1 exposes Hypruse through its compact Tool Search catalog on
+both images.
 The agent searches for the desktop capability, then calls the returned tool.
 A tool omitted from the initial prompt is not necessarily unavailable; checks
 should exercise discovery and the resulting desktop snapshot.

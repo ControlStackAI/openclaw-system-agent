@@ -17,7 +17,7 @@ class Handler(BaseHTTPRequestHandler):
         # Capture only synthetic VM prompts for persistence/identity assertions.
         Path('/tmp/fixture-request.json').write_text(json.dumps(request))
         message = 'VM fixture: resident conversation works.'
-        # OpenClaw 9.8 exposes MCP tools through Tool Search. Exercise that real
+        # Current OpenClaw exposes MCP tools through Tool Search. Exercise that real
         # discovery and a read-only desktop call instead of disabling compaction.
         tools = {t['function']['name'] for t in request.get('tools', [])}
         messages = request.get('messages', [])
@@ -25,10 +25,14 @@ class Handler(BaseHTTPRequestHandler):
         probe = probe and any('desktop: hyprland' in str(m.get('content', '')) for m in messages)
         calls = {c.get('function', {}).get('name') for m in messages for c in (m.get('tool_calls') or [])}
         tool_call = None
+        nix_probe = any(m.get('role') == 'user' and 'nixos-mcp-discovery-fixture' in str(m.get('content', '')) for m in messages)
         usb_probe = any(m.get('role') == 'user' and 'live-usb-access-fixture' in str(m.get('content', '')) for m in messages)
         if usb_probe and 'exec' in tools and 'exec' not in calls:
             tool_call = {'id': 'fixture-mount', 'type': 'function', 'function': {
                 'name': 'exec', 'arguments': json.dumps({'command': 'sudo -n mkdir -p /mnt/controlstack-usb-fixture && sudo -n mount -o ro /dev/disk/by-label/CS_FIXTURE_USB /mnt/controlstack-usb-fixture && sudo -n cat /mnt/controlstack-usb-fixture/sentinel'})}}
+        elif nix_probe and 'tool_search' in tools and 'tool_search' not in calls:
+            tool_call = {'id': 'fixture-nixos-search', 'type': 'function', 'function': {
+                'name': 'tool_search', 'arguments': json.dumps({'query': 'nixos nix', 'limit': 3})}}
         elif probe and 'tool_search' in tools and 'tool_search' not in calls:
             tool_call = {'id': 'fixture-search', 'type': 'function', 'function': {
                 'name': 'tool_search', 'arguments': json.dumps({'query': 'hypruse desktop', 'limit': 3})}}

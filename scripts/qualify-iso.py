@@ -294,7 +294,9 @@ def main():
             guest.command(live_env + "openclaw agent --agent main --session-key agent:main:live-fixture --message live-fixture-response --json", timeout=180)
             if args.distro == "nixos":
                 guest.command(live_env + "timeout --foreground --kill-after=5s 60s openclaw mcp doctor nixos --probe --json </dev/null", timeout=90)
-                guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}; r=json.load(open('/tmp/fixture-request.json')); names={t['function']['name'] for t in r['tools']}; assert 'nixos__nix' in names; assert not any(n.startswith('hypruse__') for n in names)\"")
+                guest.command(live_env + "openclaw agent --agent main --session-key agent:main:nix-discovery --message nixos-mcp-discovery-fixture --json", timeout=180)
+                guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert set(c['mcp']['servers']) == {'nixos'}\"")
+                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); calls={c['id']:c['function']['name'] for m in r['messages'] for c in (m.get('tool_calls') or [])}; search=[m for m in r['messages'] if m.get('role') == 'tool' and calls.get(m.get('tool_call_id')) == 'tool_search']; assert 'nixos__nix' in json.dumps(search), search; assert 'hypruse__' not in json.dumps(search)\"")
             else:
                 guest.command("python3 -c \"import json; c=json.load(open('/run/controlstack-agent/openclaw.json')); assert not c.get('mcp', {}).get('servers', {})\"")
             # Exercise the actual gateway tool against a separate emulated USB.
@@ -455,15 +457,13 @@ p.write_text(json.dumps(c))
             guest.gateway_ready("/var/lib/controlstack-agent")
             guest.command("runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:installed --message installed-fixture-response --json", timeout=180)
             guest.command("grep -q 'Owner.s chosen system' /tmp/fixture-request.json")
-            if args.distro == "nixos":
-                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'nixos__nix' in {t['function']['name'] for t in r['tools']}\"")
-            else:
-                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert not any(t['function']['name'].startswith('nixos__') for t in r['tools'])\"")
             if args.desktop == "hyprland":
-                if args.distro == "arch":
-                    guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); calls={c['id']:c['function']['name'] for m in r['messages'] for c in (m.get('tool_calls') or [])}; results=[m for m in r['messages'] if m.get('role') == 'tool']; search=[m for m in results if calls.get(m.get('tool_call_id')) == 'tool_search']; desktop=[m for m in results if calls.get(m.get('tool_call_id')) == 'tool_call']; assert 'hypruse__desktop' in json.dumps(search); assert desktop and 'monitors' in json.dumps(desktop) and 'windows' in json.dumps(desktop), desktop\"")
-                else:
-                    guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); assert 'hypruse__desktop' in {t['function']['name'] for t in r['tools']}\"")
+                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); calls={c['id']:c['function']['name'] for m in r['messages'] for c in (m.get('tool_calls') or [])}; results=[m for m in r['messages'] if m.get('role') == 'tool']; search=[m for m in results if calls.get(m.get('tool_call_id')) == 'tool_search']; desktop=[m for m in results if calls.get(m.get('tool_call_id')) == 'tool_call']; assert 'hypruse__desktop' in json.dumps(search); assert desktop and 'monitors' in json.dumps(desktop) and 'windows' in json.dumps(desktop), desktop\"")
+            if args.distro == "nixos":
+                guest.command("runuser -u controlstack-agent -- env OPENCLAW_STATE_DIR=/var/lib/controlstack-agent OPENCLAW_CONFIG_PATH=/var/lib/controlstack-agent/openclaw.json OPENCLAW_NIX_MODE=0 openclaw agent --agent main --session-key agent:main:nix-discovery --message nixos-mcp-discovery-fixture --json", timeout=180)
+                guest.command("python3 -c \"import json; r=json.load(open('/tmp/fixture-request.json')); calls={c['id']:c['function']['name'] for m in r['messages'] for c in (m.get('tool_calls') or [])}; search=[m for m in r['messages'] if m.get('role') == 'tool' and calls.get(m.get('tool_call_id')) == 'tool_search']; assert 'nixos__nix' in json.dumps(search), search\"")
+            else:
+                guest.command("python3 -c \"import json; c=json.load(open('/var/lib/controlstack-agent/openclaw.json')); assert 'nixos' not in c.get('mcp', {}).get('servers', {})\"")
 
             if args.desktop == "none":
                 guest.type_console("2")
