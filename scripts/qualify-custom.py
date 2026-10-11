@@ -117,6 +117,8 @@ assert [(t['id'],t['when'],t['status']) for t in after['first_boot_tasks']]==[('
     guest=Guest(iso,area,uefi=True,installed=True,memory=8192)
     try:
         guest.command('findmnt -n -o FSTYPE / | grep -x ext4')
+        expected_version=json.loads((ROOT/'runtimes/openclaw/inputs.json').read_text())[args.distro+'_openclaw_version']
+        guest.command('openclaw --version | grep -F '+shlex.quote(expected_version))
         guest.command('systemctl start controlstack-agent-boot-check; systemctl is-active controlstack-agent controlstack-agent-boot-check',timeout=180)
         guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
         guest.command("grep 'Minimal console system' /var/lib/controlstack-agent/workspace/USER.md")
@@ -128,7 +130,7 @@ assert [(t['id'],t['when'],t['status']) for t in after['first_boot_tasks']]==[('
             assert installed_record['requested_features_verified'] is False
             assert [(t['id'],t['when'],t['status']) for t in installed_record['first_boot_tasks']]==[('actual-login','post-boot','pending'),('optional-app','deferred','pending')]
         guest.qmp('screendump',{'filename':str(area/'installed.png'),'format':'png'})
-        result=dict(schema=1,distro=args.distro,iso_sha256=hashlib.file_digest(iso.open('rb'),'sha256').hexdigest(),native_minimal_install=True,custom_local_review=True,custom_instructions_reached_provider=True,confirmation_typo_retried=True,protected_account_setup=True,independent_installed_boot=True,filesystem='ext4',real_provider=False,physical_key=False,physical_disks_attached=False)
+        result=dict(schema=1,distro=args.distro,iso_sha256=hashlib.file_digest(iso.open('rb'),'sha256').hexdigest(),openclaw_version=expected_version,installed_runtime_version_verified=True,native_minimal_install=True,custom_local_review=True,custom_instructions_reached_provider=True,confirmation_typo_retried=True,protected_account_setup=True,independent_installed_boot=True,filesystem='ext4',real_provider=False,physical_key=False,physical_disks_attached=False)
         if args.handoff_recovery:
             result.update(handoff_recovery=True,recovery_bundle_sha256=hashlib.sha256(payload).hexdigest(),recovery_files_sha256=recovery_files,old_finalizer_blocked=True,public_package_cache_used=bool(args.public_package_cache),local_pending_review=True,approval_and_evidence_preserved=True,password_preserved=True,pending_tasks_survived_boot=True,iso_modified=False)
         if args.first_boot_review:

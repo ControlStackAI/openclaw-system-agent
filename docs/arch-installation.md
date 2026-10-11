@@ -55,8 +55,8 @@ island or Super+Shift+Backspace. NixOS MCP is not installed on Arch.
 
 The OS, compositor and services are native Arch packages. OpenClaw and the AI
 applications use complete immutable Nix-built runtime closures without requiring
-a Nix daemon. Arch currently pins released OpenClaw 2026.9.9; NixOS retains its
-2026.9.5 packaging pin. Configuration, credentials and conversations remain in
+a Nix daemon. Both images pin released OpenClaw 2026.10.1. Arch checks the stable channel
+before installation; NixOS retains its reviewed packaging pin. Configuration, credentials and conversations remain in
 private writable state, outside the application closure. Advanced users can
 change live configuration in RAM or customize their installed desktop; desktop
 seed files never overwrite existing owner files.

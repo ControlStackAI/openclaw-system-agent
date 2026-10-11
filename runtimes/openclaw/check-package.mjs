@@ -1,11 +1,11 @@
-// Arch uses mutable owner-selected provider configuration, not NixOS runtime
-// management. Keep the released JavaScript intact; verify the full artifact
+// Both distributions retain their own OPENCLAW_NIX_MODE setting.
+// Keep the released JavaScript intact; verify the full artifact
 // before using the upstream recipe's runtime layout and executable wrapper.
 import fs from 'node:fs';
 import path from 'node:path';
 const root = process.env.OPENCLAW_PACKAGE_ROOT;
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-if (metadata.name !== 'openclaw' || metadata.version !== '2026.9.9') {
+if (metadata.name !== 'openclaw' || metadata.version !== '2026.10.1') {
   throw new Error('Unexpected OpenClaw release artifact');
 }
 for (const file of ['dist/index.js', 'dist/extensions/openai/openclaw.plugin.json',

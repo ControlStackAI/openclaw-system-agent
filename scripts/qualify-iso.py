@@ -232,6 +232,7 @@ def main():
     # Each invocation needs a genuinely blank target and firmware, never a resumed result.
     for name in ("target.qcow2", "OVMF_VARS.fd", "result.json", "qmp.sock"):
         (area / name).unlink(missing_ok=True)
+    expected_version = json.loads((ROOT / "runtimes/openclaw/inputs.json").read_text())[args.distro + "_openclaw_version"]
     installing = args.mode == "uefi-install"
     memory = args.memory_mib or (4096 if args.desktop == "none" else 8192)
     guest = Guest(iso, area, uefi=installing, offline=not installing, memory=memory, keyboard=args.keyboard, gpu="virtio" if args.desktop == "hyprland" else "std", live_login=args.distro == "arch")
@@ -241,7 +242,7 @@ def main():
         guest.command("systemctl start wpa_supplicant.service; systemctl is-active wpa_supplicant.service")
         guest.command("test $(findmnt -n -o FSTYPE /run) = tmpfs")
         guest.command("test $(stat -c %a /run/controlstack-agent/gateway-token) = 600")
-        guest.command("openclaw --version | grep -F " + ("2026.9.9" if args.distro == "arch" else "2026.9.5"))
+        guest.command("openclaw --version | grep -F " + shlex.quote(expected_version))
         if args.distro == "arch":
             guest.command("grep -w copytoram=n /proc/cmdline && test -f /run/archiso/bootmnt/arch/controlstack/target.sfs")
             guest.command("test $(stat -Lc %u /usr/local/bin/openclaw) = 0; test -x /opt/codex/bin/codex-code-mode-host")
@@ -376,6 +377,7 @@ def main():
             if args.encrypted:
                 guest.command("zfs get -H -o value encryption $(findmnt -n -o SOURCE /) | grep -x aes-256-gcm")
             guest.command("grep '\"installed_boot_verified\": true' /var/lib/controlstack-agent/lifecycle/boot-verification.json")
+            guest.command("openclaw --version | grep -F " + shlex.quote(expected_version))
             guest.qmp("screendump", {"filename": str(area / "login.png"), "format": "png"})
             if args.desktop == "none":
                 guest.type_console("owner")
@@ -528,6 +530,7 @@ p.write_text(json.dumps(c))
     with iso.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt = {"distro": args.distro, "mode": args.mode, "iso_sha256": digest, "passed": True,
+               "openclaw_version": expected_version, "installed_runtime_version_verified": installing,
                "live_wifi_backend_available": True,
                "installed_wifi_backend_available": installing,
                "offline_signin_then_network_setup": not installing,

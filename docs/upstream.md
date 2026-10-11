@@ -1,17 +1,20 @@
-# Reviewed upstream inputs (2026-10-06)
+# Reviewed upstream inputs (2026-10-11)
 
-Current Arch source selection (2026-10-08): official npm stable release 2026.9.9,
-with matching ACPX/Codex packages. NixOS remains pinned at 2026.9.5. Older
-qualification records below describe their original artifacts, not rebuilt ISOs.
+Both images now select official OpenClaw npm release 2026.10.1, with matching
+ACPX/Codex packages in a complete dependency lock. NixOS keeps that explicit pin;
+Arch checks stable before installation. Historical qualification records retain
+the versions of their original artifacts.
 
-- [OpenClaw latest release](https://github.com/openclaw/openclaw/releases/tag/v2026.9.8):
-  latest observed GitHub release, published 2026-10-03. Its version differs from
-  the official Nix package pin. Do not substitute it without new dependency locks.
+- [OpenClaw 2026.10.1](https://github.com/openclaw/openclaw/releases/tag/v2026.10.1):
+  latest observed official release. The versioned npm artifact and its integrity
+  hash are recorded in `runtimes/openclaw/npm/package-lock.json`.
 - [Official Nix packaging](https://github.com/openclaw/nix-openclaw/tree/f62d33f760bcbdbc6a52ac589eae22bf99201f90):
-  used directly by the flake, including its npm dependency lock and helper layout.
-  `nix/sources/openclaw-source.nix` pins 2026.9.5. The source repo provides Linux
-  packaging and a Home Manager systemd integration; this project supplies its
-  own NixOS system service under a dedicated account.
+  the flake reuses its dependency staging, runtime layout and executable wrapper.
+  Its upstream release pin is still 2026.9.5. This project overrides the runtime
+  with its own complete 2026.10.1 npm lock and matching bundled plugins, retaining
+  released JavaScript and checking the required artifact surfaces during build.
+  The source repo provides Linux packaging and Home Manager integration; this
+  project supplies its own NixOS system service under a dedicated account.
 - [Nix behavior](https://docs.openclaw.ai/install/nix): explicit config/state paths,
   read-only config under OPENCLAW_NIX_MODE; mutable onboarding is unavailable.
 - [CLI onboarding](https://docs.openclaw.ai/cli/onboard): official guided flow,
