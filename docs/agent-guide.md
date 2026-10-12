@@ -40,7 +40,7 @@ before review, particularly to laptop owners or people without a key.
 | `python3 scripts/image.py plan --lock images/nixos.lock.json` | Validate a lock and print a JSON input summary without building |
 | `images/arch.lock.json`, `images/nixos.lock.json` | Exact sources, dependency pins, source manifest and fixed build epoch |
 | `build-receipt.json`, `image.lock.json`, `SHA256SUMS` in build output | Artifact identity and build provenance |
-| [evidence/openclaw-10.1-isos.json](../evidence/openclaw-10.1-isos.json) | Current exact-image test results and their scope |
+| [evidence/custom-desktop-fix-isos.json](../evidence/custom-desktop-fix-isos.json) | Current exact-image test results and their scope |
 | [docs/qualification.md](qualification.md) | Human explanation of current and historical evidence |
 | [contracts/](../contracts/) | Shared installer boundary and validated boot handoff |
 | [identity/install-preferences.json](../identity/install-preferences.json) | Public non-secret installation defaults |

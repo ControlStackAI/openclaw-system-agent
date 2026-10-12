@@ -1,5 +1,34 @@
 # Qualification status
 
+## Custom desktop fixes — 2026-10-12
+
+The CUSTOM-DESKTOP-FIX images restore NixOS to the release supplied by the pinned
+nix-openclaw input (2026.9.5) and keep Arch on 2026.10.1. Both exact images passed
+BIOS/offline boot, UEFI Hyprland installation, independent ZFS-root boot, installed
+Ratatui autostart, desktop/MCP checks and a second reboot. Native minimal custom
+installation and first-boot review also passed on both, retaining pending tasks,
+approval, password and evidence. Tests checked the live and installed versions.
+
+A separate custom Quickshell/greetd VM verified wrong-password rejection, a native
+Lua shortcut, start-hyprland, the reusable owner setup module's Ratatui autostart,
+and a normal Ghostty terminal changing dark → light → dark with system appearance.
+This tests the documented concrete recipe, not arbitrary agent-generated desktops.
+Custom/resident instructions now explicitly require Lua, the supported launcher,
+coordinated terminal appearance and an owner-visible assistant setup handoff.
+
+All 130 unit tests passed. Restored NixOS provider setup passed isolated synthetic
+API-key and ChatGPT device-code tests; real provider accounts and physical keys
+remain separate hardware checks. The Arch runtime retains its earlier 10.1
+synthetic authentication qualification. Neither runtime test used real credentials.
+
+| Image | OpenClaw | SHA-256 |
+| --- | --- | --- |
+| arch | 2026.10.1 | `762619ad823cf9b6cf0532ba3add1a24e91438bd0649d9f088d15475d504cf61` |
+| nixos | 2026.9.5 | `a123ea62c255cb58bd09c9db4b90afabff9d47aaab93c8122b01e3baf471ce25` |
+
+[Exact receipts and limits](../evidence/custom-desktop-fix-isos.json) ·
+[Custom desktop test plan](custom-desktop-test-plan.md)
+
 ## OpenClaw 2026.10.1 images — 2026-10-11
 
 Both exact images passed BIOS/offline boot and UEFI Hyprland installation on
