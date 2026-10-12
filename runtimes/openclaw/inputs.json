@@ -4,6 +4,6 @@
   "latest_observed_release": "2026.10.1",
   "checked_at": "2026-10-11",
   "mode": "complete gateway and matching official Codex runtime plugin; focused provider authentication",
-  "nixos_openclaw_version": "2026.10.1",
+  "nixos_openclaw_version": "2026.9.5",
   "arch_openclaw_version": "2026.10.1"
 }

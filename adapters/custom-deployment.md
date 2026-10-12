@@ -23,7 +23,11 @@ owner choices and the freshly inspected disk. No credentials belong in it.
   "username": "owner",
   "requirements": [
     {"id": "desktop", "description": "Hyprland with a custom Quickshell shell"},
+    {"id": "lua", "description": "Native hyprland.lua with the requested shortcuts"},
+    {"id": "session", "description": "Custom login launches Hyprland through start-hyprland"},
     {"id": "login", "description": "Custom graphical login with the owner's supplied artwork"},
+    {"id": "appearance", "description": "Dark system appearance by default; Ghostty follows it unless explicitly overridden"},
+    {"id": "assistant-ui", "description": "Ratatui System Assistant opens in Ghostty after installed login"},
     {"id": "resident", "description": "Persistent OpenClaw with fresh provider sign-in after reboot"}
   ]
 }
@@ -116,6 +120,115 @@ Provide actual root/EFI mount definitions, firmware and initrd drivers for this
 hardware, host identity, local console, owner account and resident service. Keep
 remote login off unless requested. Pin all extra inputs and retain generated files;
 selecting a pinned ISO does not automatically pin arbitrary later custom downloads.
+
+## Hyprland: Lua, launch and owner setup
+
+For new Hyprland deployments use **native Lua**, normally
+`$XDG_CONFIG_HOME/hypr/hyprland.lua` (default `~/.config/hypr/hyprland.lua`). The
+pinned 0.56 package supports it. Read the installed package's version and example
+before generating code; do not use historical hyprlang examples or assume every
+old image pin has the same API. Do not generate `hyprland.conf`, pass a legacy
+`--config` path, or translate legacy directives through Lua string calls.
+If an explicitly selected older pin lacks Lua, resolve the version conflict with
+the owner rather than silently falling back. This concerns Hyprland's compositor
+configuration; hyprlock/hypridle have their own configuration formats.
+
+The shipped `adapters/shared/hyprland/hyprland.lua` is a working reference, not a
+requirement to install the preset desktop. For example, native bindings use:
+
+```lua
+hl.bind("SUPER + Return", hl.dsp.exec_cmd("ghostty"))
+hl.bind("SUPER + B", hl.dsp.exec_cmd("firefox"))
+```
+
+On NixOS, generate the owner's Lua file declaratively or seed it once without
+overwriting later edits. If Home Manager is selected, use an explicit Lua file
+such as `xdg.configFile."hypr/hyprland.lua".text` and check that no other option
+generates a competing legacy configuration. Retain the generating source on the
+target. Do not assume that generic Hyprland `settings`/`extraConfig` examples emit
+Lua: inspect the evaluated output of the selected module version.
+
+### Match terminal and system appearance
+
+Default to dark when the owner has not chosen an appearance. A requested system
+theme includes Ghostty's terminal background, foreground and window chrome unless
+the owner explicitly asks for a different terminal theme. Set the system's
+`org.gnome.desktop.interface color-scheme` preference to `prefer-dark` (or the
+chosen light preference), and ensure the session's settings portal exposes it.
+On NixOS a writable default can be provided by `programs.dconf.profiles.user.databases`
+with `settings."org/gnome/desktop/interface".color-scheme = "prefer-dark"`; do not
+lock this preference against later owner changes. Include the appropriate GTK
+settings portal for a minimal Hyprland session.
+
+Configure Ghostty itself too. For automatic system appearance use a light/dark
+pair that exists in the pinned package, for example:
+
+```ini
+theme = dark:Catppuccin Frappe,light:Catppuccin Latte
+window-theme = system
+```
+
+Check availability with `ghostty +list-themes`. Hard-coded foreground/background
+settings override theme colors: migrate conflicting defaults deliberately, while
+preserving an explicit owner terminal-theme override. `window-theme = dark` alone
+only changes chrome, not the terminal palette. Retain the source that generates
+the owner's Ghostty configuration and verify the effective config and a visible
+terminal after login. The preset seeds its own dark colors; importing only a
+terminal package into a custom system does not import those defaults. If automatic
+appearance is unavailable, use the owner's selected fixed theme and explain the
+limitation; do not silently fall back to light.
+
+The authenticated session must ultimately execute the selected package's
+**start-hyprland**, not `Hyprland` directly. On NixOS use
+`${config.programs.hyprland.package}/bin/start-hyprland`; on Arch verify the
+package's `/usr/bin/start-hyprland`. UWSM may manage that launcher, for example
+`uwsm start -e -D Hyprland -- /absolute/path/to/start-hyprland`. If using a desktop
+entry, inspect its actual Exec chain; a session name alone is not proof. A seeding
+wrapper named start-hyprland must exec the package path, not recurse into itself.
+With UWSM, finalize its environment from the Lua startup event:
+
+```lua
+hl.on("hyprland.start", function () hl.exec_cmd("uwsm finalize") end)
+```
+
+Do not hide the direct-launch watchdog warning. A process named Hyprland is the
+normal compositor child even under the correct launcher; check parent/launcher
+processes, UWSM service commands and session logs together.
+
+For the installed owner interface, import the reusable NixOS module alongside
+the resident service (replace the source path and owner with the reviewed values):
+
+```nix
+(import (source + "/adapters/nixos/owner-setup.nix") {
+  owner = "owner";
+  graphical = true;
+  useGhostty = true;
+})
+```
+
+Set `services.controlstackAgent.mutableProviderSetup = true` and its pinned
+`corePackage` and `package`. The module supplies the terminal, restricted owner
+setup command, System Assistant menu entry and XDG autostart; it does not select
+a desktop or greeter. The graphical session must actually run XDG autostart
+(UWSM does this). For console-only deployments set `graphical = false`; tty1
+opens local setup. If a custom session deliberately omits XDG autostart, arrange
+one equivalent owner-session launch, avoiding duplicates. Do not grant the
+resident service sudo. On Arch reuse the reviewed owner setup/menu/autostart
+parts of `adapters/arch/target.py` or implement equivalent native configuration.
+
+Before reboot inspect the generated Lua, executable launcher, selected greeter's
+session entry, setup command/owner sudo rule and autostart integration. Keep
+actual desktop behavior pending for first boot. After independent installed
+login, check `hyprctl configerrors`, test a requested shortcut, confirm the Lua
+file being loaded and the start-hyprland launch chain, and observe the Ratatui
+setup inside the owner's terminal. Record evidence separately for Lua, session
+launch, system/terminal appearance and assistant UI; boot success or gateway health passes none of them.
+Existing installations need migration: preserve the old configuration, translate
+all owner bindings to Lua, validate, and switch the selected session deliberately.
+Changing repository instructions cannot repair an already installed machine.
+
+References: [Hyprland configuration](https://wiki.hypr.land/Configuring/Start/),
+[launching Hyprland](https://wiki.hypr.land/Getting-Started/Master-Tutorial/).
 
 ## Secrets, verification and handoff
 

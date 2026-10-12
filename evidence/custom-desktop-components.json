@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "scope": "Source component VM with a custom Quickshell/greetd login adapting the Hyprland preset; no physical hardware or real provider authentication.",
+  "vm_result": "/nix/store/298f3s8l92g7khm47vn8aja6505yp6kw-vm-test-run-controlstack-custom-greeter",
+  "checks": {
+    "rejects_wrong_password": true,
+    "custom_greeter_login": true,
+    "native_lua_shortcut_executed": true,
+    "start_hyprland_process_observed": true,
+    "no_legacy_hyprland_conf": true,
+    "no_config_errors": true,
+    "ratatui_autostart_in_ghostty": true,
+    "owner_setup_sudo_only": true,
+    "system_dark_default": true,
+    "normal_ghostty_dark_light_dark_pixels": true
+  },
+  "source_checks": {
+    "python_tests": 130,
+    "passed": true
+  },
+  "nixos_runtime_auth": {
+    "runtime": "2026.9.5",
+    "checks": [
+      {
+        "mode": "openai-api",
+        "passed": true,
+        "private_state": true,
+        "real_account": false
+      },
+      {
+        "mode": "chatgpt",
+        "passed": true,
+        "private_state": true,
+        "real_account": false
+      }
+    ]
+  },
+  "component_hashes": {
+    "adapters/nixos/owner-setup.nix": "a8a594c65065adf212cba1686b62b19df3271b9931f8b42f4527c3992162c1df",
+    "tests/custom-greeter-vm.nix": "b0ec2001ba86fa94a1455c2f0cd1869a9c557b08c2ab7f3b3cb1ac5fdc601c3f",
+    "tests/fixtures/custom-ghostty.conf": "4085b4c8ced00785f6c1ad16f9cbcc0281f0f8f8b24046e464abb894c99fe3d4",
+    "tests/fixtures/custom-shortcut.lua": "5de94c848c63715d9c88eb7f1124f893bfbe1d2841c5a9d7fd842f374f8dbeda"
+  },
+  "screenshots": {
+    "normal-terminal-dark-restored.png": "ed03bf179cab7ff40abe28d353707f5247681dca7db4137ba71a4b489aaa5ca7",
+    "normal-terminal-light.png": "d2072dbc3d72888cb9897101e2ebb2c1a138b595def39aeb6f62c025bdc30553",
+    "normal-terminal-dark.png": "8114f728bf7e29b8d2014a0fc52ab395564d51e9ad6211d863c940917c536b88",
+    "custom-login-hyprland.png": "ca2a5e5e3d50017af311b9809c336512fcf51edabe0b64412a3890f799911447",
+    "custom-login-assistant-setup.png": "ca2a5e5e3d50017af311b9809c336512fcf51edabe0b64412a3890f799911447",
+    "custom-login.png": "f6deeb8e215a99c9aa1423f71ccd620965d34aaeebe05e523b5704ac17b8c40d"
+  },
+  "limits": [
+    "Custom appearance and login checks exercise the concrete fixture, not arbitrary model-generated desktop configurations.",
+    "Provider authentication used synthetic responses; no real account or physical key was used.",
+    "ISO rebuilds and independent installed-disk checks have separate receipts."
+  ]
+}

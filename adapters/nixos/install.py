@@ -46,9 +46,6 @@ def nix_string(value):
 def render_target(plan, inputs):
     c = validate_choices(plan["choices"])
     q = nix_string
-    terminal_exec = ('${pkgs.ghostty}/bin/ghostty --title="System Assistant" -e'
-                     if c["desktop"] == "hyprland" else
-                     '${pkgs.xterm}/bin/xterm -T "System Assistant" -fa Monospace -fs 12 -bg "#0b1626" -fg "#dce7f7" -geometry 100x30 -e')
     return f'''import {q(inputs["nixpkgs"] + "/nixos")} {{
   system = "x86_64-linux";
   configuration = {{ config, pkgs, lib, ... }}: {{
@@ -57,6 +54,9 @@ def render_target(plan, inputs):
       (import {q(inputs["source"] + "/adapters/nixos/owner-policy.nix")} {{
         owner = {q(c["username"])}; core = builtins.storePath {q(inputs["core"])};
         powerPolicy = {q(c.get("power_policy", "standard"))}; loginPolicy = {q(c.get("login_policy", "password"))}; }})
+      (import {q(inputs["source"] + "/adapters/nixos/owner-setup.nix")} {{
+        owner = {q(c["username"])}; graphical = {"false" if c["desktop"] == "none" else "true"};
+        useGhostty = {"true" if c["desktop"] == "hyprland" else "false"}; }})
       (import {q(inputs["source"] + "/adapters/nixos/desktop.nix")} {{ desktop = {q(c["desktop"])}; aiTools = {"builtins.storePath " + q(inputs["ai_tools"]) if "ai_tools" in inputs else "null"}; }}) ];
     services.controlstackAgent = {{
       enable = true; mutableProviderSetup = true; workspaceExecution = true; zfs.enable = true;
@@ -88,33 +88,11 @@ def render_target(plan, inputs):
       isNormalUser = true; extraGroups = [ "wheel" "networkmanager" "kvm" ];
       hashedPasswordFile = "/var/lib/controlstack-owner.password";
     }};
-    security.sudo.extraRules = [ {{ users = [ {q(c["username"])} ]; commands = [
-      {{ command = "${{pkgs.lib.getBin (builtins.storePath {q(inputs["core"])})}}/bin/system-agent-setup"; options = [ "NOPASSWD" ]; }}
-    ]; }} ];
     fileSystems."/" = {{ device = {q(plan["pool"] + "/ROOT/system")}; fsType = "zfs"; }};
     fileSystems."/home" = {{ device = {q(plan["pool"] + "/home")}; fsType = "zfs"; }};
     fileSystems."/var/lib/controlstack-agent" = {{ device = {q(plan["pool"] + "/agent")}; fsType = "zfs"; }};
     fileSystems."/boot" = {{ device = {q("/dev/disk/by-partuuid/" + plan["efi_uuid"])}; fsType = "vfat"; options = [ "umask=0077" ]; }};
-    environment.systemPackages = [ pkgs.xterm pkgs.curl pkgs.whois pkgs.python3
-      (pkgs.writeTextDir "share/applications/controlstack-agent.desktop"
-        config.environment.etc."xdg/autostart/controlstack-agent.desktop".text) ];
-    environment.interactiveShellInit = \'\'
-      if [ "$(id -un)" = {c["username"]} ] && [ -t 0 ] && [ "$(tty)" = /dev/tty1 ] &&
-         [ "\'\'${{CONTROLSTACK_SETUP_OPENED:-}}" != 1 ]; then
-        export CONTROLSTACK_SETUP_OPENED=1
-        sudo {inputs["core"]}/bin/system-agent-setup
-      fi
-    \'\';
-    environment.etc."xdg/autostart/controlstack-agent.desktop".text = \'\'
-      [Desktop Entry]
-      Type=Application
-      Name=System Assistant
-      Comment=Talk to your resident computer assistant
-      Icon=computer
-      Categories=System;
-      Exec={terminal_exec} sudo {inputs["core"]}/bin/system-agent-setup
-      Terminal=false
-    \'\';
+    environment.systemPackages = [ pkgs.curl pkgs.whois pkgs.python3 ];
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
     system.stateVersion = "26.05";
   }};

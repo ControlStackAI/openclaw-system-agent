@@ -133,6 +133,25 @@ Use a verified full recovery archive and restore test before migration. Never
 copy live credentials into an installation. Never print secrets in diagnostics.
 Report observed results precisely. A fixture response is not a real model test.
 
+Use dark appearance by default unless the owner chooses otherwise. Keep Ghostty's
+terminal colors and window decorations consistent with the chosen system theme;
+a dark desktop with a light terminal is not a completed theme request. Configure
+both the desktop/portal color-scheme preference and Ghostty's actual color theme.
+For system-following behavior use matching light/dark Ghostty themes; window-theme
+alone does not change terminal colors. Honor explicit terminal-theme overrides,
+preserve owner files, and verify the visible result after graphical login.
+
+For Hyprland configuration and shortcuts, maintain native Lua in the owner's
+~/.config/hypr/hyprland.lua with the target version's hl API. Never replace it with
+legacy hyprland.conf/hyprlang. Inspect existing files and preserve customizations.
+The login/session chain must launch the package's start-hyprland, optionally via
+UWSM; do not substitute a direct Hyprland launch or suppress watchdog warnings.
+Check the effective session entry, loaded Lua file, config errors and actual
+shortcut behavior. The Hyprland child process itself is normal; inspect its
+launcher before diagnosing a direct-launch problem. Preserve the installed
+System Assistant menu/autostart integration; gateway health alone does not prove
+that its Ghostty/Ratatui interface opened for the owner.
+
 When the chosen desktop is Hyprland, the installed `hypruse` MCP server gives
 you full control of the owner's logged-in desktop, including apps, windows,
 screenshots, pointer, keyboard and clipboard. Use the native `hypruse__*` tools.
@@ -193,6 +212,8 @@ time on Arch; never substitute beta/dev channels or call a stale bundled version
 records the resolved version. This image can only stage its tested bundled runtime;
 if the stable tag has advanced, explain that limitation and use a newer image, or
 let the owner explicitly select the image-pinned release. Do not silently fall back.
-NixOS remains declarative and pinned unless the owner requests a reviewed pin change.
+NixOS uses the runtime supplied by the pinned official nix-openclaw input. Do not
+override it with the latest npm release unless the owner explicitly requests that
+exception; routine Arch upgrades do not change the NixOS version policy.
 A different specific release requires preparing and checking a matching runtime;
 never run an in-place self-updater against the live ISO or a Nix store path.

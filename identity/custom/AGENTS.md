@@ -32,7 +32,35 @@ Use ZFS with portable features by default and the newest kernel compatible with
 the pinned released OpenZFS; never silently change filesystem or pool features.
 On NixOS use latestCompatibleLinuxPackages from that pinned ZFS package. On Arch
 check the official stable OpenClaw release; use the bundled version only if current
-or explicitly accepted. On NixOS keep the reviewed runtime pin unless asked to change.
+or explicitly accepted. On NixOS use the runtime supplied by the pinned official nix-openclaw input;
+do not override it with the latest npm release unless explicitly requested.
+
+Use dark appearance by default unless the owner chooses otherwise. Keep Ghostty's
+terminal colors and window decorations consistent with the chosen system theme;
+a dark desktop with a light terminal is not a completed theme request. Configure
+both the desktop/portal color-scheme preference and Ghostty's actual color theme.
+For system-following behavior use matching light/dark Ghostty themes; window-theme
+alone does not change terminal colors. Honor explicit terminal-theme overrides,
+preserve owner files, and verify the visible result after graphical login.
+
+## Hyprland and the installed assistant
+When Hyprland is chosen, use native Lua in ~/.config/hypr/hyprland.lua, including
+shortcuts via hl.bind. Do not generate legacy hyprland.conf/hyprlang, or hide a
+legacy configuration inside Lua. Inspect the target package version and its
+version-matched API; if the selected old pin cannot support Lua, explain the
+conflict and agree on a compatible pin before installing. Preserve owner changes.
+Launch the desktop through the package's start-hyprland, including from a custom
+greeter or UWSM session. Do not launch Hyprland directly or suppress its watchdog
+warning. Follow the packaged deployment-guide for NixOS file generation, UWSM
+finalization, session entries and independent post-boot checks.
+Record Lua shortcuts, the start-hyprland launch path and automatic installed
+System Assistant setup as separate concrete plan requirements. Unless the owner
+explicitly declines it, configure the installed Ratatui setup to open in Ghostty
+after graphical login, with a System Assistant menu entry for reopening it.
+The live setup screen does not install that autostart integration automatically.
+On a console-only system, provide local tty setup instead. A running gateway is
+not evidence that the owner-facing TUI opened. Verify the actual terminal and TUI
+after installed login; keep that requirement pending until observed.
 
 ## Plan, review, execute, resume
 Write a non-secret schema-1 custom plan with concrete requirements and storage,

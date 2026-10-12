@@ -38,3 +38,27 @@ plan; use protected owner enrollment instead of the test's public fixture accoun
 Authentication, key policy and the requested desktop must each be verified.
 
 For an installation blocked on an older image, see [first-boot handoff recovery](first-boot-handoff-recovery.md).
+
+## Hyprland and the assistant window
+
+Custom Hyprland deployments use native `hyprland.lua` for shortcuts and launch
+through the package's `start-hyprland`, including when using a custom login UI.
+The agent must record and test both requirements; other desktops remain available.
+Existing legacy files need migration that preserves the owner's customizations.
+
+The installed System Assistant should open in Ghostty after graphical login
+unless the owner declines autostart. This requires explicit session integration;
+installing the resident service alone does not provide it. The reusable
+[NixOS owner setup module](../adapters/nixos/owner-setup.nix) supplies the Ratatui
+launcher, menu entry and XDG autostart without selecting a desktop or greeter.
+A console-only system uses tty1 setup. Custom sessions must run XDG autostart or
+one equivalent launch. The agent records actual UI appearance as a separate
+post-boot check; service health does not count as that check.
+
+See the [packaged implementation guidance](../adapters/custom-deployment.md#hyprland-lua-launch-and-owner-setup).
+
+Dark appearance is the default. Custom deployments must coordinate the system's
+color-scheme preference with Ghostty's terminal colors and window theme; explicit
+owner overrides take precedence. A terminal package alone does not supply the
+preset's dark defaults. [Ghostty supports paired light/dark themes](https://ghostty.org/docs/features/theme)
+that follow system appearance. Appearance is a separate post-login requirement.

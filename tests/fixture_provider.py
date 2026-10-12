@@ -17,8 +17,8 @@ class Handler(BaseHTTPRequestHandler):
         # Capture only synthetic VM prompts for persistence/identity assertions.
         Path('/tmp/fixture-request.json').write_text(json.dumps(request))
         message = 'VM fixture: resident conversation works.'
-        # Current OpenClaw exposes MCP tools through Tool Search. Exercise that real
-        # discovery and a read-only desktop call instead of disabling compaction.
+        # Exercise the runtime's native discovery (inline or Tool Search) and a
+        # read-only desktop call without changing its catalog defaults.
         tools = {t['function']['name'] for t in request.get('tools', [])}
         messages = request.get('messages', [])
         probe = any(m.get('role') == 'user' and 'installed-fixture-response' in str(m.get('content', '')) for m in messages)
@@ -39,6 +39,9 @@ class Handler(BaseHTTPRequestHandler):
         elif probe and 'tool_call' in tools and 'tool_search' in calls and 'tool_call' not in calls:
             tool_call = {'id': 'fixture-desktop', 'type': 'function', 'function': {
                 'name': 'tool_call', 'arguments': json.dumps({'id': 'hypruse__desktop', 'args': {}})}}
+        elif probe and 'hypruse__desktop' in tools and 'hypruse__desktop' not in calls:
+            tool_call = {'id': 'fixture-inline-desktop', 'type': 'function', 'function': {
+                'name': 'hypruse__desktop', 'arguments': '{}'}}
         response_message = {'role': 'assistant', 'content': message}
         finish_reason = 'stop'
         if tool_call:

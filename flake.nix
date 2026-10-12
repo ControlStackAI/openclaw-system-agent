@@ -39,10 +39,19 @@
       ];
     };
     upstream = import "${openclaw-source}/nix/packages" { inherit pkgs; };
-    # Both distributions use the complete locked official release and matching
-    # ACPX/Codex plugins. NixOS keeps this version until its pin is updated.
+    # Include the matching official Codex harness so first sign-in does not
+    # need to install another agent runtime. The NixOS release stays 2026.9.5.
+    nixosCodexPlugin = (pkgs.callPackage "${openclaw-source}/nix/lib/openclaw-runtime-plugin.nix" {
+      linkOpenClawPeer = false;
+    }) (import "${openclaw-source}/nix/generated/openclaw-runtime-plugins/codex.nix");
+    nixosRuntime = upstream.openclaw-gateway.overrideAttrs (old: {
+      installPhase = old.installPhase + "\n" + ''
+        mkdir -p "$out/lib/openclaw/dist/extensions/codex" "$out/lib/openclaw/extensions/codex"
+        cp -R ${nixosCodexPlugin}/. "$out/lib/openclaw/dist/extensions/codex/"
+        cp ${nixosCodexPlugin}/openclaw.plugin.json "$out/lib/openclaw/extensions/codex/"
+      '';
+    });
     runtime = import ./runtimes/openclaw/package.nix { upstream = upstream.openclaw-gateway; inherit (pkgs) lib fetchNpmDeps; };
-    nixosRuntime = runtime;
     core = pkgs.callPackage ./adapters/nixos/package.nix { inherit installer-source; };
     # Keep optional desktop closures on read-only media. Unpacking them into the
     # live tmpfs exhausted its space before the owner could approve installation.

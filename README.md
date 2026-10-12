@@ -61,7 +61,7 @@ The live USB itself uses a text interface; your chosen desktop runs after instal
 | Preset desktop choices | Hyprland + Quickshell, or no desktop | Hyprland + Quickshell, KDE Plasma, GNOME, or no desktop |
 | System configuration | Native Arch packages and systemd services | Declarative NixOS configuration |
 | Storage | ZFS, with optional native encryption | ZFS, with optional native encryption |
-| Bundled OpenClaw | 2026.10.1 | 2026.10.1, pinned |
+| Bundled OpenClaw | 2026.10.1 | 2026.9.5, from pinned nix-openclaw |
 | Installation version policy | Checks the official stable release before installation | Uses the reviewed pin unless explicitly changed and rebuilt |
 | Agent integrations | Hypruse with Hyprland | Hypruse with Hyprland; mcp-nixos for NixOS queries |
 

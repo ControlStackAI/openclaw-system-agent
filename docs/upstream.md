@@ -1,17 +1,18 @@
 # Reviewed upstream inputs (2026-10-11)
 
-Both images now select official OpenClaw npm release 2026.10.1, with matching
-ACPX/Codex packages in a complete dependency lock. NixOS keeps that explicit pin;
-Arch checks stable before installation. Historical qualification records retain
-the versions of their original artifacts.
+NixOS uses the release supplied by the pinned official nix-openclaw input
+(2026.9.5), including its matching Codex runtime plugin. Arch uses official npm
+release 2026.10.1 with matching ACPX/Codex packages in a complete dependency lock
+and checks stable before installation. Historical qualification records retain
+the versions of their original artifacts, including the temporary 10.1 NixOS image.
 
 - [OpenClaw 2026.10.1](https://github.com/openclaw/openclaw/releases/tag/v2026.10.1):
   latest observed official release. The versioned npm artifact and its integrity
   hash are recorded in `runtimes/openclaw/npm/package-lock.json`.
 - [Official Nix packaging](https://github.com/openclaw/nix-openclaw/tree/f62d33f760bcbdbc6a52ac589eae22bf99201f90):
   the flake reuses its dependency staging, runtime layout and executable wrapper.
-  Its upstream release pin is still 2026.9.5. This project overrides the runtime
-  with its own complete 2026.10.1 npm lock and matching bundled plugins, retaining
+  Its upstream release pin is still 2026.9.5. Only the Arch runtime is overridden
+  with this project's complete 2026.10.1 npm lock and matching bundled plugins, retaining
   released JavaScript and checking the required artifact surfaces during build.
   The source repo provides Linux packaging and Home Manager integration; this
   project supplies its own NixOS system service under a dedicated account.
