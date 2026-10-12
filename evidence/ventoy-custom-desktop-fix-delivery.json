@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "source_commit": "9cc270375f3fb754dd7845110a52f188788e0c0d",
+  "removable_drive_identity_verified": true,
+  "readback_verified": [
+    {
+      "name": "00-OpenClaw-Arch-Hyprland-2026-10-12-CUSTOM-DESKTOP-FIX.iso",
+      "sha256": "762619ad823cf9b6cf0532ba3add1a24e91438bd0649d9f088d15475d504cf61",
+      "bytes": 7163123712
+    },
+    {
+      "name": "00-OpenClaw-Arch-Hyprland-2026-10-12-CUSTOM-DESKTOP-FIX.iso.sha256",
+      "sha256": "bb481afbafa0e2f6816f0a809e5dc57ac7accb72ad513a2a0789931c54ab5bd8",
+      "bytes": 126
+    },
+    {
+      "name": "OpenClaw-Custom-Desktop-Fix-ARCH-BUILD-RECEIPT.json",
+      "sha256": "ea1c94feea6cd061c11350be47c1573674433e1c40918b04df23865104acd925",
+      "bytes": 561
+    },
+    {
+      "name": "OpenClaw-Custom-Desktop-Fix-ARCH.lock.json",
+      "sha256": "250984bafa2cf6062ff0b619efc432e9d08dacc72bbe54a57b2f42c129ce6968",
+      "bytes": 20639
+    },
+    {
+      "name": "00-OpenClaw-NixOS-2026-10-12-CUSTOM-DESKTOP-FIX.iso",
+      "sha256": "a123ea62c255cb58bd09c9db4b90afabff9d47aaab93c8122b01e3baf471ce25",
+      "bytes": 7413202944
+    },
+    {
+      "name": "00-OpenClaw-NixOS-2026-10-12-CUSTOM-DESKTOP-FIX.iso.sha256",
+      "sha256": "dd374cbb3c3147221d97be58c6e691c338c5d1347d7d927e045652305806ad72",
+      "bytes": 118
+    },
+    {
+      "name": "OpenClaw-Custom-Desktop-Fix-NIXOS-BUILD-RECEIPT.json",
+      "sha256": "12e5283f69a3f4a1dff9d9ea442a6f7aa93143b649c2da650c99efb37e2234e7",
+      "bytes": 552
+    },
+    {
+      "name": "OpenClaw-Custom-Desktop-Fix-NIXOS.lock.json",
+      "sha256": "529713438b77f845a8b4182d0160d33ffdeebc65cce7e54ce7c2e2be55d9f09f",
+      "bytes": 17168
+    },
+    {
+      "name": "OpenClaw-Custom-Desktop-Fix-TEST-PLAN.txt",
+      "sha256": "c64f1be31476c551e3566a43dc5a5d8aa1bc169b59cb535ccd00ea7b5b0c8ccb",
+      "bytes": 2727
+    },
+    {
+      "name": "OpenClaw-Custom-Desktop-Fix-QUALIFICATION.json",
+      "sha256": "e62274b64f4bfcbcc606c37d761a80ff45c3b866420c4bb81295a740daa12cd5",
+      "bytes": 16884
+    }
+  ],
+  "replaced": [
+    "00-OpenClaw-Arch-Hyprland-2026-10-11-OPENCLAW-10.1.iso",
+    "00-OpenClaw-Arch-Hyprland-2026-10-11-OPENCLAW-10.1.iso.sha256",
+    "00-OpenClaw-NixOS-2026-10-11-OPENCLAW-10.1.iso",
+    "00-OpenClaw-NixOS-2026-10-11-OPENCLAW-10.1.iso.sha256"
+  ],
+  "unrelated_files_unchanged": true,
+  "safely_unmounted": true,
+  "physical_boot_tested": false
+}
