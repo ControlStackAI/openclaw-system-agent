@@ -28,7 +28,7 @@ and connect your ChatGPT account with a short pairing code and phone QR code.*
 [Get started](#get-started) · [Build an ISO](#build-an-iso) ·
 [Use with your agent](#use-this-with-your-agent) ·
 [Desktop and apps](#your-installed-desktop) · [Test status](docs/qualification.md) ·
-[Report a problem](https://github.com/ControlStackAI/openclaw-system-agent/issues)
+[Report a problem](https://github.com/alinaos-org/openclaw-system-agent/issues)
 
 ## From first boot to a running system
 
@@ -250,7 +250,7 @@ Copy this prompt. Change **both Arch Linux and NixOS** to just **Arch Linux** or
 
 ```text
 Build deployment ISOs for both Arch Linux and NixOS from
-https://github.com/ControlStackAI/openclaw-system-agent.
+https://github.com/alinaos-org/openclaw-system-agent.
 
 Clone the repository or reuse my existing checkout without discarding changes.
 Read AGENTS.md, README.md and docs/agent-guide.md first. Check the host, build
@@ -296,7 +296,7 @@ building; independent byte-for-byte reproducibility is not yet proven.
 Start with this prompt if you want help choosing a path or planning a change:
 
 ```text
-Help me use https://github.com/ControlStackAI/openclaw-system-agent.
+Help me use https://github.com/alinaos-org/openclaw-system-agent.
 Read AGENTS.md, README.md, docs/agent-guide.md and docs/qualification.md.
 Explain the build-machine, live-USB and installed-agent stages in plain language.
 Ask what I want to deploy or change, one question at a time, and reuse the
@@ -349,7 +349,7 @@ build VM is recommended. Allow substantial free disk space for dependencies,
 staging and the approximately 7 GB output image.
 
 ```sh
-git clone https://github.com/ControlStackAI/openclaw-system-agent.git
+git clone https://github.com/alinaos-org/openclaw-system-agent.git
 cd openclaw-system-agent
 
 # Choose one:
@@ -371,7 +371,7 @@ combinations fail rather than silently changing the filesystem.
 
 **Inputs are pinned; independent byte-for-byte reproducibility is not yet proven.**
 A newly built or differently pinned image also needs its own VM qualification.
-The [Locked distribution image workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/workflows/images.yml)
+The [Locked distribution image workflow](https://github.com/alinaos-org/openclaw-system-agent/actions/workflows/images.yml)
 provides a manual GitHub Actions build for maintainers or forks with Actions enabled.
 Its artifacts alone are not evidence of a successful installation.
 
@@ -397,7 +397,7 @@ disposable VM disks. Follow [contributor instructions](AGENTS.md), preserve inpu
 pins, and keep credentials, private host configuration and operator state out of
 builds and commits.
 
-[Open an issue](https://github.com/ControlStackAI/openclaw-system-agent/issues/new)
+[Open an issue](https://github.com/alinaos-org/openclaw-system-agent/issues/new)
 with the image name/checksum, hardware model, step that failed and a readable error
 or sanitized diagnostic summary. Never include passwords, tokens or provider
 credentials. For connection problems, start with [network troubleshooting](docs/networking.md).
@@ -406,7 +406,7 @@ Contributions are welcome through issues and pull requests. Portable lifecycle
 code lives in `system_agent/`, provider integration in `runtimes/`, and distro
 packaging in `adapters/`. Start with the [architecture](docs/architecture.md).
 This repository owns resident-agent persistence and lifecycle; it consumes pinned
-readiness contracts from the separate [agent-installer](https://github.com/ControlStackAI/agent-installer).
+readiness contracts from the separate [agent-installer](https://github.com/alinaos-org/agent-installer).
 
 ## License and upstream projects
 

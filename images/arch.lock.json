@@ -135,13 +135,13 @@
         "locked": {
           "lastModified": 1791304783,
           "narHash": "sha256-aZVu9+ySh91CORygHQSQvJnD2xV5+pHMBJn18h6/FYM=",
-          "owner": "ControlStackAI",
+          "owner": "alinaos-org",
           "repo": "agent-installer",
           "rev": "6d02675cd8ce3323589ec9d7f44e99fcf50487a2",
           "type": "github"
         },
         "original": {
-          "owner": "ControlStackAI",
+          "owner": "alinaos-org",
           "repo": "agent-installer",
           "rev": "6d02675cd8ce3323589ec9d7f44e99fcf50487a2",
           "type": "github"

@@ -17,7 +17,7 @@ for name, expected in lock['files'].items():
     if args.checkout:
         data = subprocess.check_output(['git', '-C', str(args.checkout), 'show', f"{lock['revision']}:{name}"])
     else:
-        data = urllib.request.urlopen(f"https://raw.githubusercontent.com/ControlStackAI/agent-installer/{lock['revision']}/{name}", timeout=30).read()
+        data = urllib.request.urlopen(f"https://raw.githubusercontent.com/alinaos-org/agent-installer/{lock['revision']}/{name}", timeout=30).read()
     assert hashlib.sha256(data).hexdigest() == expected, name
     if name.startswith('profiles/'):
         profile = json.loads(data)

@@ -12,7 +12,7 @@
   "core_vm": {
     "status": "passed",
     "source_commit": "5f7cbb61b652c42d98d29e61dcafc5c4f1d67d80",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37503462931",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37503462931",
     "checks": [
       "private state initialization",
       "credential permission denial",
@@ -30,7 +30,7 @@
   "openclaw_vm": {
     "status": "passed",
     "source_commit": "4b9bdd97fc6fd9dc0692e157fb5d21cfc1f85f7e",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37522513941",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37522513941",
     "runtime_version": "2026.9.5",
     "kernel_version": "7.2.9",
     "openzfs_version": "2.4.4",
@@ -60,7 +60,7 @@
   "source_ci": {
     "status": "passed",
     "source_commit": "6b5a5008d04426e67c6807f709a384305be097b2",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654487739"
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37654487739"
   },
   "production_ready": false,
   "not_qualified": [
@@ -89,9 +89,9 @@
   "usb_vm": {
     "status": "passed-hyprland-case",
     "source_commit": "ff6e287e34070ff2ae581f1676e25a29b10f28f3",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37652171487",
     "iso_sha256": "a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a",
-    "artifact_url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654",
+    "artifact_url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654",
     "artifact_expires_at": "2027-01-05T16:27:28Z",
     "cases": {
       "uefi-install-hyprland-us": {
@@ -146,9 +146,9 @@
   "previous_usb_vm": {
     "status": "passed-hyprland-case",
     "source_commit": "b2534eba90c4c7035b7d170d5a702605e1e5350c",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37588644780",
     "iso_sha256": "233f616a2381a9ab41e104b572c96b65f4fad40e889fbbe2c40a1f4ecb072111",
-    "artifact_url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313",
+    "artifact_url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37588644780/artifacts/11468521313",
     "artifact_expires_at": "2027-01-05T07:39:10Z",
     "cases": {
       "uefi-install-hyprland-us": {
@@ -197,7 +197,7 @@
   "usb_matrix_vm": {
     "status": "passed-all-five-cases-on-preceding-build",
     "source_commit": "a4441724d56267eaf48d1bd568d672d4381dcf96",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37585485964",
     "cases": {
       "uefi-install-hyprland-us": {
         "mode": "uefi-install",
@@ -336,7 +336,7 @@
   "desktop_vm": {
     "status": "passed",
     "source_commit": "6b5a5008d04426e67c6807f709a384305be097b2",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37654485421",
     "checks": [
       "launcher keyboard search and application launch",
       "speaker and microphone default device selection via visible UI",
@@ -369,14 +369,14 @@
     "icon_size_px": 18,
     "unit_tests_passed": 38,
     "local_geometry_check": "passed: real ShellButton components in offscreen Quickshell; Applications, OpenClaw, clock and workspace text fit; 20 px content area accommodates 18 px icons",
-    "native_vm": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421",
-    "updated_iso": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487",
+    "native_vm": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37654485421",
+    "updated_iso": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37652171487",
     "note": "32 px islands are included in this image and the desktop interaction VM; screenshots inspected."
   },
   "previous_desktop_vm": {
     "status": "passed",
     "source_commit": "a10970cdf31006ebe9b590deab7675de62e74a3f",
-    "url": "https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37589254877",
+    "url": "https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37589254877",
     "checks": [
       "launcher keyboard search and application launch",
       "speaker and microphone default device selection via visible UI",

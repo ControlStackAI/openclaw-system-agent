@@ -85,14 +85,14 @@ plan. Stop/resume controls for desktop access are described above.
 The 32-pixel islands, Ghostty defaults and MCP integrations are included in the
 current image and VM checks below. All 38 local and source-CI tests passed.
 
-The [current image check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) passed on source `ff6e287e34070ff2ae581f1676e25a29b10f28f3`.
+The [current image check](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37652171487) passed on source `ff6e287e34070ff2ae581f1676e25a29b10f28f3`.
 It installed onto a disposable 48 GiB disk, booted its ZFS root without the USB,
 logged in through SDDM, opened an application from the launcher and displayed an
 OpenClaw TUI reply from a local fixture. It verified the monitor during an actual
 service stop/start, the audio and Ethernet panels, the CLI/editor defaults,
 lock/password unlock and customization retained after another reboot.
 
-The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421) separately verified speaker
+The [desktop interaction VM](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37654485421) separately verified speaker
 and microphone selection, mute/unmute, both coding CLIs, Neovim and both vendor
 apps' first-run screens. See [qualification](qualification.md) for the image
 checksum and limits. Real account login, physical GPU/audio/Wi-Fi and suspend/resume

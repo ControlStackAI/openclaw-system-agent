@@ -4,7 +4,7 @@
     llm-agents.url = "github:numtide/llm-agents.nix/59d0417c2017794f8872b5556f133c8b0b413734";
     nixpkgs.url = "github:NixOS/nixpkgs/151fa4e8ddfdd8dd25d945ad94ed54a13de9f6e4";
     installer-source = {
-      url = "github:ControlStackAI/agent-installer/6d02675cd8ce3323589ec9d7f44e99fcf50487a2";
+      url = "github:alinaos-org/agent-installer/6d02675cd8ce3323589ec9d7f44e99fcf50487a2";
       flake = false;
     };
     openclaw-source = {

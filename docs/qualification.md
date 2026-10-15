@@ -412,12 +412,12 @@ No host disks, homes, provider credentials or production services entered tests.
 | NixOS module and VM-test derivation evaluation | Passed |
 | Nix lifecycle package build and installed CLI entry points | Passed |
 | Arch package shell syntax and file staging | Passed; not native makepkg/service qualification |
-| Independent lifecycle/ZFS VM | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37503462931) |
-| Real OpenClaw gateway/conversation/backup VM | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37522513941), using a local provider fixture |
+| Independent lifecycle/ZFS VM | [Passed](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37503462931) |
+| Real OpenClaw gateway/conversation/backup VM | [Passed](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37522513941), using a local provider fixture |
 | Owner profile loading, reboot persistence and native backup/restore | Passed in the OpenClaw fixture VM |
 | Guided OS choices | Typed-choice handoff and questionnaire implemented; real-model interview quality unqualified |
 | Real account login and model response | Not tested; no operator credentials used |
-| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964): direct USB boot, tty1 startup, offline gating |
+| BIOS/UEFI OpenClaw live ISO | [Passed](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37585485964): direct USB boot, tty1 startup, offline gating |
 | No-desktop UEFI installation and ZFS-root boot without USB | Passed on a disposable VM disk, with installed OpenClaw fixture response |
 | Plasma and GNOME owner login, automatic assistant window and visible TUI reply | Passed with the local provider fixture |
 | Hyprland + Quickshell login, panel, launcher and visible assistant reply | Passed with the local provider fixture |
@@ -446,7 +446,7 @@ are not qualified. Snapshot execution is tested through the owner-run broker;
 service-restart and scrub-start branches still need dedicated native tests.
 
 The older lifecycle VM uses an ext4 root with ZFS file-backed vdevs. The
-[full ISO workflow](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37585485964) independently installed onto blank 48 GiB virtual
+[full ISO workflow](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37585485964) independently installed onto blank 48 GiB virtual
 disks and booted their ZFS roots with the USB detached. It passed all five cases:
 BIOS/offline live boot, a 4 GiB no-desktop installation, an 8 GiB encrypted Plasma
 installation with a German keyboard, an 8 GiB GNOME installation, and an 8 GiB
@@ -463,14 +463,14 @@ were absent and that the installed owner choices reached a new provider request.
 The model endpoint was a deterministic fixture throughout; this does not qualify
 real account sign-in, real-model interview quality, or physical hardware.
 
-The [earlier development ISO](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) has SHA-256
+The [earlier development ISO](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37652171487/artifacts/11497253654) has SHA-256
 `a6d3dccfb490ea0d7d72610072639723cd69e2af42f7773a044662dab449692a` and was built from `ff6e287e34070ff2ae581f1676e25a29b10f28f3`.
-Its [Hyprland USB check](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37652171487) passed the complete installation, disk boot,
+Its [Hyprland USB check](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37652171487) passed the complete installation, disk boot,
 resident fixture conversation, monitor, panels, launcher, lock and persistence path.
 The five-case results above belong to the preceding build `a4441724d56267eaf48d1bd568d672d4381dcf96`;
 those other desktop profiles were not rerun against those ISO bytes.
 
-The [desktop interaction VM](https://github.com/ControlStackAI/openclaw-system-agent/actions/runs/37654485421) passed on
+The [desktop interaction VM](https://github.com/alinaos-org/openclaw-system-agent/actions/runs/37654485421) passed on
 `6b5a5008d04426e67c6807f709a384305be097b2`. It switched synthetic speaker and microphone devices
 through the visible UI and verified PipeWire defaults, tested microphone mute and
 unmute, checked Neovim and both CLIs with Codex helpers, and rendered the official

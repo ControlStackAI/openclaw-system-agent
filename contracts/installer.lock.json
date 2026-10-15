@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "repository": "https://github.com/ControlStackAI/agent-installer",
+  "repository": "https://github.com/alinaos-org/agent-installer",
   "revision": "6d02675cd8ce3323589ec9d7f44e99fcf50487a2",
   "files": {
     "core/runtime.py": "f342a2d01b922aa47140cde1e8b51fb182b4e2ce224164ce6345f272de18f0b4",
